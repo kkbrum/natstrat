@@ -28,6 +28,7 @@ Suggests:
     gurobi,
     knitr,
     rmarkdown,
+    markdown,
     testthat (>= 3.0.0),
     DT,
     stringr
