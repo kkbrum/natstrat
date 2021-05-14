@@ -35,6 +35,7 @@ Suggests:
     markdown,
     testthat (>= 3.0.0),
     DT,
-    stringr
+    stringr,
+    covr
 VignetteBuilder: knitr
 Config/testthat/edition: 3
