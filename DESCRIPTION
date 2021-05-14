@@ -1,0 +1,35 @@
+Package: natstrat
+Type: Package
+Title: Obtain Unweighted Natural Strata that Balance Many Covariates
+Version: 1.0.0
+Authors@R: c(
+    person("Katherine", "Brumberg", email = "kbrum@wharton.upenn.edu", 
+        role=c("aut", "cre")))
+Description: Natural strata fix a constant ratio of controls to treated units within 
+    each stratum. This ratio need not be an integer. The control units are 
+    chosen using randomized rounding of a linear program that balances many 
+    covariates.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
+Imports: 
+    Rglpk, 
+    stats,
+    plyr,
+    pps,
+    sampling,
+    ggplot2,
+    rlang
+Depends:
+    R (>= 2.10),
+    caret
+Suggests:
+    gurobi,
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    DT,
+    stringr
+VignetteBuilder: knitr
+Config/testthat/edition: 3
