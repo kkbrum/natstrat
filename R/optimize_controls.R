@@ -67,7 +67,7 @@
 #'   not scaled by constraint importances.}
 #'   }}
 #'   \item{\code{lpdetails}}{the full return of the function \code{\link[Rglpk]{Rglpk_solve_LP}}
-#'     or \code{\link[gurobi]{gurobi}} plus information about the epsilons and objective values
+#'     or gurobi plus information about the epsilons and objective values
 #'     for the linear program solution.}
 #' }
 #'

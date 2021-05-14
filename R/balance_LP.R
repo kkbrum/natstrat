@@ -12,6 +12,12 @@
 
 balance_LP <- function(z, X, importances, st, st_vals, S, q_s, N,
                        solver, integer, time_limit) {
+  if (solver == "gurobi" && !requireNamespace("gurobi", quietly = TRUE)) {
+    stop("Package \"gurobi\" needed if \"solver\" parameter set to \"gurobi\". Please
+         install it or switch the \"solver\" parameter to \"Rglpk\".",
+         call. = FALSE)
+  }
+
   # Set up and solve the linear program
   model <- list()
   params <- list(TimeLimit = time_limit, OutputFlag = 0)

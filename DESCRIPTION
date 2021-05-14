@@ -9,6 +9,11 @@ Description: Natural strata fix a constant ratio of controls to treated units wi
     each stratum. This ratio need not be an integer. The control units are 
     chosen using randomized rounding of a linear program that balances many 
     covariates.
+    The gurobi commercial optimization software is recommended, but not required.
+    If available, the gurobi R package can be installed following the instructions 
+    at the gurobi URL provided below.
+URL: https://github.com/kkbrum/natstrat, https://www.gurobi.com/documentation/9.1/refman/ins_the_r_package.html
+BugReports: https://github.com/kkbrum/natstrat/issues
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
@@ -25,7 +30,6 @@ Depends:
     R (>= 2.10),
     caret
 Suggests:
-    gurobi,
     knitr,
     rmarkdown,
     markdown,
