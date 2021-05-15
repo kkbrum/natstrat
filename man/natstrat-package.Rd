@@ -12,7 +12,7 @@ chosen using randomized rounding of a linear program that balances many
 covariates.
 The gurobi commercial optimization software is recommended, but not required.
 If available, the gurobi R package can be installed following the instructions
-at \link{https://www.gurobi.com/documentation/9.1/refman/ins_the_r_package.html}.
+at the useful link about gurobi below.
 }
 \details{
 To achieve the desired ratio of control to treated units,
