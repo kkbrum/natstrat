@@ -5,7 +5,7 @@
 #' covariates.
 #' The gurobi commercial optimization software is recommended, but not required.
 #' If available, the gurobi R package can be installed following the instructions
-#' at https://www.gurobi.com/documentation/9.1/refman/ins_the_r_package.html.
+#' \href{here}{https://www.gurobi.com/documentation/9.1/refman/ins_the_r_package.html}.
 #'
 #' @details
 #' To achieve the desired ratio of control to treated units,
