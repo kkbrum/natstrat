@@ -24,10 +24,13 @@ Possibly mis-spelled words in DESCRIPTION:
   
   "Gurobi" is the name of a commerical optimization software, with related R package "gurobi."
   
-N  checking package dependencies (9.3s)
-   Package suggested but not available for checking: 'gurobi'
+There was 1 WARNING:
 
-As "gurobi" is a commercial software, the R package needs to be installed through a download from their website and is not available on CRAN. This package is not required for my package, but it is recommended. I have checked for the gurobi package in the code before using it with requireNamespace(), and have mentioned gurobi and its installation in the description of the package. 
+* checking dependencies in R code ... WARNING
+'::' or ':::' import not declared from: 'gurobi'
+'loadNamespace' or 'requireNamespace' call not declared from: 'gurobi'
+
+As "gurobi" is a commercial software, the R package needs to be installed through a download from their website and is not available on CRAN. This package is not required for my package, but it is recommended. If I include this package in the suggests field, I get an error that the package was not able to be checked. I have thus left the gurobi package out of imports and suggests fields, but have checked for the gurobi package in the code before using it with requireNamespace(), and have mentioned gurobi and its installation in the description of the package. If there is a more preferable way to deal with packages not on CRAN, please let me know.
   
 
 ## Downstream dependencies
