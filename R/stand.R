@@ -1,6 +1,6 @@
 #' Standardize covariate vector for balance constraint
 #'
-#' This function is used by \code{\link{generate_constraints}} to standardize
+#' This function is used by \code{\link{generate_constraints}()} to standardize
 #' covariate vectors to become balance constraints. This standardization
 #' is done such that the balance constraint will be minimized when the treated
 #' and control groups (within or across strata) have equal means.

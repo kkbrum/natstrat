@@ -10,7 +10,7 @@
 #' of rows should equal the length of \code{z}.
 #' @param selected a boolean vector including whether each unit was selected as part of the treated and control
 #' groups for analysis. Should be the same length as \code{z} and typically comes from the results of
-#' \code{\link{optimize_controls}}.
+#' \code{\link{optimize_controls}()}.
 #' @param plot a boolean denoting whether to generate love plots for the standardized differences.
 #' @param message a boolean denoting whether to print a message about the level of balance achieved
 #' @return List containing:

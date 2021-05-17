@@ -1,6 +1,6 @@
 #' Linear program that selects which controls to use in order to optimize balance
 #'
-#' This linear program is used by \code{\link{optimize_controls}} to choose which controls
+#' This linear program is used by \code{\link{optimize_controls}()} to choose which controls
 #' to select.
 #'
 #' @inheritParams optimize_controls

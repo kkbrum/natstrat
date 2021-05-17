@@ -4,7 +4,7 @@
 #' The main inputs are formula like objects, where the left hand side indicates
 #' the covariate to be balanced and the right hand side indicates the
 #' groups within which to balance. The constraints are
-#' weighted and standardized by \code{\link{stand}} to be used in \code{\link{optimize_controls}}. Missingness
+#' weighted and standardized by \code{\link{stand}()} to be used in \code{\link{optimize_controls}()}. Missingness
 #' indicators can also be added and weighted for any covariate that has \code{NA} values.
 #'
 #' @inheritParams stand

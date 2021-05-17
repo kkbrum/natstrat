@@ -25,6 +25,6 @@ a named list with coefficients of the terms on the left hand side.
 }
 \description{
 This function takes nonstandard formulas as inputs and returns regular formulas
-as well as lists of weights to be used in \code{\link{generate_constraints}}.
+as well as lists of weights to be used in \code{\link{generate_constraints}()}.
 }
 \keyword{internal}

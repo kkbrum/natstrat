@@ -1,7 +1,7 @@
 #' Parse the nonstandard balance formulas
 #'
 #' This function takes nonstandard formulas as inputs and returns regular formulas
-#' as well as lists of weights to be used in \code{\link{generate_constraints}}.
+#' as well as lists of weights to be used in \code{\link{generate_constraints}()}.
 #'
 #' @param balance_formula a formula that may have multiple terms on the left hand side,
 #' "." on the left hand side, and coefficients, making it not a standard formula.

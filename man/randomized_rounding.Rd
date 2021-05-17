@@ -8,7 +8,7 @@ randomized_rounding(o, N, z, st, st_vals, S)
 }
 \arguments{
 \item{o}{linear programming results, as found in the `o` element of the
-returned list from \code{\link{balance_LP}}.}
+returned list from \code{\link{balance_LP}()}.}
 
 \item{N}{the total number of available controls in the data.}
 
@@ -35,11 +35,11 @@ and control) was selected.}
 }
 }
 \description{
-The linear programming solution of \code{\link{balance_LP}} that is used
-within \code{\link{optimize_controls}} sometimes selects fractional control units.
+The linear programming solution of \code{\link{balance_LP}()} that is used
+within \code{\link{optimize_controls}()} sometimes selects fractional control units.
 Here, we select any unit the linear programming solution chose with coefficient 1.
 Then, we select the remaining required number of units from those that have
 fractional solutions by sampling with probabilities equal to the linear
-programming solution. Used within \code{\link{optimize_controls}}.
+programming solution. Used within \code{\link{optimize_controls}()}.
 }
 \keyword{internal}

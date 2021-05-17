@@ -9,15 +9,15 @@
 #'   of rows should equal the length of \code{z}. Balance is achieved when a constraint
 #'   sums to 0, such that numbers closer to 0 are better. When a constraint
 #'   does not apply to a particular unit, the entry should be \code{NA}.
-#'   This should typically be generated using \code{\link{generate_constraints}}.
+#'   This should typically be generated using \code{\link{generate_constraints}()}.
 #' @param ratio a numeric specifying the desired ratio of controls to treated in
 #'   each stratum. If \code{NULL}, \code{q_s} should be specified.
 #' @param q_s a named vector indicating how many control units are to be selected from each stratum.
 #'   If \code{NULL}, \code{ratio} should be specified. If both are specified, \code{q_s} will take priority.
 #'   Typically, if the desired ratio is not feasible for every stratum, \code{q_s} should be generated
-#'   using \code{\link{generate_qs}}.
+#'   using \code{\link{generate_qs}()}.
 #' @param importances a vector with length equal to the number of constraints or columns
-#'   in \code{X}. This can be generated using \code{\link{generate_constraints}} and each nonnegative value
+#'   in \code{X}. This can be generated using \code{\link{generate_constraints}()} and each nonnegative value
 #'   denotes how much to prioritize each constraint, with the default being 1
 #'   for all constraints.
 #' @param integer a logical stating whether to use a mixed integer programming solver
@@ -66,7 +66,7 @@
 #'   \item{\code{run_objectives_wo_importances}}{the objective values for each run of randomized rounding,
 #'   not scaled by constraint importances.}
 #'   }}
-#'   \item{\code{lpdetails}}{the full return of the function \code{\link[Rglpk]{Rglpk_solve_LP}}
+#'   \item{\code{lpdetails}}{the full return of the function \code{\link[Rglpk]{Rglpk_solve_LP}()}
 #'     or gurobi plus information about the epsilons and objective values
 #'     for the linear program solution.}
 #' }

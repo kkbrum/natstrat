@@ -2,7 +2,7 @@
 #'
 #' Determine how many controls should be chosen from each stratum to minimize
 #' the distance between the strata of the chosen controls and those that were desired.
-#' Used within \code{\link{generate_qs}}.
+#' Used within \code{\link{generate_qs}()}.
 #'
 #' @param S the total number of strata.
 #' @param desired_qs a named vector containing the number of controls desired in

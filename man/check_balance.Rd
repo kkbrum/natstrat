@@ -27,7 +27,7 @@ as \code{z}.}
 
 \item{selected}{a boolean vector including whether each unit was selected as part of the treated and control
 groups for analysis. Should be the same length as \code{z} and typically comes from the results of
-\code{\link{optimize_controls}}.}
+\code{\link{optimize_controls}()}.}
 
 \item{denom_variance}{character stating what variance to use in the standardization:
 either the default "treated", meaning the standardization will use the

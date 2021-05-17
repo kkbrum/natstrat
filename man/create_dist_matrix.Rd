@@ -19,7 +19,7 @@ factor separated with ':'.
 }
 \description{
 Create a distance matrix between strata levels created from the interactions
-of factors. Used as input to \code{\link{generate_qs}}.
+of factors. Used as input to \code{\link{generate_qs}()}.
 }
 \examples{
 

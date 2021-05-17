@@ -11,10 +11,10 @@ verify_inputs(X, importances, ratio, q_s, st, z, integer, solver)
 of rows should equal the length of \code{z}. Balance is achieved when a constraint
 sums to 0, such that numbers closer to 0 are better. When a constraint
 does not apply to a particular unit, the entry should be \code{NA}.
-This should typically be generated using \code{\link{generate_constraints}}.}
+This should typically be generated using \code{\link{generate_constraints}()}.}
 
 \item{importances}{a vector with length equal to the number of constraints or columns
-in \code{X}. This can be generated using \code{\link{generate_constraints}} and each nonnegative value
+in \code{X}. This can be generated using \code{\link{generate_constraints}()} and each nonnegative value
 denotes how much to prioritize each constraint, with the default being 1
 for all constraints.}
 
@@ -24,7 +24,7 @@ each stratum. If \code{NULL}, \code{q_s} should be specified.}
 \item{q_s}{a named vector indicating how many control units are to be selected from each stratum.
 If \code{NULL}, \code{ratio} should be specified. If both are specified, \code{q_s} will take priority.
 Typically, if the desired ratio is not feasible for every stratum, \code{q_s} should be generated
-using \code{\link{generate_qs}}.}
+using \code{\link{generate_qs}()}.}
 
 \item{st}{a stratum vector with the \code{i}th entry equal to the
 stratum of unit \code{i}. This should have the same order of units and length

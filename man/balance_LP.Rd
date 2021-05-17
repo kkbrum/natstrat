@@ -26,10 +26,10 @@ unit \code{i} is a control and equal to 1 if unit \code{i} is treated.}
 of rows should equal the length of \code{z}. Balance is achieved when a constraint
 sums to 0, such that numbers closer to 0 are better. When a constraint
 does not apply to a particular unit, the entry should be \code{NA}.
-This should typically be generated using \code{\link{generate_constraints}}.}
+This should typically be generated using \code{\link{generate_constraints}()}.}
 
 \item{importances}{a vector with length equal to the number of constraints or columns
-in \code{X}. This can be generated using \code{\link{generate_constraints}} and each nonnegative value
+in \code{X}. This can be generated using \code{\link{generate_constraints}()} and each nonnegative value
 denotes how much to prioritize each constraint, with the default being 1
 for all constraints.}
 
@@ -56,7 +56,7 @@ instead of randomized rounding. Default is \code{FALSE}.}
 program is allowed to run before aborting. Default is \code{Inf} for no time limit.}
 }
 \description{
-This linear program is used by \code{\link{optimize_controls}} to choose which controls
+This linear program is used by \code{\link{optimize_controls}()} to choose which controls
 to select.
 }
 \keyword{internal}

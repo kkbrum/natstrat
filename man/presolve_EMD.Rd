@@ -20,6 +20,6 @@ be selected in each stratum. The order of the strata should match that of \code{
 \description{
 Determine how many controls should be chosen from each stratum to minimize
 the distance between the strata of the chosen controls and those that were desired.
-Used within \code{\link{generate_qs}}.
+Used within \code{\link{generate_qs}()}.
 }
 \keyword{internal}

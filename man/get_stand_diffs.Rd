@@ -21,7 +21,7 @@ unit \code{i} is a control and equal to 1 if unit \code{i} is treated.}
 
 \item{selected}{a boolean vector including whether each unit was selected as part of the treated and control
 groups for analysis. Should be the same length as \code{z} and typically comes from the results of
-\code{\link{optimize_controls}}.}
+\code{\link{optimize_controls}()}.}
 
 \item{st}{a stratum vector with the \code{i}th entry equal to the
 stratum of unit \code{i}. This should have the same order of units and length

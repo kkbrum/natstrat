@@ -1,7 +1,7 @@
 #' Create matrix of distances between strata
 #'
 #' Create a distance matrix between strata levels created from the interactions
-#' of factors. Used as input to \code{\link{generate_qs}}.
+#' of factors. Used as input to \code{\link{generate_qs}()}.
 #'
 #' @param ... any number of matrices that contain the distances between levels of
 #' a single stratifying factor. These should have both column and row names

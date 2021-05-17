@@ -1,7 +1,7 @@
 #' Calculate desired number of controls per stratum
 #'
 #' Figure out how many units to take from each stratum when some strata are deficient.
-#' The result should be used as an input to \code{\link{optimize_controls}}.
+#' The result should be used as an input to \code{\link{optimize_controls}()}.
 #'
 #' @inheritParams stand
 #' @param ratio a numeric specifying the desired ratio of controls to treated in

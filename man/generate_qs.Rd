@@ -48,5 +48,5 @@ A named vector stating how many controls to take from each stratum.
 }
 \description{
 Figure out how many units to take from each stratum when some strata are deficient.
-The result should be used as an input to \code{\link{optimize_controls}}.
+The result should be used as an input to \code{\link{optimize_controls}()}.
 }
