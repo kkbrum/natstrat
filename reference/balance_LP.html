@@ -40,7 +40,7 @@
 
 
 <meta property="og:title" content="Linear program that selects which controls to use in order to optimize balance — balance_LP" />
-<meta property="og:description" content="This linear program is used by optimize_controls to choose which controls
+<meta property="og:description" content="This linear program is used by optimize_controls() to choose which controls
 to select." />
 
 
@@ -118,7 +118,7 @@ to select." />
     </div>
 
     <div class="ref-description">
-    <p>This linear program is used by <code><a href='optimize_controls.html'>optimize_controls</a></code> to choose which controls
+    <p>This linear program is used by <code><a href='optimize_controls.html'>optimize_controls</a>()</code> to choose which controls
 to select.</p>
     </div>
 
@@ -150,12 +150,12 @@ unit <code>i</code> is a control and equal to 1 if unit <code>i</code> is treate
 of rows should equal the length of <code>z</code>. Balance is achieved when a constraint
 sums to 0, such that numbers closer to 0 are better. When a constraint
 does not apply to a particular unit, the entry should be <code>NA</code>.
-This should typically be generated using <code><a href='generate_constraints.html'>generate_constraints</a></code>.</p></td>
+This should typically be generated using <code><a href='generate_constraints.html'>generate_constraints</a>()</code>.</p></td>
     </tr>
     <tr>
       <th>importances</th>
       <td><p>a vector with length equal to the number of constraints or columns
-in <code>X</code>. This can be generated using <code><a href='generate_constraints.html'>generate_constraints</a></code> and each nonnegative value
+in <code>X</code>. This can be generated using <code><a href='generate_constraints.html'>generate_constraints</a>()</code> and each nonnegative value
 denotes how much to prioritize each constraint, with the default being 1
 for all constraints.</p></td>
     </tr>

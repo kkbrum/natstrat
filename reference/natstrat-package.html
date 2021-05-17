@@ -44,9 +44,9 @@
 each stratum. This ratio need not be an integer. The control units are
 chosen using randomized rounding of a linear program that balances many
 covariates.
-The gurobi commercial optimization software is recommended, but not required.
-If available, the gurobi R package can be installed following the instructions
-at the useful link about gurobi below." />
+To solve the linear program, the Gurobi commercial optimization software
+is recommended, but not required. The gurobi R package can be installed following
+the instructions here." />
 
 
 
@@ -127,9 +127,9 @@ at the useful link about gurobi below." />
 each stratum. This ratio need not be an integer. The control units are
 chosen using randomized rounding of a linear program that balances many
 covariates.
-The gurobi commercial optimization software is recommended, but not required.
-If available, the gurobi R package can be installed following the instructions
-at the useful link about gurobi below.</p>
+To solve the linear program, the Gurobi commercial optimization software
+is recommended, but not required. The gurobi R package can be installed following
+the instructions <a href='https://www.gurobi.com/documentation/9.1/refman/ins_the_r_package.html'>here</a>.</p>
     </div>
 
 
@@ -140,18 +140,14 @@ at the useful link about gurobi below.</p>
 a subset of control units are
 chosen using by optimizing the balance of many covariates using
 either randomized rounding of a linear program or
-an integer program. The main function in this package is <code><a href='optimize_controls.html'>optimize_controls</a></code>.
+an integer program. The main function in this package is <code><a href='optimize_controls.html'>optimize_controls</a>()</code>.
 To create the input constraints for this function, you should use
-<code><a href='generate_constraints.html'>generate_constraints</a></code>.</p>
-    <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
-
-    <p>Brumberg, K; Small, D. S.; Rosenbaum, P. R. (2021+),
-"Using Randomized Rounding of Linear Programs to Obtain Unweighted
-Natural Strata That Balance Many Covariates".</p>
+<code><a href='generate_constraints.html'>generate_constraints</a>()</code>.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
     <div class='dont-index'><p>Useful links:</p><ul>
 <li><p><a href='https://github.com/kkbrum/natstrat'>https://github.com/kkbrum/natstrat</a></p></li>
+<li><p><a href='https://kkbrum.github.io/natstrat/'>https://kkbrum.github.io/natstrat/</a></p></li>
 <li><p><a href='https://www.gurobi.com/documentation/9.1/refman/ins_the_r_package.html'>https://www.gurobi.com/documentation/9.1/refman/ins_the_r_package.html</a></p></li>
 <li><p>Report bugs at <a href='https://github.com/kkbrum/natstrat/issues'>https://github.com/kkbrum/natstrat/issues</a></p></li>
 </ul>

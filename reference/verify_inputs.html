@@ -133,12 +133,12 @@ format and feasible.</p>
 of rows should equal the length of <code>z</code>. Balance is achieved when a constraint
 sums to 0, such that numbers closer to 0 are better. When a constraint
 does not apply to a particular unit, the entry should be <code>NA</code>.
-This should typically be generated using <code><a href='generate_constraints.html'>generate_constraints</a></code>.</p></td>
+This should typically be generated using <code><a href='generate_constraints.html'>generate_constraints</a>()</code>.</p></td>
     </tr>
     <tr>
       <th>importances</th>
       <td><p>a vector with length equal to the number of constraints or columns
-in <code>X</code>. This can be generated using <code><a href='generate_constraints.html'>generate_constraints</a></code> and each nonnegative value
+in <code>X</code>. This can be generated using <code><a href='generate_constraints.html'>generate_constraints</a>()</code> and each nonnegative value
 denotes how much to prioritize each constraint, with the default being 1
 for all constraints.</p></td>
     </tr>
@@ -152,7 +152,7 @@ each stratum. If <code>NULL</code>, <code>q_s</code> should be specified.</p></t
       <td><p>a named vector indicating how many control units are to be selected from each stratum.
 If <code>NULL</code>, <code>ratio</code> should be specified. If both are specified, <code>q_s</code> will take priority.
 Typically, if the desired ratio is not feasible for every stratum, <code>q_s</code> should be generated
-using <code><a href='generate_qs.html'>generate_qs</a></code>.</p></td>
+using <code><a href='generate_qs.html'>generate_qs</a>()</code>.</p></td>
     </tr>
     <tr>
       <th>st</th>

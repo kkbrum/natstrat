@@ -40,12 +40,12 @@
 
 
 <meta property="og:title" content="Sample integer solution from linear programming solution — randomized_rounding" />
-<meta property="og:description" content="The linear programming solution of balance_LP that is used
-within optimize_controls sometimes selects fractional control units.
+<meta property="og:description" content="The linear programming solution of balance_LP() that is used
+within optimize_controls() sometimes selects fractional control units.
 Here, we select any unit the linear programming solution chose with coefficient 1.
 Then, we select the remaining required number of units from those that have
 fractional solutions by sampling with probabilities equal to the linear
-programming solution. Used within optimize_controls." />
+programming solution. Used within optimize_controls()." />
 
 
 
@@ -122,12 +122,12 @@ programming solution. Used within optimize_controls." />
     </div>
 
     <div class="ref-description">
-    <p>The linear programming solution of <code><a href='balance_LP.html'>balance_LP</a></code> that is used
-within <code><a href='optimize_controls.html'>optimize_controls</a></code> sometimes selects fractional control units.
+    <p>The linear programming solution of <code><a href='balance_LP.html'>balance_LP</a>()</code> that is used
+within <code><a href='optimize_controls.html'>optimize_controls</a>()</code> sometimes selects fractional control units.
 Here, we select any unit the linear programming solution chose with coefficient 1.
 Then, we select the remaining required number of units from those that have
 fractional solutions by sampling with probabilities equal to the linear
-programming solution. Used within <code><a href='optimize_controls.html'>optimize_controls</a></code>.</p>
+programming solution. Used within <code><a href='optimize_controls.html'>optimize_controls</a>()</code>.</p>
     </div>
 
     <pre class="usage"><span class='fu'>randomized_rounding</span><span class='op'>(</span><span class='va'>o</span>, <span class='va'>N</span>, <span class='va'>z</span>, <span class='va'>st</span>, <span class='va'>st_vals</span>, <span class='va'>S</span><span class='op'>)</span></pre>
@@ -138,7 +138,7 @@ programming solution. Used within <code><a href='optimize_controls.html'>optimiz
     <tr>
       <th>o</th>
       <td><p>linear programming results, as found in the `o` element of the
-returned list from <code><a href='balance_LP.html'>balance_LP</a></code>.</p></td>
+returned list from <code><a href='balance_LP.html'>balance_LP</a>()</code>.</p></td>
     </tr>
     <tr>
       <th>N</th>
