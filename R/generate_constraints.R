@@ -180,7 +180,7 @@ generate_constraints <- function(balance_formulas, z, data, default_rhs = NULL,
         }
       }
       # Drop any missingness constraints where there is no missingness in that covariate
-      constraint_mat <- constraint_mat[, ! 1:ncol(constraint_mat) %in% drop_cols]
+      constraint_mat <- constraint_mat[, ! 1:ncol(constraint_mat) %in% drop_cols, drop = FALSE]
       constraint_importances <- constraint_importances[! 1:length(constraint_importances) %in% drop_cols]
 
       for (term in names(rhs_weights)) {
