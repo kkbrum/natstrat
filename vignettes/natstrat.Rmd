@@ -171,7 +171,7 @@ We also take a look within each of the 6 strata, and find only two cases of slig
 stand_diffs$plot_strata
 ```
 
-As the imbalances are not too severe, we will accept this balance. However, there are many ways we could finetune the balance by shifting the arguments specified in the [Further details] sections.
+As the imbalances are not too severe, we will accept this balance. However, there are many ways we could fine-tune the balance by shifting the arguments specified in the [Further details] sections.
  
 <a id="sec6"></a>
 
@@ -220,7 +220,7 @@ In some cases, the minimum feasible ratio is defined by a small stratum, and you
 
 One way to do this would be to set `qs` to be the maximum of the number of controls available and the desired amount of the ratio times the number of treated units in the stratum. 
 
-An alternative way would be to make up for the defecit in one or more strata by selecting additional controls from other similar strata such that the overall ratio is maintained. An example of this is below, although it is not recommended for this stratification as the stratum with the smallest ratio available is not particularly small relative to the others and thus forcing all controls from that stratum to be included will limit the optimal balance you can achieve.
+An alternative way would be to make up for the deficit in one or more strata by selecting additional controls from other similar strata such that the overall ratio is maintained. An example of this is below, although it is not recommended for this stratification as the stratum with the smallest ratio available is not particularly small relative to the others and thus forcing all controls from that stratum to be included will limit the optimal balance you can achieve.
 
 First, we will specify what it means for strata to be close to one another, by defining the three age groups to be 0, 1, or 2 distance units apart from one another and defining the two sexes to be 1 distance unit apart from one another. We combine the two distance matrices for these factors using the `create_dist_matrix()` function in this package which will add the distances in the two dimensions to create one distance matrix. 
 
