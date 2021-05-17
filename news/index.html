@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Calculate standardized differences — get_stand_diffs • natstrat</title>
+<title>Changelog • natstrat</title>
 
 
 <!-- jquery -->
@@ -39,9 +39,7 @@
 
 
 
-<meta property="og:title" content="Calculate standardized differences — get_stand_diffs" />
-<meta property="og:description" content="Calculate standardized differences in means between treated and control groups,
-before and after refining the control group. Used within the check_balance function." />
+<meta property="og:title" content="Changelog" />
 
 
 
@@ -60,7 +58,7 @@ before and after refining the control group. Used within the check_balance funct
   </head>
 
   <body data-spy="scroll" data-target="#toc">
-    <div class="container template-reference-topic">
+    <div class="container template-news">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -115,73 +113,23 @@ before and after refining the control group. Used within the check_balance funct
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Calculate standardized differences</h1>
-    <small class="dont-index">Source: <a href='https://github.com/kkbrum/natstrat/blob/master/R/check_balance.R'><code>R/check_balance.R</code></a></small>
-    <div class="hidden name"><code>get_stand_diffs.Rd</code></div>
+      <h1 data-toc-skip>Changelog <small></small></h1>
+      <small>Source: <a href='https://github.com/kkbrum/natstrat/blob/master/NEWS.md'><code>NEWS.md</code></a></small>
     </div>
 
-    <div class="ref-description">
-    <p>Calculate standardized differences in means between treated and control groups,
-before and after refining the control group. Used within the <code><a href='check_balance.html'>check_balance</a></code> function.</p>
-    </div>
-
-    <pre class="usage"><span class='fu'>get_stand_diffs</span><span class='op'>(</span>
-  <span class='va'>data</span>,
-  <span class='va'>z</span>,
-  <span class='va'>selected</span>,
-  st <span class='op'>=</span> <span class='cn'>NULL</span>,
-  ist <span class='op'>=</span> <span class='cn'>NULL</span>,
-  denom_variance <span class='op'>=</span> <span class='st'>"treated"</span>
-<span class='op'>)</span></pre>
-
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>data</th>
-      <td><p>A data frame with columns for which the standardized differences should be calculated.</p></td>
-    </tr>
-    <tr>
-      <th>z</th>
-      <td><p>a treatment indicator vector with <code>i</code>th entry equal to 0 if
-unit <code>i</code> is a control and equal to 1 if unit <code>i</code> is treated.</p></td>
-    </tr>
-    <tr>
-      <th>selected</th>
-      <td><p>a boolean vector including whether each unit was selected as part of the treated and control
-groups for analysis. Should be the same length as <code>z</code> and typically comes from the results of
-<code><a href='optimize_controls.html'>optimize_controls</a>()</code>.</p></td>
-    </tr>
-    <tr>
-      <th>st</th>
-      <td><p>a stratum vector with the <code>i</code>th entry equal to the
-stratum of unit <code>i</code>. This should have the same order of units and length
-as <code>z</code>.</p></td>
-    </tr>
-    <tr>
-      <th>ist</th>
-      <td><p>The specific stratum for which the standardized differences should be calculated.</p></td>
-    </tr>
-    <tr>
-      <th>denom_variance</th>
-      <td><p>character stating what variance to use in the standardization:
-either the default "treated", meaning the standardization will use the
-treated variance (across all strata), or "pooled", meaning
-the standardization will use the average of the treated and control variances.</p></td>
-    </tr>
-    </table>
-
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
-
-    <p>data frame containing two columns, one for standardized differences before
-choosing a subset of controls, and one for after. The rows pertain to covariates.</p>
-
+    <div id="natstrat-100-2021-05-17" class="section level1">
+<h1 class="page-header" data-toc-text="1.0.0">
+<a href="#natstrat-100-2021-05-17" class="anchor"></a>natstrat 1.0.0 (2021-05-17)</h1>
+<p>The first released version.</p>
+</div>
   </div>
+
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
       <h2 data-toc-skip>Contents</h2>
     </nav>
   </div>
+
 </div>
 
 
