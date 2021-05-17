@@ -11,7 +11,7 @@ Description: Natural strata fix a constant ratio of controls to treated units wi
     covariates.
     To solve the linear program, the Gurobi commercial optimization software 
     is recommended, but not required. The gurobi R package can be installed following the instructions 
-    \href{https://www.gurobi.com/documentation/9.1/refman/ins_the_r_package.html}{here}.
+    at <https://www.gurobi.com/documentation/9.1/refman/ins_the_r_package.html>.
 URL: https://github.com/kkbrum/natstrat, https://kkbrum.github.io/natstrat/, https://www.gurobi.com/documentation/9.1/refman/ins_the_r_package.html
 BugReports: https://github.com/kkbrum/natstrat/issues
 License: GPL-3
