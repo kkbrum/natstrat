@@ -1,7 +1,7 @@
 ## Test environments
 * local windows install, R 4.0.3
 * ubuntu-20.04 release (on github actions)
-* ubutntu-20.04 devel (on github actions)
+* ubuntu-20.04 devel (on github actions)
 * macOS-latest release (on github actions)
 * win-builder (devel and release)
 
