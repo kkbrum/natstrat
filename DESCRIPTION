@@ -36,6 +36,7 @@ Suggests:
     testthat (>= 3.0.0),
     DT,
     stringr,
-    covr
+    covr,
+    gurobi
 VignetteBuilder: knitr
 Config/testthat/edition: 3
