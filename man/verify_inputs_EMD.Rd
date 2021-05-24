@@ -17,8 +17,12 @@ as \code{z}.}
 \item{z}{a treatment indicator vector with \code{i}th entry equal to 0 if
 unit \code{i} is a control and equal to 1 if unit \code{i} is treated.}
 }
+\value{
+No return value. If there is a problem with the inputs to \code{\link{generate_qs}()},
+an error is raised.
+}
 \description{
-Check that the ratio, strata, and treated indicator provided
+Check that the ratio, strata, and treated indicator provided to \code{\link{generate_qs}()}
 are in the correct forms and that the desired ratio is feasible
 across the population.
 }

@@ -10,6 +10,10 @@
 #' @param max_s a vector containing the maximum number of controls that should
 #' be selected in each stratum. The order of the strata should match that of \code{desired_qs}.
 #' @param strata_dist_flat a flattened distance matrix between the strata.
+#'
+#' @return A named vector with names identical to those of \code{desired_qs} and
+#' elements containing the number of controls to select from the given stratum.
+#'
 #' @keywords internal
 
 presolve_EMD <- function(S, desired_qs, max_s, strata_dist_flat) {

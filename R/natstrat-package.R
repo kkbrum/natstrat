@@ -3,8 +3,8 @@
 #' each stratum. This ratio need not be an integer. The control units are
 #' chosen using randomized rounding of a linear program that balances many
 #' covariates.
-#' To solve the linear program, the Gurobi commercial optimization software
-#' is recommended, but not required. The gurobi R package can be installed following
+#' To solve the linear program, the 'Gurobi' commercial optimization software
+#' is recommended, but not required. The 'gurobi' R package can be installed following
 #' the instructions \href{https://www.gurobi.com/documentation/9.1/refman/ins_the_r_package.html}{here}.
 #'
 #' @details

@@ -105,11 +105,15 @@ generate_qs <- function(z, st, ratio = NULL,
 
 #' Verify the inputs to the earthmover's distance problem
 #'
-#' Check that the ratio, strata, and treated indicator provided
+#' Check that the ratio, strata, and treated indicator provided to \code{\link{generate_qs}()}
 #' are in the correct forms and that the desired ratio is feasible
 #' across the population.
 #'
 #' @inheritParams generate_qs
+#'
+#' @return No return value. If there is a problem with the inputs to \code{\link{generate_qs}()},
+#' an error is raised.
+#'
 #' @keywords internal
 
 

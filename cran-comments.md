@@ -1,3 +1,12 @@
+## Resubmission
+This is a resubmission. In this version I have:
+
+* Written all package names and software names in single quotes.
+
+* I did not add references describing the methods in my package as they are not available yet.
+
+* Return values are described in the documentation for balance_LP(), presolve_EMD(), verify_inputs_EMD(), and verify_inputs().
+
 ## Test environments
 * local windows install, R 4.0.3
 * ubuntu-20.04 release (on github actions)

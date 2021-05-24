@@ -2,7 +2,7 @@
 % Please edit documentation in R/optimize_controls.R
 \name{verify_inputs}
 \alias{verify_inputs}
-\title{Verify the inputs to \code{\link{optimize_controls}}}
+\title{Verify the inputs to \code{\link{optimize_controls}()}}
 \usage{
 verify_inputs(X, importances, ratio, q_s, st, z, integer, solver)
 }
@@ -37,11 +37,15 @@ unit \code{i} is a control and equal to 1 if unit \code{i} is treated.}
 instead of randomized rounding. Default is \code{FALSE}.}
 
 \item{solver}{a character stating which solver to use to run the linear program.
-Options are "Rglpk" (default) or "gurobi". You must have gurobi installed to use "gurobi".
-If gurobi is available, this is the recommended solver.}
+Options are "Rglpk" (default) or "gurobi". You must have the 'gurobi' package
+installed to use the "gurobi" option. If available, this is the recommended solver.}
+}
+\value{
+No return value. If there is a problem with the inputs to \code{\link{optimize_controls}()},
+an error is raised.
 }
 \description{
-Makes sure that the inputs to \code{\link{optimize_controls}} are in the correct
+Makes sure that the inputs to \code{\link{optimize_controls}()} are in the correct
 format and feasible.
 }
 \keyword{internal}

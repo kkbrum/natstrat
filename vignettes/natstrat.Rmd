@@ -129,7 +129,7 @@ We now run the linear program and randomized rounding that will choose the best 
 * `st`: Strata vector
 * `ratio`: Desired ratio of controls
 
-Additional arguments can be found in in the [Additional `optimize_controls()` arguments] section. One notable argument is `solver`, which is set by default to `Rglpk`. The other solver implemented is `gurobi`, and is highly recommended for use on larger data sets if available to you.
+Additional arguments can be found in in the [Additional `optimize_controls()` arguments] section. One notable argument is `solver`, which is set by default to 'Rglpk'. The other solver implemented is 'gurobi', and is highly recommended for use on larger data sets if available to you.
 
 ```{r selecting controls}
 results <- optimize_controls(z = nh0506$z, 
@@ -302,7 +302,7 @@ We combine any amount of such balance formulas in a list. For example, another w
 
 * `q_s`: This is a named vector specifying how many controls to take from each stratum. This should only be used if the ratio of controls to treated units in each stratum is not constant. This could occur if a certain ratio is not feasible in a stratum and thus you'd like to select fewer controls from that stratum or compensate by selecting controls from other specified strata. The function `generate_qs()`, described in the [Deviating from proportionality] section above, is useful for specifying this argument
 * `integer`: Whether to solve the integer solution as opposed to using randomized rounding. Note that using the integer solver is not recommended for large datasets as the optimization may take an excessively long time or never finish. It is instead suggested to leave `integer = FALSE` (default), which will conduct randomized rounding of the linear program as described in the manuscript `Brumberg et al. (2021+)`
-* `solver`: The solver we'd like to use (`Rglpk` or `gurobi`). Note that we use the `Rglpk` solver here as we have a small dataset and the software is publicly available. However, we recommend using the `gurobi` software for larger datasets if available
+* `solver`: The solver we'd like to use ('Rglpk' or 'gurobi'). Note that we use the 'Rglpk' solver here as we have a small dataset and the software is publicly available. However, we recommend using the 'gurobi' software for larger datasets if available
 * `seed`: The seed we'd like to set when conducting randomized rounding of the linear program solution if `integer = FALSE`
 * `runs`: The number of times we'd like to conduct randomized rounding if `integer = FALSE` before taking the best solution
 * `time_limit`: Time limit for the optimization

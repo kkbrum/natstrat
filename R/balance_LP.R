@@ -8,12 +8,22 @@
 #' @param st_vals the unique stratum levels contained in \code{st}.
 #' @param S the number of unique stratum levels contained in \code{st}.
 #' @param N the total number of available controls in the data.
+#'
+#' @return A list containing two elements:
+#' \describe{
+#' \item{\code{lpdetails}}{The output of either \code{gurobi()} or \code{\link[Rglpk]{Rglpk_solve_LP}()},
+#' except that if \code{gurobi()} is used, the elements \code{objval} and \code{x}
+#' are renamed \code{optimum} and \code{solution}
+#' to be consistent with the output of \code{\link[Rglpk]{Rglpk_solve_LP}()}.}
+#' \item{\code{o}}{The original output of either \code{gurobi()} or \code{\link[Rglpk]{Rglpk_solve_LP}()}.}
+#' }
+#'
 #' @keywords internal
 
 balance_LP <- function(z, X, importances, st, st_vals, S, q_s, N,
                        solver, integer, time_limit) {
   if (solver == "gurobi" && !requireNamespace("gurobi", quietly = TRUE)) {
-    stop("Package \"gurobi\" needed if \"solver\" parameter set to \"gurobi\". Please
+    stop("Package \'gurobi\' needed if \"solver\" parameter set to \"gurobi\". Please
          install it or switch the \"solver\" parameter to \"Rglpk\".",
          call. = FALSE)
   }

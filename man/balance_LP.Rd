@@ -46,14 +46,24 @@ as \code{z}.}
 \item{N}{the total number of available controls in the data.}
 
 \item{solver}{a character stating which solver to use to run the linear program.
-Options are "Rglpk" (default) or "gurobi". You must have gurobi installed to use "gurobi".
-If gurobi is available, this is the recommended solver.}
+Options are "Rglpk" (default) or "gurobi". You must have the 'gurobi' package
+installed to use the "gurobi" option. If available, this is the recommended solver.}
 
 \item{integer}{a logical stating whether to use a mixed integer programming solver
 instead of randomized rounding. Default is \code{FALSE}.}
 
 \item{time_limit}{numeric stating maximum amount of seconds for which the
 program is allowed to run before aborting. Default is \code{Inf} for no time limit.}
+}
+\value{
+A list containing two elements:
+\describe{
+\item{\code{lpdetails}}{The output of either \code{gurobi()} or \code{\link[Rglpk]{Rglpk_solve_LP}()},
+except that if \code{gurobi()} is used, the elements \code{objval} and \code{x}
+are renamed \code{optimum} and \code{solution}
+to be consistent with the output of \code{\link[Rglpk]{Rglpk_solve_LP}()}.}
+\item{\code{o}}{The original output of either \code{gurobi()} or \code{\link[Rglpk]{Rglpk_solve_LP}()}.}
+}
 }
 \description{
 This linear program is used by \code{\link{optimize_controls}()} to choose which controls

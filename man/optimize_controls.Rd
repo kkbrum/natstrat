@@ -49,8 +49,8 @@ using \code{\link{generate_qs}()}.}
 instead of randomized rounding. Default is \code{FALSE}.}
 
 \item{solver}{a character stating which solver to use to run the linear program.
-Options are "Rglpk" (default) or "gurobi". You must have gurobi installed to use "gurobi".
-If gurobi is available, this is the recommended solver.}
+Options are "Rglpk" (default) or "gurobi". You must have the 'gurobi' package
+installed to use the "gurobi" option. If available, this is the recommended solver.}
 
 \item{seed}{the seed to use when doing the randomized rounding of the linear program.
 This will allow results to be reproduced if desired. The default is \code{NULL},
@@ -97,7 +97,7 @@ List containing:
   not scaled by constraint importances.}
   }}
   \item{\code{lpdetails}}{the full return of the function \code{\link[Rglpk]{Rglpk_solve_LP}()}
-    or gurobi plus information about the epsilons and objective values
+    or \code{gurobi()} plus information about the epsilons and objective values
     for the linear program solution.}
 }
 }

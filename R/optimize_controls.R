@@ -23,8 +23,8 @@
 #' @param integer a logical stating whether to use a mixed integer programming solver
 #'   instead of randomized rounding. Default is \code{FALSE}.
 #' @param solver a character stating which solver to use to run the linear program.
-#'   Options are "Rglpk" (default) or "gurobi". You must have gurobi installed to use "gurobi".
-#'   If gurobi is available, this is the recommended solver.
+#'   Options are "Rglpk" (default) or "gurobi". You must have the 'gurobi' package
+#'   installed to use the "gurobi" option. If available, this is the recommended solver.
 #' @param seed the seed to use when doing the randomized rounding of the linear program.
 #'   This will allow results to be reproduced if desired. The default is \code{NULL},
 #'   which will choose a random seed to use and return.
@@ -67,7 +67,7 @@
 #'   not scaled by constraint importances.}
 #'   }}
 #'   \item{\code{lpdetails}}{the full return of the function \code{\link[Rglpk]{Rglpk_solve_LP}()}
-#'     or gurobi plus information about the epsilons and objective values
+#'     or \code{gurobi()} plus information about the epsilons and objective values
 #'     for the linear program solution.}
 #' }
 #'
@@ -280,12 +280,16 @@ optimize_controls <- function(z, X, st, importances = NULL,
   }
 }
 
-#' Verify the inputs to \code{\link{optimize_controls}}
+#' Verify the inputs to \code{\link{optimize_controls}()}
 #'
-#' Makes sure that the inputs to \code{\link{optimize_controls}} are in the correct
+#' Makes sure that the inputs to \code{\link{optimize_controls}()} are in the correct
 #' format and feasible.
 #'
 #' @inheritParams optimize_controls
+#'
+#' @return No return value. If there is a problem with the inputs to \code{\link{optimize_controls}()},
+#' an error is raised.
+#'
 #' @keywords internal
 
 verify_inputs <- function(X, importances, ratio, q_s, st, z, integer, solver) {
@@ -305,7 +309,7 @@ verify_inputs <- function(X, importances, ratio, q_s, st, z, integer, solver) {
          call. = FALSE)
   }
   if (solver == "gurobi" && !requireNamespace("gurobi", quietly = TRUE)) {
-    stop("Package \"gurobi\" needed if \"solver\" parameter set to \"gurobi\". Please
+    stop("Package \'gurobi\' needed if \"solver\" parameter set to \"gurobi\". Please
          install it or switch the \"solver\" parameter to \"Rglpk\".",
          call. = FALSE)
   }

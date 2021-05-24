@@ -17,6 +17,10 @@ be selected in each stratum. The order of the strata should match that of \code{
 
 \item{strata_dist_flat}{a flattened distance matrix between the strata.}
 }
+\value{
+A named vector with names identical to those of \code{desired_qs} and
+elements containing the number of controls to select from the given stratum.
+}
 \description{
 Determine how many controls should be chosen from each stratum to minimize
 the distance between the strata of the chosen controls and those that were desired.
