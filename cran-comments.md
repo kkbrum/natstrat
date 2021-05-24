@@ -25,13 +25,9 @@ Maintainer: 'Katherine Brumberg <kbrum@wharton.upenn.edu>'
 New submission
 
 Possibly mis-spelled words in DESCRIPTION:
-  Gurobi (12:38)
   Unweighted (3:15)
-  gurobi (13:43)
-  
+
   "Unweighted" is how we describe the resulting strata of our method.
-  
-  "Gurobi" is the name of a commerical optimization software, with related R package "gurobi."
   
 * checking package dependencies ... NOTE
 Package suggested but not available for checking: 'gurobi'
