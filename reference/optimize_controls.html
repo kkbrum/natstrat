@@ -190,8 +190,8 @@ instead of randomized rounding. Default is <code>FALSE</code>.</p></td>
     <tr>
       <th>solver</th>
       <td><p>a character stating which solver to use to run the linear program.
-Options are "Rglpk" (default) or "gurobi". You must have gurobi installed to use "gurobi".
-If gurobi is available, this is the recommended solver.</p></td>
+Options are "Rglpk" (default) or "gurobi". You must have the 'gurobi' package
+installed to use the "gurobi" option. If available, this is the recommended solver.</p></td>
     </tr>
     <tr>
       <th>seed</th>
@@ -245,7 +245,7 @@ program is allowed to run before aborting. Default is <code>Inf</code> for no ti
   <dt><code>run_objectives_wo_importances</code></dt><dd><p>the objective values for each run of randomized rounding,
   not scaled by constraint importances.</p></dd></dl></p></dd>
   <dt><code>lpdetails</code></dt><dd><p>the full return of the function <code><a href='https://rdrr.io/pkg/Rglpk/man/Rglpk_solve.html'>Rglpk_solve_LP</a>()</code>
-    or gurobi plus information about the epsilons and objective values
+    or <code>gurobi()</code> plus information about the epsilons and objective values
     for the linear program solution.</p></dd>
 
 </dl>

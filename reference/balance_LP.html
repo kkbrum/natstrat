@@ -187,8 +187,8 @@ as <code>z</code>.</p></td>
     <tr>
       <th>solver</th>
       <td><p>a character stating which solver to use to run the linear program.
-Options are "Rglpk" (default) or "gurobi". You must have gurobi installed to use "gurobi".
-If gurobi is available, this is the recommended solver.</p></td>
+Options are "Rglpk" (default) or "gurobi". You must have the 'gurobi' package
+installed to use the "gurobi" option. If available, this is the recommended solver.</p></td>
     </tr>
     <tr>
       <th>integer</th>
@@ -201,6 +201,17 @@ instead of randomized rounding. Default is <code>FALSE</code>.</p></td>
 program is allowed to run before aborting. Default is <code>Inf</code> for no time limit.</p></td>
     </tr>
     </table>
+
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>A list containing two elements:</p><dl>
+<dt><code>lpdetails</code></dt><dd><p>The output of either <code>gurobi()</code> or <code><a href='https://rdrr.io/pkg/Rglpk/man/Rglpk_solve.html'>Rglpk_solve_LP</a>()</code>,
+except that if <code>gurobi()</code> is used, the elements <code>objval</code> and <code>x</code>
+are renamed <code>optimum</code> and <code>solution</code>
+to be consistent with the output of <code><a href='https://rdrr.io/pkg/Rglpk/man/Rglpk_solve.html'>Rglpk_solve_LP</a>()</code>.</p></dd>
+<dt><code>o</code></dt><dd><p>The original output of either <code>gurobi()</code> or <code><a href='https://rdrr.io/pkg/Rglpk/man/Rglpk_solve.html'>Rglpk_solve_LP</a>()</code>.</p></dd>
+
+</dl>
 
 
   </div>

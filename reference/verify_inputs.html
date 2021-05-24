@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Verify the inputs to optimize_controls — verify_inputs • natstrat</title>
+<title>Verify the inputs to optimize_controls() — verify_inputs • natstrat</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Verify the inputs to optimize_controls — verify_inputs" />
-<meta property="og:description" content="Makes sure that the inputs to optimize_controls are in the correct
+<meta property="og:title" content="Verify the inputs to optimize_controls() — verify_inputs" />
+<meta property="og:description" content="Makes sure that the inputs to optimize_controls() are in the correct
 format and feasible." />
 
 
@@ -115,13 +115,13 @@ format and feasible." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Verify the inputs to <code><a href='optimize_controls.html'>optimize_controls</a></code></h1>
+    <h1>Verify the inputs to <code><a href='optimize_controls.html'>optimize_controls</a>()</code></h1>
     <small class="dont-index">Source: <a href='https://github.com/kkbrum/natstrat/blob/master/R/optimize_controls.R'><code>R/optimize_controls.R</code></a></small>
     <div class="hidden name"><code>verify_inputs.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Makes sure that the inputs to <code><a href='optimize_controls.html'>optimize_controls</a></code> are in the correct
+    <p>Makes sure that the inputs to <code><a href='optimize_controls.html'>optimize_controls</a>()</code> are in the correct
 format and feasible.</p>
     </div>
 
@@ -176,11 +176,15 @@ instead of randomized rounding. Default is <code>FALSE</code>.</p></td>
     <tr>
       <th>solver</th>
       <td><p>a character stating which solver to use to run the linear program.
-Options are "Rglpk" (default) or "gurobi". You must have gurobi installed to use "gurobi".
-If gurobi is available, this is the recommended solver.</p></td>
+Options are "Rglpk" (default) or "gurobi". You must have the 'gurobi' package
+installed to use the "gurobi" option. If available, this is the recommended solver.</p></td>
     </tr>
     </table>
 
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>No return value. If there is a problem with the inputs to <code><a href='optimize_controls.html'>optimize_controls</a>()</code>,
+an error is raised.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
