@@ -32,7 +32,7 @@ Possibly mis-spelled words in DESCRIPTION:
 * checking package dependencies ... NOTE
 Package suggested but not available for checking: 'gurobi'
 
-As "gurobi" is a commercial software, the R package needs to be installed through a download from their website and is not available on CRAN. This package is not required for my package as I provide an alternative using "Rglpk" from CRAN, but it is recommended. I have checked for the gurobi package in the code before using it with requireNamespace(), and have mentioned gurobi and its installation in the description of the package.
+As 'Gurobi' is a commercial software, the R package needs to be installed through a download from their website and is not available on CRAN. This package is not required for my package as I provide an alternative using 'Rglpk' from CRAN, but it is recommended. I have checked for the 'gurobi' package in the code before using it with requireNamespace(), and have mentioned 'gurobi' and its installation in the description of the package.
 
 ## Downstream dependencies
 There are currently no downstream dependencies for this package.
