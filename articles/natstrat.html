@@ -121,8 +121,8 @@
                labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">'&lt; 40 years'</span>, <span class="st">'40 - 50 years'</span>, <span class="st">'&gt; 50 years'</span><span class="op">)</span><span class="op">)</span>
 <span class="va">strata</span> <span class="op">&lt;-</span> <span class="va">age_cat</span> <span class="op">:</span> <span class="va">nh0506</span><span class="op">$</span><span class="va">sex</span></code></pre></div>
 <p>We can now see how many treated and control units are in each of our strata. Our treated units are composed of daily smokers, whereas control units have never smoked. We look at the ratio of controls to treated units available in each stratum:</p>
-<div id="htmlwidget-d28f0264d902a216058a" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-d28f0264d902a216058a">{"x":{"filter":"none","data":[["1","2","3","4","5","6"],["&lt; 40 years:Male","&lt; 40 years:Female","40 - 50 years:Male","40 - 50 years:Female","&gt; 50 years:Male","&gt; 50 years:Female"],["&lt; 40 years","&lt; 40 years","40 - 50 years","40 - 50 years","&gt; 50 years","&gt; 50 years"],["Male","Female","Male","Female","Male","Female"],[391,646,185,243,329,553],[128,88,81,73,123,88],[3.1,7.3,2.3,3.3,2.7,6.3]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Stratum<\/th>\n      <th>Age<\/th>\n      <th>Sex<\/th>\n      <th>Control<\/th>\n      <th>Treated<\/th>\n      <th>Ratio<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"paging":false,"searching":false,"columnDefs":[{"className":"dt-right","targets":[4,5,6]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><p><a id="sec2"></a></p>
+<div id="htmlwidget-8644d7331a7afa6b224b" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-8644d7331a7afa6b224b">{"x":{"filter":"none","data":[["1","2","3","4","5","6"],["&lt; 40 years:Male","&lt; 40 years:Female","40 - 50 years:Male","40 - 50 years:Female","&gt; 50 years:Male","&gt; 50 years:Female"],["&lt; 40 years","&lt; 40 years","40 - 50 years","40 - 50 years","&gt; 50 years","&gt; 50 years"],["Male","Female","Male","Female","Male","Female"],[391,646,185,243,329,553],[128,88,81,73,123,88],[3.1,7.3,2.3,3.3,2.7,6.3]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Stratum<\/th>\n      <th>Age<\/th>\n      <th>Sex<\/th>\n      <th>Control<\/th>\n      <th>Treated<\/th>\n      <th>Ratio<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"paging":false,"searching":false,"columnDefs":[{"className":"dt-right","targets":[4,5,6]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><p><a id="sec2"></a></p>
 </div>
 <div id="selecting-a-ratio-of-controls-to-treated" class="section level3">
 <h3 class="hasAnchor">
@@ -208,16 +208,16 @@
                              plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
 <span class="co">#&gt; Excellent balance achieved across strata (&lt;.1 standardized difference in all covariates). </span>
 <span class="co">#&gt;  The mean standardized difference across strata for the covariates is 0.017,</span>
-<span class="co">#&gt;    the median is 0.006,</span>
-<span class="co">#&gt;    and the maximum is 0.072. </span>
+<span class="co">#&gt;    the median is 0.007,</span>
+<span class="co">#&gt;    and the maximum is 0.079. </span>
 <span class="co">#&gt; Taking a weighted average of standardized differences within strata, </span>
-<span class="co">#&gt;  we have the mean covariate imbalance is 0.025,</span>
-<span class="co">#&gt;    the median is 0.009,</span>
-<span class="co">#&gt;    and the maximum is 0.085. </span>
+<span class="co">#&gt;  we have the mean covariate imbalance is 0.027,</span>
+<span class="co">#&gt;    the median is 0.015,</span>
+<span class="co">#&gt;    and the maximum is 0.092. </span>
 <span class="co">#&gt;  Within strata, we see imbalances (&gt;=.2 standardized difference in some covariates in some strata). </span>
-<span class="co">#&gt;  The mean standardized difference within strata for the covariates is 0.025,</span>
+<span class="co">#&gt;  The mean standardized difference within strata for the covariates is 0.027,</span>
 <span class="co">#&gt;    the median is 0,</span>
-<span class="co">#&gt;    and the maximum is 0.268.</span></code></pre></div>
+<span class="co">#&gt;    and the maximum is 0.298.</span></code></pre></div>
 <p>We see below that there is excellent balance across strata as all standardized differences in means after refining the control group fall below the first dashed line at 0.1. We also see that when we take the weighted average of the standardized differences in means within strata, where the average is weighted by stratum size, these values also fall below 0.1.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">stand_diffs</span><span class="op">$</span><span class="va">plot_pair</span></code></pre></div>
@@ -272,8 +272,8 @@
 <span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"\nThe ATT across the strata is "</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">att</span>, <span class="fl">3</span><span class="op">)</span>, <span class="st">" on the log scale,
     which converted back to a regular scale is "</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">att</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span>, <span class="st">" umol/L."</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; The ATT across the strata is 0.127 on the log scale,</span>
-<span class="co">#&gt;     which converted back to a regular scale is 1.135 umol/L.</span>
+<span class="co">#&gt; The ATT across the strata is 0.129 on the log scale,</span>
+<span class="co">#&gt;     which converted back to a regular scale is 1.138 umol/L.</span>
 
 <span class="kw">for</span> <span class="op">(</span><span class="va">st</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/levels.html">levels</a></span><span class="op">(</span><span class="va">nh0506</span><span class="op">$</span><span class="va">strata</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span>
   <span class="va">att</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">nh0506</span><span class="op">$</span><span class="va">homocysteine</span><span class="op">[</span><span class="va">results</span><span class="op">$</span><span class="va">selected</span> <span class="op">&amp;</span> <span class="va">nh0506</span><span class="op">$</span><span class="va">z</span> <span class="op">==</span> <span class="fl">1</span> <span class="op">&amp;</span> <span class="va">nh0506</span><span class="op">$</span><span class="va">strata</span> <span class="op">==</span> <span class="va">st</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="op">-</span>
@@ -282,18 +282,18 @@
       which converted back to a regular scale is "</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">att</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span>, <span class="st">" umol/L."</span><span class="op">)</span><span class="op">)</span>
 <span class="op">}</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; The ATT for stratum &lt; 40 years:Male is 0.078 on the log scale,</span>
-<span class="co">#&gt;       which converted back to a regular scale is 1.081 umol/L.</span>
-<span class="co">#&gt; The ATT for stratum &lt; 40 years:Female is 0.238 on the log scale,</span>
-<span class="co">#&gt;       which converted back to a regular scale is 1.269 umol/L.</span>
-<span class="co">#&gt; The ATT for stratum 40 - 50 years:Male is 0.04 on the log scale,</span>
-<span class="co">#&gt;       which converted back to a regular scale is 1.041 umol/L.</span>
+<span class="co">#&gt; The ATT for stratum &lt; 40 years:Male is 0.081 on the log scale,</span>
+<span class="co">#&gt;       which converted back to a regular scale is 1.084 umol/L.</span>
+<span class="co">#&gt; The ATT for stratum &lt; 40 years:Female is 0.237 on the log scale,</span>
+<span class="co">#&gt;       which converted back to a regular scale is 1.268 umol/L.</span>
+<span class="co">#&gt; The ATT for stratum 40 - 50 years:Male is 0.045 on the log scale,</span>
+<span class="co">#&gt;       which converted back to a regular scale is 1.046 umol/L.</span>
 <span class="co">#&gt; The ATT for stratum 40 - 50 years:Female is 0.213 on the log scale,</span>
 <span class="co">#&gt;       which converted back to a regular scale is 1.237 umol/L.</span>
-<span class="co">#&gt; The ATT for stratum &gt; 50 years:Male is 0.077 on the log scale,</span>
-<span class="co">#&gt;       which converted back to a regular scale is 1.08 umol/L.</span>
-<span class="co">#&gt; The ATT for stratum &gt; 50 years:Female is 0.165 on the log scale,</span>
-<span class="co">#&gt;       which converted back to a regular scale is 1.18 umol/L.</span></code></pre></div>
+<span class="co">#&gt; The ATT for stratum &gt; 50 years:Male is 0.08 on the log scale,</span>
+<span class="co">#&gt;       which converted back to a regular scale is 1.083 umol/L.</span>
+<span class="co">#&gt; The ATT for stratum &gt; 50 years:Female is 0.168 on the log scale,</span>
+<span class="co">#&gt;       which converted back to a regular scale is 1.183 umol/L.</span></code></pre></div>
 <p>We see a similar effect of smoking increasing homocysteine levels across all the strata, but the effect is greater for females of all ages than for males.</p>
 </div>
 </div>
