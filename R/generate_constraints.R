@@ -11,15 +11,20 @@
 #' @inheritParams parse_formula
 #' @param balance_formulas a list of formulas where the left hand side represents
 #'   the covariate to be balanced, and the terms on the right hand side represent
-#'   the groups within which the covariate should be balanced. More information can
+#'   the populations within which the covariate should be balanced. More information can
 #'   be found in the details below.
 #' @param weight_by_size numeric between 0 and 1 stating how to adjust constraints
-#'   for the size of the groups they represent. Default is 0, meaning imbalance
-#'   within groups is viewed in absolute terms, not relative to the group size.
+#'   for the size of the population they represent. Default is 0, meaning imbalance
+#'   within populations is viewed in absolute terms, not relative to the population size.
 #'   The program may thus prioritize
-#'   balancing the covariate in larger groups compared to smaller groups. A value
-#'   of 1 means that imbalance will be measured relative to the group's size, not
-#'   in absolute terms, implying that it is equally important to balance in every group.
+#'   balancing the covariate in larger populations compared to smaller populations. A value
+#'   of 1 means that imbalance will be measured relative to the population's size, not
+#'   in absolute terms, implying that it is equally important to balance in every population.
+#' @param treated which treatment value should be considered the treated group. This
+#' must be one of the values of \code{z}. This
+#' is used if \code{denom_variance = "treated"} for calculating the variance
+#' to use in the standardization or if \code{weight_by_size > 0} to determine which
+#' treatment group to use to calculate population sizes.
 #' @param autogen_missing whether to automatically generate missingness constraints
 #'   and how heavily to prioritize them. Should be a numeric
 #'   or \code{NULL}. \code{NULL} indicates that
@@ -109,7 +114,8 @@
 #'
 
 generate_constraints <- function(balance_formulas, z, data, default_rhs = NULL,
-                              weight_by_size = 0, denom_variance = "treated", autogen_missing = 50) {
+                              weight_by_size = 0, denom_variance = "treated",
+                              treated = 1, autogen_missing = 50) {
   constraints <- NULL
   importances <- NULL
   for (balance_formula in balance_formulas) {
@@ -120,13 +126,15 @@ generate_constraints <- function(balance_formulas, z, data, default_rhs = NULL,
     lhs_weights <- parsed_formula$lhs_weights
     # Generate a new data frame based on all the variables included on the LHS or RHS of formula
     new_data <- model.frame.default(
-      as.formula(paste0("~ ", paste0(names(rhs_weights), collapse = " + "), " + ", paste0(names(lhs_weights), collapse = " + "))),
+      as.formula(paste0("~ ", paste0(names(rhs_weights), collapse = " + "), " + ",
+                        paste0(names(lhs_weights), collapse = " + "))),
       data, na.action = na.pass)
 
     # Parse coefficients for left hand side ----
     for (lhs_term in names(lhs_weights)) {
       if (is.factor(new_data[, lhs_term]) | is.character(new_data[, lhs_term])) {
-        lhs_term_dummy_data <- predict(dummyVars(as.formula(paste0(" ~ ", lhs_term)), data = new_data), newdata = new_data)
+        lhs_term_dummy_data <- predict(dummyVars(as.formula(paste0(" ~ ", lhs_term)), data = new_data),
+                                       newdata = new_data)
         new_data <- cbind(new_data, lhs_term_dummy_data)
         for (new_term in colnames(lhs_term_dummy_data)) {
           lhs_weights[new_term] <- lhs_weights[lhs_term]
@@ -168,13 +176,14 @@ generate_constraints <- function(balance_formulas, z, data, default_rhs = NULL,
       drop_cols <- NULL
       for (col in 1:ncol(cov_mat)) {
         ind <- as.numeric(cov_mat[, col])
-        xstand <- stand(z = z, x = new_data[, lhs_term], st = ind, ist = 1,
-                        denom_variance = denom_variance, autogen_missing = autogen_missing)
-        constraint_mat[ind == 1, (2*col-1)] <- xstand$covariate
+        xstand <- stand(z = z, x = new_data[, lhs_term],
+                        denom_variance = denom_variance,
+                        treated = treated, autogen_missing = autogen_missing)
+        constraint_mat[ind == 1, (2*col-1)] <- xstand$covariate[ind == 1]
         if (is.null(xstand$missingness)) {
           drop_cols <- c(drop_cols, 2*col)
         } else {
-          constraint_mat[ind == 1, (2*col)] <- xstand$missingness
+          constraint_mat[ind == 1, (2*col)] <- xstand$missingness[ind == 1]
           # Weight missingness constraints
           constraint_importances[2*col] <- autogen_missing * constraint_importances[2*col]
         }
@@ -196,7 +205,7 @@ generate_constraints <- function(balance_formulas, z, data, default_rhs = NULL,
         term_cols_w_missing <- paste0(c("", "missing_"), rep(term_cols, each = 2))
         term_cols_w_missing <- term_cols_w_missing[term_cols_w_missing %in% colnames(constraint_mat)]
 
-        col_ns <- colSums(mat[z == 1, term_cols, drop = FALSE])
+        col_ns <- colSums(mat[z == treated, term_cols, drop = FALSE])
 
         # Weight constraints based on coefficients and weight_by_size
         if (0 %in% col_ns) {

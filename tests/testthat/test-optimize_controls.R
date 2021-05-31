@@ -1,7 +1,9 @@
-z <- c(rep(0, 10), rep(1, 5))
-data <- data.frame(color = c(rep("Red", 5), rep("White", 2), rep("Blue", 3), rep("White", 2), rep("Red", 3)),
-                   number = 1:15,
-                   category = c(rep(c("1", "2"), 5), "1", rep("2", 3), "1"))
+# General optimization tests ----
+set.seed(64)
+z <- c(rep(0, 14), rep(1, 6))
+data <- data.frame(color = c(rep("Red", 4), rep("White", 7), rep("Blue", 3), rep("White", 2), rep("Red", 4)),
+                   number = rnorm(20),
+                   category = c(rep(c("1", "2"), 5), "1", rep("2", 3), "1", rep("2", 4), "1"))
 data$number[c(1, 5, 11)] <- NA
 constraints <- suppressWarnings(generate_constraints(list(color + number ~ 2 * category), z, data = data,
                                                      autogen_missing = 4))
@@ -10,46 +12,38 @@ results <- optimize_controls(z = z, X = constraints$X, st = data$category, ratio
                              integer = FALSE, solver = "Rglpk", seed = 1, runs = 5,
                              time_limit = Inf)
 
-test_that("optimization gives correct raw results", {
-  expect_equal(results$lpdetails$raw_objective, 16.76667, tolerance = .000001)
-  expect_equal(results$rrdetails$raw_objective, 17.27342, tolerance = .000001)
-})
-
-test_that("optimization gives correct corrected results", {
-  expect_equal(results$lpdetails$objective, 20.47115, tolerance = .000001)
-  expect_equal(results$objective, 22.3415, tolerance = .000001)
+test_that("optimization gives correct results", {
+  expect_equal(results$lpdetails$objective, 6.124562, tolerance = .000001)
+  expect_equal(results$objective, 6.264861, tolerance = .000001)
 })
 
 test_that("optimization chooses correct number of units", {
-  expect_equal(sum(results$controls$pr[results$controls$pr < 1 & results$controls$pr > 0]),
-               sum(results$controls$select[results$controls$pr < 1 & results$controls$pr > 0]))
-  expect_equal(sum(results$controls$select), sum(round(table(z, data$category) * 1.5) [2,]))
+  expect_equal(sum(results$pr[results$pr < 1 & results$pr > 0]),
+               sum(results$selected[results$pr < 1 & results$pr > 0]))
+  expect_equal(sum(results$selected[z == 0]), sum(round(table(z, data$category) * 1.5) [2,]))
 })
 
-test_that("epsilon corrected properly", {
-  expect_equal(results$rrdetails$raw_eps['number_category1', ] * sum(results$controls$select) /
-                 (sum(results$controls$select) - sum(is.na(constraints$X[results$selected & !z, "number_category1"]))),
-               results$eps['number_category1', ])
+test_that("importances incorporated properly", {
   expect_equal(results$objective, sum(results$importances * results$eps))
   expect_equal(results$objective_wo_importances, sum(results$eps))
-  expect_equal(results$lpdetails$raw_eps['number_category1', ] * sum(results$controls$pr) /
-                 (sum(results$controls$pr) - sum(results$controls$pr * is.na(constraints$X[!z, "number_category1"]))),
-               results$lpdetails$eps['number_category1', ])
   expect_equal(results$lpdetails$objective, sum(results$importances * results$lpdetails$eps))
   expect_equal(results$lpdetails$objective_wo_importances, sum(results$lpdetails$eps))
 
 })
 
-data_for_sds <- cbind(data[, 1:2], is.na(data$number))
-names(data_for_sds)[3] <- "number_missing"
+# SD vs epsilon tests ----
+
+data_for_sds <- cbind(data[, 1, drop = FALSE], is.na(data$number))
+names(data_for_sds)[2] <- "number_missing"
 sds <- check_balance(z, data_for_sds, data$category, results$selected, message = FALSE)
 
-test_that("epsilons across strata equal standardized diff in means across", {
+test_that("epsilons across strata equal standardized diff in means across when no missingness", {
   expect_equal(sds$sd_across[, "abs_stand_diff_after"],
                as.numeric(rowSums(results$eps[paste0(row.names(sds$sd_across), "_1"),])))
 })
 
-test_that("sum of epsilons within strata equal weighted avg of within strata standardized diff in means", {
+test_that("sum of epsilons within strata equal weighted avg of within strata standardized diff in means
+          when ratios lead to integer q_s and no missingness", {
   covs <- row.names(sds$sd_across)
   stripped_row_names <- sapply(strsplit(row.names(results$eps), "_"),
                                function(k) {paste0(k[-length(k)], collapse = "_")})
@@ -61,6 +55,7 @@ test_that("sum of epsilons within strata equal weighted avg of within strata sta
 
 })
 
+# EMD Tests ----
 
 z <- c(rep(0, 15), rep(1, 5))
 data <- data.frame(color = c(rep("Red", 5), rep("White", 2), rep("Blue", 5), rep("White", 4), rep("Red", 4)),
@@ -76,14 +71,13 @@ results_emd <- suppressWarnings(optimize_controls(z = z, X = constraints$X, st =
                                                   integer = FALSE, solver = "Rglpk", seed = 1, runs = 5,
                                                   time_limit = Inf))
 
-
 test_that("EMD chooses correct number of units", {
-  expect_equal(sum(results_emd$controls$select), sum(round(2.5 * table(z, data$category)[2, ])))
+  expect_equal(sum(results_emd$selected),
+               sum(round(2.5 * table(z, data$category)[2, ])) + sum(table(z, data$category)[2, ]))
 })
 
 test_that("EMD gives right objective", {
-  expect_equal(results_emd$rrdetails$raw_objective, 29.31395, tolerance = 0.0001)
-  expect_equal(results_emd$objective, 34.78992, tolerance = 0.0001)
+  expect_equal(results_emd$objective, 27.89788, tolerance = 0.0001)
 })
 
 test_that("Choosing from closest strata", {
@@ -111,4 +105,103 @@ test_that("Specified max ratio and max extra working", {
   expect_equal(as.numeric(table(data$category[results_emd4$selected & !z]))[3], 3)
 })
 
+# Multiple control group tests ----
+
+z <- c(rep(0, 10), rep(1, 10), rep(2, 8))
+data <- data.frame(color = c(rep("Red", 5), rep("White", 2), rep("Blue", 3),
+                             rep("White", 2), rep("Red", 8), rep("White", 3), rep("Blue", 5)),
+                   number = 1:28,
+                   category = c(rep(c("1", "2"), 5), "1", rep("2", 1), rep(c("1", "2"), 8)))
+data$number[c(1, 5, 11)] <- NA
+constraints <- suppressWarnings(generate_constraints(list(color + number ~ 2 * category),
+                                                     z, data = data, treated = 2,
+                                                     autogen_missing = 4, denom_variance = "pooled"))
+results <- optimize_controls(z = z, X = constraints$X, st = data$category, ratio = .5,
+                             treated = 2, importances = constraints$importances,
+                             integer = FALSE, solver = "Rglpk", seed = 1, runs = 5,
+                             time_limit = Inf)
+
+test_that("optimization gives correct results", {
+  expect_equal(results$lpdetails$objective, 60.63904, tolerance = .000001)
+  expect_equal(results$lpdetails$objective, sum(results$lpdetails$eps * constraints$importances),
+               tolerance = .000001)
+  expect_equal(results$lpdetails$objective_wo_importances, 40.06041, tolerance = .000001)
+  expect_equal(results$lpdetails$objective_wo_importances, sum(results$lpdetails$eps), tolerance = .000001)
+  expect_equal(results$objective, 61.7425, tolerance = .000001)
+  expect_equal(results$objective, sum(results$eps * constraints$importances),
+               tolerance = .000001)
+  expect_equal(results$objective_wo_importances, 40.97886, tolerance = .000001)
+  expect_equal(results$objective_wo_importances, sum(results$eps), tolerance = .000001)
+})
+
+test_that("optimization chooses correct number of units", {
+  expect_equal(sum(results$pr[results$pr < 1 & results$pr > 0]),
+               sum(results$selected[results$pr < 1 & results$pr > 0]))
+  expect_equal(sum(results$selected[z == 0]), sum(round(table(z, data$category)[3,] * 0.5) ))
+  expect_equal(sum(results$selected[z == 1]), sum(round(table(z, data$category)[3,] * 0.5) ))
+  expect_equal(sum(results$selected[z == 2]), sum(round(table(z, data$category)[3,] * 1) ))
+})
+
+data_for_sds <- cbind(data[, 1, drop = FALSE], is.na(data$number))
+names(data_for_sds)[2] <- "number_missing"
+# Between group 0 and 1
+sds1 <- check_balance(z = z, control = 0, treated = 1, X = data_for_sds,
+                      st = data$category, selected = results$selected,
+                      denom_variance = "pooled", message = FALSE)
+# Between group 0 and 2
+sds2 <- check_balance(z = z, control = 0, treated = 2, X = data_for_sds,
+                      st = data$category, selected = results$selected,
+                      denom_variance = "pooled", message = FALSE)
+# Between group 1 and 2
+sds3 <- check_balance(z = z, control = 1, treated = 2, X = data_for_sds,
+                      st = data$category, selected = results$selected,
+                      denom_variance = "pooled", message = FALSE)
+
+test_that("epsilons across strata equal standardized diff in means across when no missingness", {
+  expect_equal(sds1$sd_across[, "abs_stand_diff_after"],
+               as.numeric(rowSums(results$eps[paste0(row.names(sds1$sd_across), "_1_0:1"),])))
+  expect_equal(sds2$sd_across[, "abs_stand_diff_after"],
+               as.numeric(rowSums(results$eps[paste0(row.names(sds2$sd_across), "_1_0:2"),])))
+  expect_equal(sds3$sd_across[, "abs_stand_diff_after"],
+               as.numeric(rowSums(results$eps[paste0(row.names(sds3$sd_across), "_1_1:2"),])))
+})
+
+test_that("sum of epsilons within strata equal weighted avg of within strata standardized diff in means
+          when no missingness and ratios lead to integer q_s", {
+            covs <- row.names(sds1$sd_across)
+            stripped_row_names <- sapply(strsplit(row.names(results$eps), "_"),
+                                         function(k) {paste0(k[1:(length(k)-2)], collapse = "_")})
+            sum_eps_within <- sapply(covs, function(cov) {
+              sum(results$eps[stripped_row_names == cov &
+                                grepl("_category", row.names(results$eps)) &
+                                grepl("_0:1", row.names(results$eps))])})
+            expect_equal(sds1$sd_strata_avg[, "abs_stand_diff_after"],
+                         as.numeric(sum_eps_within))
+
+            sum_eps_within <- sapply(covs, function(cov) {
+              sum(results$eps[stripped_row_names == cov &
+                                grepl("_category", row.names(results$eps)) &
+                                grepl("_0:2", row.names(results$eps))])})
+            expect_equal(sds2$sd_strata_avg[, "abs_stand_diff_after"],
+                         as.numeric(sum_eps_within))
+
+            sum_eps_within <- sapply(covs, function(cov) {
+              sum(results$eps[stripped_row_names == cov &
+                                grepl("_category", row.names(results$eps)) &
+                                grepl("_1:2", row.names(results$eps))])})
+            expect_equal(sds3$sd_strata_avg[, "abs_stand_diff_after"],
+                         as.numeric(sum_eps_within))
+          })
+
+results <- optimize_controls(z = z, X = constraints$X, st = data$category, ratio = c(.5, .75, 1),
+                             treated = 2, importances = constraints$importances,
+                             integer = FALSE, solver = "Rglpk", seed = 1, runs = 5,
+                             time_limit = Inf)
+test_that("multiple ratios still choose correct number of units", {
+  expect_equal(sum(results$pr[results$pr < 1 & results$pr > 0]),
+               sum(results$selected[results$pr < 1 & results$pr > 0]))
+  expect_equal(sum(results$selected[z == 0]), sum(round(table(z, data$category)[3,] * 0.5) ))
+  expect_equal(sum(results$selected[z == 1]), sum(round(table(z, data$category)[3,] * 0.75) ))
+  expect_equal(sum(results$selected[z == 2]), sum(round(table(z, data$category)[3,] * 1) ))
+})
 

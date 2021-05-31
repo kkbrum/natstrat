@@ -264,10 +264,10 @@ qs <- generate_qs(z = nh0506$z,
                   max_ratio = 2.6, 
                   max_extra_s = 0, 
                   strata_dist = strata_dist)
-qs
+qs[1, ]
 ```
 
-We see that 8 extra controls will be drawn from the `40 - 50 years:Female` stratum, yielding a ratio of 2.60, and 9 extra controls will be drawn from the `> 50 years:Male` stratum, yielding a ratio of 2.58. These are two of the three strata that are 1 distance unit away from our deficient stratum.
+We see that for the control group (row 1 of `qs`), 8 extra units will be drawn from the `40 - 50 years:Female` stratum, yielding a ratio of 2.60, and 9 extra units will be drawn from the `> 50 years:Male` stratum, yielding a ratio of 2.58. These are two of the three strata that are 1 distance unit away from our deficient stratum.
 
 Once we have these `qs` generated, we can plug these into `optimize_controls()` and set the `ratio` argument to `NULL`. Everything else holds the same.
 

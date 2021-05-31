@@ -11,17 +11,17 @@ generate_constraints(
   default_rhs = NULL,
   weight_by_size = 0,
   denom_variance = "treated",
+  treated = 1,
   autogen_missing = 50
 )
 }
 \arguments{
 \item{balance_formulas}{a list of formulas where the left hand side represents
 the covariate to be balanced, and the terms on the right hand side represent
-the groups within which the covariate should be balanced. More information can
+the populations within which the covariate should be balanced. More information can
 be found in the details below.}
 
-\item{z}{a treatment indicator vector with \code{i}th entry equal to 0 if
-unit \code{i} is a control and equal to 1 if unit \code{i} is treated.}
+\item{z}{a factor with the \code{i}th entry equal to the treatment of unit \code{i}.}
 
 \item{data}{a data frame containing the relevant covariates in the columns. The number
 of rows should equal the length of \code{treated}.}
@@ -31,17 +31,24 @@ that are just the character corresponding to a covariate to balance. If so,
 the covariate will be balanced according to \code{default_rhs}.}
 
 \item{weight_by_size}{numeric between 0 and 1 stating how to adjust constraints
-for the size of the groups they represent. Default is 0, meaning imbalance
-within groups is viewed in absolute terms, not relative to the group size.
+for the size of the population they represent. Default is 0, meaning imbalance
+within populations is viewed in absolute terms, not relative to the population size.
 The program may thus prioritize
-balancing the covariate in larger groups compared to smaller groups. A value
-of 1 means that imbalance will be measured relative to the group's size, not
-in absolute terms, implying that it is equally important to balance in every group.}
+balancing the covariate in larger populations compared to smaller populations. A value
+of 1 means that imbalance will be measured relative to the population's size, not
+in absolute terms, implying that it is equally important to balance in every population.}
 
 \item{denom_variance}{character stating what variance to use in the standardization:
 either the default "treated", meaning the standardization will use the
-treated variance (across all strata), or "pooled", meaning
-the standardization will use the average of the treated and control variances.}
+treated variance (across all strata), where the treated group is declared in
+the \code{treated} argument, or "pooled", meaning
+the standardization will use the average of the variances of each treatment group.}
+
+\item{treated}{which treatment value should be considered the treated group. This
+must be one of the values of \code{z}. This
+is used if \code{denom_variance = "treated"} for calculating the variance
+to use in the standardization or if \code{weight_by_size > 0} to determine which
+treatment group to use to calculate population sizes.}
 
 \item{autogen_missing}{whether to automatically generate missingness constraints
 and how heavily to prioritize them. Should be a numeric

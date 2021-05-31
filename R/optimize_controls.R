@@ -5,14 +5,23 @@
 #' integer linear program.
 #'
 #' @inheritParams stand
+#' @param st a stratum vector with the \code{i}th entry equal to the
+#'   stratum of unit \code{i}. This should have the same order of units and length
+#'   as \code{z}.
 #' @param X a matrix or data frame containing constraints in the columns. The number
 #'   of rows should equal the length of \code{z}. Balance is achieved when a constraint
 #'   sums to 0, such that numbers closer to 0 are better. When a constraint
 #'   does not apply to a particular unit, the entry should be \code{NA}.
 #'   This should typically be generated using \code{\link{generate_constraints}()}.
-#' @param ratio a numeric specifying the desired ratio of controls to treated in
-#'   each stratum. If \code{NULL}, \code{q_s} should be specified.
-#' @param q_s a named vector indicating how many control units are to be selected from each stratum.
+#' @param ratio a numeric or vector specifying the desired ratio of controls to treated in
+#'   each stratum. If there is one control group and all treated units should be included,
+#'   this can be a numeric. Otherwise, this should be
+#'   a vector with one entry per treatment group, in the same order as the levels of
+#'   \code{z}, including the treated level. If \code{NULL}, \code{q_s} should be specified.
+#' @param q_s a named vector or matrix indicating how many control units are to be selected from each stratum.
+#'   If there is one control group and all treated units are desired, this can be a vector; otherwise,
+#'   this should have one row per treatment group, where the order of the rows matches the order of
+#'   the levels of \code{z}, including the treated level.
 #'   If \code{NULL}, \code{ratio} should be specified. If both are specified, \code{q_s} will take priority.
 #'   Typically, if the desired ratio is not feasible for every stratum, \code{q_s} should be generated
 #'   using \code{\link{generate_qs}()}.
@@ -33,6 +42,10 @@
 #'   will only be reported for the run with the lowest objective value. The default is 1.
 #' @param time_limit numeric stating maximum amount of seconds for which the
 #'   program is allowed to run before aborting. Default is \code{Inf} for no time limit.
+#' @param correct_sizes boolean stating whether the desired sample sizes should
+#'  be exactly correct (if \code{correct_sizes = TRUE}) or only need to be correct
+#'  in expectation. For nested comparisons, sample sizes may only be
+#'  correct in expectation.
 #'
 #' @return List containing:
 #' \describe{
@@ -40,28 +53,15 @@
 #'     linear program solution.}
 #'   \item{\code{objective_wo_importances}}{objective value of the randomized rounding or mixed integer
 #'     linear program solution not weighted by the variable importances.}
-#'   \item{\code{eps}}{the amount of imbalance obtained in each constraint from the linear program.}
+#'   \item{\code{eps}}{the amount of imbalance obtained in each constraint from the linear program.
+#'   The row names specify the covariate, the population of interest, and, if there are
+#'   more than two comparison groups, which groups are being compared.}
 #'   \item{\code{importances}}{the importance of each on the balance constraints.}
-#'   \item{\code{selected}}{the selected treated and control units.}
-#'   \item{\code{controls}}{the linear program weight assigned to each control and
-#'     whether it was selected by randomized rounding.}
+#'   \item{\code{selected}}{whether each unit was selected.}
+#'   \item{\code{pr}}{the linear program weight assigned to each unit.}
 #'   \item{\code{rrdetails}}{A list containing:
 #'   \describe{
 #'   \item{\code{seed}}{the seed used before commencing the random sampling.}
-#'   \item{\code{raw_objective}}{objective value of the randomized rounding or mixed integer
-#'     linear program solution before the denominator has been corrected for the number of
-#'     units chosen with missing covariate values.}
-#'   \item{\code{raw_objective_wo_importances}}{objective value of the randomized rounding or mixed integer
-#'     linear program solution not weighted by the variable importances
-#'     before the denominator has been corrected for the number of
-#'     units chosen with missing covariate values.}
-#'   \item{\code{raw_eps}}{the amount of imbalance obtained in each constraint from the linear program,
-#'     before the denominators have been corrected for the number of
-#'     units chosen with missing covariate values.}
-#'   \item{\code{run_raw_objectives}}{the objective values for each run of randomized rounding,
-#'   before denominators have been corrected for missingness.}
-#'   \item{\code{run_raw_objectives_wo_importances}}{the objective values for each run of randomized rounding,
-#'   before denominators have been corrected for missingness, not scaled by constraint importances.}
 #'   \item{\code{run_objectives}}{the objective values for each run of randomized rounding.}
 #'   \item{\code{run_objectives_wo_importances}}{the objective values for each run of randomized rounding,
 #'   not scaled by constraint importances.}
@@ -127,29 +127,54 @@
 #'                              importances = constraints$importances,
 #'                              q_s = qs)
 
-optimize_controls <- function(z, X, st, importances = NULL,
+optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
                               ratio = NULL, q_s = NULL,
                               integer = FALSE, solver = "Rglpk",
                               seed = NULL, runs = 1,
-                              time_limit = Inf) {
+                              time_limit = Inf, correct_sizes = TRUE) {
 
   # Make sure inputs are good
-  verify_inputs(X = X, importances = importances, ratio = ratio, q_s = q_s, st = st, z = z, integer = integer, solver = solver)
+  verify_inputs(X = X, importances = importances, ratio = ratio, q_s = q_s,
+                st = st, z = z, treated = treated, integer = integer, solver = solver)
+  z <- factor(z)
+  group <- levels(z)
+  k <- length(group)
+  kc2 <- choose(k, 2)
+  #  if (!is.null(q_star_s) & correct_sizes) {
+  #    correct_sizes <- FALSE
+  #    warning("Sample sizes are only correct in expectation for multiple comparisons. `correct_sizes` has thus been switched to `FALSE`.")
+  #  }
 
   # Look at strata counts
   frtab <- table(z, st)
-  stratios <- frtab[1, ]/frtab[2, ]
+  stratios <- frtab / frtab[group == treated, ]
   st_vals <- as.character(colnames(frtab))  # stratum values
   S <- length(st_vals)  # number of strata
+
+
+  if (!is.null(q_s) & is.vector(q_s)) {
+    q_s <- matrix(rep(q_s, length(group)), byrow = TRUE, nrow = length(group), dimnames = list(NULL, names(q_s)))
+    q_s[group == treated, ] <- frtab[group == treated, ]
+  }
+  if (!is.null(ratio) & length(ratio) == 1) {
+    ratio <- rep(ratio, length(group))
+    ratio[group == treated] <- 1
+  }
 
   # Determine number of controls desired for each stratum
   if (is.null(q_s)) {
     if (is.null(ratio)) {
-      ratio <- min(1, min(stratios))
+      ratio <- sapply(1:nrow(stratios), function(i) min(1, min(stratios[i, ])))
     }
-    q_s <- round(ratio * frtab[2, ])
+    q_s <- round(ratio %*% t(frtab[group == treated, ]))
+    n_s <- table(z, st)
+    if (any(q_s > n_s)) {
+      stop("The ratio you specified is not feasible.
+            Please supply `q_s` instead of `ratio` or lower the `ratio` input.",
+           call. = FALSE)
+    }
   } else {
-    q_s <- q_s[st_vals]
+    q_s <- q_s[, st_vals]
   }
 
   # Prepare importances
@@ -159,53 +184,46 @@ optimize_controls <- function(z, X, st, importances = NULL,
     importances <- importances[colnames(X)]
   }
 
-  nvars <- dim(X)[2]
-  N <- sum(1 - z)
+  nvars_per_group <- dim(X)[2]
+  nvars <- nvars_per_group * kc2
+  N <- length(z)
   # Run linear program to choose control units
-  lp_results <- balance_LP(z = z, X = X, importances = importances, st = st, st_vals = st_vals, S = S,
+  lp_results <- balance_LP(z = z, X = X, importances = importances,
+                           st = st, st_vals = st_vals, S = S,
                            q_s = q_s, N = N, integer = integer, solver = solver,
                            time_limit = time_limit)
 
   if (is.null(lp_results)) {
     return(NULL)
   } else {
-    Q <- sum(q_s)
+    Q <- rowSums(q_s)
 
     # Epsilons for the linear program solution
-    lp_results$lpdetails$raw_eps <- lp_results$o$solution[(N + 1):(N + (2 * nvars))]
-    lp_results$lpdetails$raw_eps <- matrix(lp_results$lpdetails$raw_eps, nvars, 2)
+    lp_results$lpdetails$eps <- lp_results$o$solution[(N + 1):(N + (2 * nvars))]
+    lp_results$lpdetails$eps <- matrix(lp_results$lpdetails$eps, nvars, 2)
     if (!is.null(colnames(X))) {
-      rownames(lp_results$lpdetails$raw_eps) <- colnames(X)
+      if (k == 2) {
+        rownames(lp_results$lpdetails$eps) <- colnames(X)
+      } else {
+        rownames(lp_results$lpdetails$eps) <- 1:nvars
+        pairs <- combn(group, 2)
+        for (pair_num in 1:kc2) {
+          group1 <- pairs[1, pair_num]
+          group2 <- pairs[2, pair_num]
+          rownames(lp_results$lpdetails$eps)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <-
+            paste0(colnames(X), "_", group1, ":", group2)
+        }
+      }
     }
-    colnames(lp_results$lpdetails$raw_eps) <- c("positive", "negative")
+    colnames(lp_results$lpdetails$eps) <- c("positive", "negative")
 
-    # Record raw objectives
-    lp_results$lpdetails$raw_objective <- lp_results$o$optimum
+    # Record objectives
+    lp_results$lpdetails$objective <- lp_results$o$optimum
 
     # Obj without importances for LP
-    lp_results$lpdetails$raw_objective_wo_importances <- sum(lp_results$lpdetails$raw_eps)
-
-    # Corrected epsilons for LP
-
-    # Locate missing values in each covariate (within any stratum)
-    stripped_covs <- sapply(strsplit(row.names(lp_results$lpdetails$raw_eps), "_"),
-                            function(k) {paste0(k[-length(k)], collapse = "_")})
-    unique_covs <- unique(stripped_covs)
-    missing_instances <- data.frame(matrix(NA, nrow = N, ncol = length(unique_covs)))
-    names(missing_instances) <- unique_covs
-    for (cov in unique_covs) {
-      missing_instances[, cov] <- !complete.cases(X[!z, stripped_covs == cov])
-    }
-    # Correct denominator for amount of missingness
-    lp_results$lpdetails$eps <- lp_results$lpdetails$raw_eps *
-      Q / (Q - sapply(stripped_covs, function(con) {sum(lp_results$o$solution[1:N] * missing_instances[, con])}))
-    # Corrected obj for LP
     lp_results$lpdetails$objective_wo_importances <- sum(lp_results$lpdetails$eps)
-    lp_results$lpdetails$objective <- sum(importances * lp_results$lpdetails$eps)
 
     best_objective <- Inf
-    run_raw_objectives <- rep(NA, runs)
-    run_raw_objectives_wo_importances <- rep(NA, runs)
     run_objectives <- rep(NA, runs)
     run_objectives_wo_importances <- rep(NA, runs)
 
@@ -213,67 +231,75 @@ optimize_controls <- function(z, X, st, importances = NULL,
       seed <- sample(1:1000000, 1)
     }
     set.seed(seed)
+    # TODO: change q_star_s when we incorporate that
+    balance_matrices <- create_balance_matrices(X = X, z = z, N = N, nvars = nvars_per_group,
+                                                kc2 = kc2, q_s = q_s, q_star_s = NULL)
 
     for (run in 1:runs) {
       # Run randomized rounding
-      rr_results_temp <- randomized_rounding(o = lp_results$o, N = N, z = z, st = st,
-                                             st_vals = st_vals, S = S)
+      if (correct_sizes) {
+        rr_results_temp <- randomized_rounding(o = lp_results$o, N = N, st = st,
+                                               st_vals = st_vals, S = S, z = z)
+      } else {
+        # TODO: Change this when incorporated fully
+        multi_comp <- FALSE
+        # multi_comp <- is.null(q_star_s)
+        rr_results_temp <- randomized_rounding_expectation(o = lp_results$o, N = N,
+                                                           multi_comp = multi_comp)
+      }
 
       # Calculate and format results
 
       # Epsilons for the randomized rounding (or integer) solution
-      X0 <- X[z == 0, ] / sum(q_s)
-      blk1 <- t(X0)
-      raw_eps_temp <- matrix(0, nvars, 2)
+      eps_temp <- matrix(0, nvars, 2)
       for (i in 1:nvars) {
-        row <- blk1[i, ]
-        inbalance <- sum(row * rr_results_temp$controls$select, na.rm = TRUE)
+        row <- balance_matrices$x_blk[i, ]
+        inbalance <- sum(row * rr_results_temp$select)
         if (inbalance < 0) {
-          raw_eps_temp[i, 1] <- abs(inbalance)
+          eps_temp[i, 1] <- abs(inbalance)
         } else if (inbalance > 0) {
-          raw_eps_temp[i, 2] <- inbalance
+          eps_temp[i, 2] <- inbalance
         }
       }
-      if (!is.null(colnames(X))) {
-        rownames(raw_eps_temp) <- colnames(X)
+      if (k == 2) {
+        if (!is.null(colnames(X))) {
+          rownames(eps_temp) <- colnames(X)
+        }
+      } else {
+        if (!is.null(colnames(X))) {
+          rownames(eps_temp) <- 1:nvars
+          pairs <- combn(unique(z), 2)
+          for (pair_num in 1:kc2) {
+            group1 <- pairs[1, pair_num]
+            group2 <- pairs[2, pair_num]
+            rownames(eps_temp)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <- paste0(colnames(X), "_", group1, ":", group2)
+          }
+        }
       }
-      colnames(raw_eps_temp) <- c("positive", "negative")
 
-      # Corrected epsilons for RR
-      eps_temp <- raw_eps_temp *
-        Q / (Q - sapply(stripped_covs, function(con) {sum(missing_instances[rr_results_temp$controls$select, con])}))
+      colnames(eps_temp) <- c("positive", "negative")
 
       # Objective value for the randomized rounding (or integer) solution
-      run_raw_objectives[run] <- sum(importances * raw_eps_temp)
-      run_raw_objectives_wo_importances[run] <- sum(raw_eps_temp)
       run_objectives[run] <- sum(importances * eps_temp)
       run_objectives_wo_importances[run] <- sum(eps_temp)
 
-      if (run_raw_objectives[run] < best_objective) {
-        raw_eps <- raw_eps_temp
+      if (run_objectives[run] < best_objective) {
         eps <- eps_temp
-        raw_objective_wo_importances <- run_raw_objectives_wo_importances[run]
         objective_wo_importances <- run_objectives_wo_importances[run]
-        objective <- run_objectives[run]
         rr_results <- rr_results_temp
-        best_objective <- run_raw_objectives[run]
+        best_objective <- run_objectives[run]
       }
 
     }
 
-    return(list(objective = objective,
+    return(list(objective = best_objective,
                 objective_wo_importances = objective_wo_importances,
                 eps = eps,
                 importances = importances,
-                selected = rr_results$selected,
-                controls = rr_results$controls,
+                selected = rr_results$select,
+                pr = rr_results$pr,
                 rrdetails = list(
                   seed = seed,
-                  raw_objective = best_objective,
-                  raw_objective_wo_importances = raw_objective_wo_importances,
-                  raw_eps = raw_eps,
-                  run_raw_objectives = run_raw_objectives,
-                  run_raw_objectives_wo_importances = run_raw_objectives_wo_importances,
                   run_objectives = run_objectives,
                   run_objectives_wo_importances = run_objectives_wo_importances),
                 lpdetails = lp_results$lpdetails))
@@ -292,15 +318,14 @@ optimize_controls <- function(z, X, st, importances = NULL,
 #'
 #' @keywords internal
 
-verify_inputs <- function(X, importances, ratio, q_s, st, z, integer, solver) {
+verify_inputs <- function(X, importances, ratio, q_s, st, z, treated, integer, solver) {
   if (is.data.frame(X))
     X <- as.matrix(X)
   stopifnot(!is.null(ratio) || !is.null(q_s))
-  stopifnot(is.null(ratio) | (is.vector(ratio) & (ratio > 0)))
+  stopifnot(is.null(ratio) | (is.vector(ratio) & all(ratio > 0)))
   stopifnot(is.vector(st) | is.factor(st))
-  stopifnot(is.vector(z))
+  stopifnot(is.vector(z) | is.factor(z))
   stopifnot(is.matrix(X))
-  stopifnot(all((z == 0) | (z == 1)))
   stopifnot(length(z) == (dim(X)[1]))
   stopifnot(length(z) == length(st))
   stopifnot(is.logical(integer))
@@ -313,22 +338,26 @@ verify_inputs <- function(X, importances, ratio, q_s, st, z, integer, solver) {
          install it or switch the \"solver\" parameter to \"Rglpk\".",
          call. = FALSE)
   }
+  z <- factor(z)
+  group <- levels(z)
+  if (!treated %in% group) {
+    stop("\"treated\" must be one of the values in \"z\".")
+  }
   frtab <- table(z, st)
-  if (min(frtab[2, ]) == 0) {
+  if (min(frtab[group == treated, ]) == 0) {
     warning("Note that at least one stratum has no treated individuals.")
   }
-  stratios <- frtab[1, ]/frtab[2, ]
-  st_vals <- as.character(colnames(frtab))  # stratum values
-  if (!is.null(ratio) && min(stratios) < ratio) {
-    stop("The ratio you specified is not feasible.
-            Please supply `q_s` instead of `ratio` or lower the `ratio` input.",
-         call. = FALSE)
-  }
   if (!is.null(q_s)) {
-    n_s <- table(z, st)[1, ]
-    if (any(q_s[names(n_s)] > n_s)) {
-      stop("At least one of the entries for `q_s` is greater than the number of controls available in the stratum.
-           Please lower `q_s` such that all entries are at most the number of available controls.",
+    if (is.vector(q_s)) {
+      q_s <- matrix(c(q_s, frtab[group == treated, ]), byrow = TRUE, nrow = 2, dimnames = list(NULL, names(q_s)))
+      if (group[1] == treated) {
+        q_s <- q_s[c(2, 1), ]
+      }
+    }
+    n_s <- table(z, st)
+    if (any(q_s[, colnames(n_s)] > n_s)) {
+      stop("At least one of the entries for `q_s` is greater than the number of units available in the stratum.
+           Please lower `q_s` such that all entries are at most the number of available units.",
            call. = FALSE)
     }
   }

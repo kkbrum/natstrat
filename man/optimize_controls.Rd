@@ -9,18 +9,19 @@ optimize_controls(
   X,
   st,
   importances = NULL,
+  treated = 1,
   ratio = NULL,
   q_s = NULL,
   integer = FALSE,
   solver = "Rglpk",
   seed = NULL,
   runs = 1,
-  time_limit = Inf
+  time_limit = Inf,
+  correct_sizes = TRUE
 )
 }
 \arguments{
-\item{z}{a treatment indicator vector with \code{i}th entry equal to 0 if
-unit \code{i} is a control and equal to 1 if unit \code{i} is treated.}
+\item{z}{a factor with the \code{i}th entry equal to the treatment of unit \code{i}.}
 
 \item{X}{a matrix or data frame containing constraints in the columns. The number
 of rows should equal the length of \code{z}. Balance is achieved when a constraint
@@ -37,10 +38,21 @@ in \code{X}. This can be generated using \code{\link{generate_constraints}()} an
 denotes how much to prioritize each constraint, with the default being 1
 for all constraints.}
 
-\item{ratio}{a numeric specifying the desired ratio of controls to treated in
-each stratum. If \code{NULL}, \code{q_s} should be specified.}
+\item{treated}{which treatment value should be considered the treated units. This
+must be one of the values of \code{z}. This
+is used if \code{denom_variance = "treated"} for calculating the variance
+to use in the standardization.}
 
-\item{q_s}{a named vector indicating how many control units are to be selected from each stratum.
+\item{ratio}{a numeric or vector specifying the desired ratio of controls to treated in
+each stratum. If there is one control group and all treated units should be included,
+this can be a numeric. Otherwise, this should be
+a vector with one entry per treatment group, in the same order as the levels of
+\code{z}, including the treated level. If \code{NULL}, \code{q_s} should be specified.}
+
+\item{q_s}{a named vector or matrix indicating how many control units are to be selected from each stratum.
+If there is one control group and all treated units are desired, this can be a vector; otherwise,
+this should have one row per treatment group, where the order of the rows matches the order of
+the levels of \code{z}, including the treated level.
 If \code{NULL}, \code{ratio} should be specified. If both are specified, \code{q_s} will take priority.
 Typically, if the desired ratio is not feasible for every stratum, \code{q_s} should be generated
 using \code{\link{generate_qs}()}.}
@@ -62,6 +74,11 @@ will only be reported for the run with the lowest objective value. The default i
 
 \item{time_limit}{numeric stating maximum amount of seconds for which the
 program is allowed to run before aborting. Default is \code{Inf} for no time limit.}
+
+\item{correct_sizes}{boolean stating whether the desired sample sizes should
+be exactly correct (if \code{correct_sizes = TRUE}) or only need to be correct
+in expectation. For nested comparisons, sample sizes may only be
+correct in expectation.}
 }
 \value{
 List containing:
@@ -70,28 +87,15 @@ List containing:
     linear program solution.}
   \item{\code{objective_wo_importances}}{objective value of the randomized rounding or mixed integer
     linear program solution not weighted by the variable importances.}
-  \item{\code{eps}}{the amount of imbalance obtained in each constraint from the linear program.}
+  \item{\code{eps}}{the amount of imbalance obtained in each constraint from the linear program.
+  The row names specify the covariate, the population of interest, and, if there are
+  more than two comparison groups, which groups are being compared.}
   \item{\code{importances}}{the importance of each on the balance constraints.}
-  \item{\code{selected}}{the selected treated and control units.}
-  \item{\code{controls}}{the linear program weight assigned to each control and
-    whether it was selected by randomized rounding.}
+  \item{\code{selected}}{whether each unit was selected.}
+  \item{\code{pr}}{the linear program weight assigned to each unit.}
   \item{\code{rrdetails}}{A list containing:
   \describe{
   \item{\code{seed}}{the seed used before commencing the random sampling.}
-  \item{\code{raw_objective}}{objective value of the randomized rounding or mixed integer
-    linear program solution before the denominator has been corrected for the number of
-    units chosen with missing covariate values.}
-  \item{\code{raw_objective_wo_importances}}{objective value of the randomized rounding or mixed integer
-    linear program solution not weighted by the variable importances
-    before the denominator has been corrected for the number of
-    units chosen with missing covariate values.}
-  \item{\code{raw_eps}}{the amount of imbalance obtained in each constraint from the linear program,
-    before the denominators have been corrected for the number of
-    units chosen with missing covariate values.}
-  \item{\code{run_raw_objectives}}{the objective values for each run of randomized rounding,
-  before denominators have been corrected for missingness.}
-  \item{\code{run_raw_objectives_wo_importances}}{the objective values for each run of randomized rounding,
-  before denominators have been corrected for missingness, not scaled by constraint importances.}
   \item{\code{run_objectives}}{the objective values for each run of randomized rounding.}
   \item{\code{run_objectives_wo_importances}}{the objective values for each run of randomized rounding,
   not scaled by constraint importances.}

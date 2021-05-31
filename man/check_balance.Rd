@@ -9,14 +9,15 @@ check_balance(
   X,
   st,
   selected,
+  treated = 1,
+  control = 0,
   denom_variance = "treated",
   plot = FALSE,
   message = TRUE
 )
 }
 \arguments{
-\item{z}{a treatment indicator vector with \code{i}th entry equal to 0 if
-unit \code{i} is a control and equal to 1 if unit \code{i} is treated.}
+\item{z}{a factor with the \code{i}th entry equal to the treatment of unit \code{i}.}
 
 \item{X}{a data frame containing the covariates in the columns over which balance is desired. The number
 of rows should equal the length of \code{z}.}
@@ -29,10 +30,17 @@ as \code{z}.}
 groups for analysis. Should be the same length as \code{z} and typically comes from the results of
 \code{\link{optimize_controls}()}.}
 
+\item{treated}{which treatment value should be considered the treated units. This
+must be one of the values of \code{z}.}
+
+\item{control}{which treatment value should be considered the control units. This
+must be one of the values of \code{z}.}
+
 \item{denom_variance}{character stating what variance to use in the standardization:
 either the default "treated", meaning the standardization will use the
-treated variance (across all strata), or "pooled", meaning
-the standardization will use the average of the treated and control variances.}
+treated variance (across all strata), where the treated group is declared in
+the \code{treated} argument, or "pooled", meaning
+the standardization will use the average of the variances of each treatment group.}
 
 \item{plot}{a boolean denoting whether to generate love plots for the standardized differences.}
 
