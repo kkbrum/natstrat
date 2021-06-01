@@ -24,14 +24,26 @@ create_balance_matrices <- function(X, z, N, nvars, kc2, q_s, q_star_s) {
     Q_star1 <- sum(q_star_s[levels(z) == group1, ])
     Q_star2 <- sum(q_star_s[levels(z) == group2, ])
     if (is.null(q_star_s)) {
-      x_blk[, z == group1] <- t(X[z == group1, ] / Q1)
-      x_blk[, z == group2] <- -t(X[z == group2, ] / Q2)
+      if (Q1 > 0) {
+        x_blk[, z == group1] <- t(X[z == group1, ] / Q1)
+      }
+      if (Q2 > 0) {
+        x_blk[, z == group2] <- -t(X[z == group2, ] / Q2)
+      }
     } else {
       x_blk2 <- zero_blk
-      x_blk[, c(z == group1, rep(FALSE, N))] <- t(X[z == group1, ] / Q1)
-      x_blk2[, c(rep(FALSE, N), z == group1)] <- t(X[z == group1, ] / Q_star1)
-      x_blk[, c(z == group2, rep(FALSE, N))] <- -t(X[z == group2, ] / Q2)
-      x_blk2[, c(rep(FALSE, N), z == group2)] <- -t(X[z == group2, ] / Q_star2)
+      if (Q1 > 0) {
+        x_blk[, c(z == group1, rep(FALSE, N))] <- t(X[z == group1, ] / Q1)
+      }
+      if (Q_star1 > 0) {
+        x_blk2[, c(rep(FALSE, N), z == group1)] <- t(X[z == group1, ] / Q_star1)
+      }
+      if (Q2 > 0) {
+        x_blk[, c(z == group2, rep(FALSE, N))] <- -t(X[z == group2, ] / Q2)
+      }
+      if (Q_star2 > 0) {
+        x_blk2[, c(rep(FALSE, N), z == group2)] <- -t(X[z == group2, ] / Q_star2)
+      }
     }
     eps_blk[, ((pair_num - 1) * nvars + 1):(pair_num * nvars)] <-
       diag(1, nvars, nvars)

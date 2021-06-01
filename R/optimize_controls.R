@@ -13,17 +13,30 @@
 #'   sums to 0, such that numbers closer to 0 are better. When a constraint
 #'   does not apply to a particular unit, the entry should be \code{NA}.
 #'   This should typically be generated using \code{\link{generate_constraints}()}.
-#' @param ratio a numeric or vector specifying the desired ratio of controls to treated in
+#' @param treated_star which treatment value should be considered the treated units
+#' for the supplemental comparison. This
+#' must be one of the values of \code{z}.
+#' @param ratio a numeric or vector specifying the desired ratio of controls to `treated` in
 #'   each stratum. If there is one control group and all treated units should be included,
 #'   this can be a numeric. Otherwise, this should be
 #'   a vector with one entry per treatment group, in the same order as the levels of
 #'   \code{z}, including the treated level. If \code{NULL}, \code{q_s} should be specified.
-#' @param q_s a named vector or matrix indicating how many control units are to be selected from each stratum.
+#' @param ratio_star a numeric or vector specifying the desired ratio of supplemental units to `treated_star` in
+#'   each stratum. This should be
+#'   a vector with one entry per treatment group, in the same order as the levels of
+#'   \code{z}, including the treated level. If \code{NULL}, \code{q_star_s} should be specified.
+#' @param q_s a named vector or matrix indicating how many units are to be selected from each stratum.
 #'   If there is one control group and all treated units are desired, this can be a vector; otherwise,
 #'   this should have one row per treatment group, where the order of the rows matches the order of
 #'   the levels of \code{z}, including the treated level.
 #'   If \code{NULL}, \code{ratio} should be specified. If both are specified, \code{q_s} will take priority.
 #'   Typically, if the desired ratio is not feasible for every stratum, \code{q_s} should be generated
+#'   using \code{\link{generate_qs}()}.
+#' @param q_star_s a named vector or matrix indicating how many supplemental units are to be selected from each stratum.
+#'   This should have one row per treatment group, where the order of the rows matches the order of
+#'   the levels of \code{z}, including the treated level.
+#'   If \code{NULL}, \code{ratio_star} should be specified. If both are specified, \code{q_star_s} will take priority.
+#'   Typically, if the desired ratio is not feasible for every stratum, \code{q_star_s} should be generated
 #'   using \code{\link{generate_qs}()}.
 #' @param importances a vector with length equal to the number of constraints or columns
 #'   in \code{X}. This can be generated using \code{\link{generate_constraints}()} and each nonnegative value
@@ -342,11 +355,13 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
 
     }
 
-    selected = rr_results$select[1:N]
-    pr = rr_results$pr[1:N]
+    selected <- rr_results$select[1:N]
+    pr <- rr_results$pr[1:N]
+    selected_star <- NULL
+    pr_star <- NULL
     if (!is.null(q_star_s)) {
-      selected_star = rr_results$select[(N+1):(2*N)]
-      pr_star = rr_results$pr[(N+1):(2*N)]
+      selected_star <- rr_results$select[(N+1):(2*N)]
+      pr_star <- rr_results$pr[(N+1):(2*N)]
     }
 
     return(list(objective = best_objective,

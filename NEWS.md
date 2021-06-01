@@ -2,6 +2,9 @@
 
 This version adds several new functionalities
   * Multiple treatment or control groups are supported throughout
+  * Conducting two comparisons, one main comparison of all groups and a supplemental
+  comparison with additional units. This allows a comparison of all groups and then
+  a comparison of a subset of those groups with a larger sample size.
 
 Several changes to the interface have been made:
 
@@ -10,6 +13,8 @@ Several changes to the interface have been made:
 * many arguments can be specified for each of the treatment levels
     * `q_s`, `max_entry_s` can have a row per treatment level
     * `ratio`, `max_ratio` can have an entry per treatment level
+* inputs for the supplemental comparison have been added across the functions. `q_star_s`,
+`ratio_star`, `treated_star`
     
 There are several changes to the outputs:
 

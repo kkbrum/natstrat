@@ -18,13 +18,13 @@ in \code{X}. This can be generated using \code{\link{generate_constraints}()} an
 denotes how much to prioritize each constraint, with the default being 1
 for all constraints.}
 
-\item{ratio}{a numeric or vector specifying the desired ratio of controls to treated in
+\item{ratio}{a numeric or vector specifying the desired ratio of controls to `treated` in
 each stratum. If there is one control group and all treated units should be included,
 this can be a numeric. Otherwise, this should be
 a vector with one entry per treatment group, in the same order as the levels of
 \code{z}, including the treated level. If \code{NULL}, \code{q_s} should be specified.}
 
-\item{q_s}{a named vector or matrix indicating how many control units are to be selected from each stratum.
+\item{q_s}{a named vector or matrix indicating how many units are to be selected from each stratum.
 If there is one control group and all treated units are desired, this can be a vector; otherwise,
 this should have one row per treatment group, where the order of the rows matches the order of
 the levels of \code{z}, including the treated level.

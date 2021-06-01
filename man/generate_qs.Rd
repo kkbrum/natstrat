@@ -21,7 +21,7 @@ generate_qs(
 stratum of unit \code{i}. This should have the same order of units and length
 as \code{z}.}
 
-\item{ratio}{a numeric or vector specifying the desired ratio of controls to treated in
+\item{ratio}{a numeric or vector specifying the desired ratio of controls to `treated` in
 each stratum. If there is one control group and all treated units should be included,
 this can be a numeric. Otherwise, this should be
 a vector with one entry per treatment group, in the same order as the levels of

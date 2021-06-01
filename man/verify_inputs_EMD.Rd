@@ -7,7 +7,7 @@
 verify_inputs_EMD(ratio, st, z, treated = 1)
 }
 \arguments{
-\item{ratio}{a numeric or vector specifying the desired ratio of controls to treated in
+\item{ratio}{a numeric or vector specifying the desired ratio of controls to `treated` in
 each stratum. If there is one control group and all treated units should be included,
 this can be a numeric. Otherwise, this should be
 a vector with one entry per treatment group, in the same order as the levels of

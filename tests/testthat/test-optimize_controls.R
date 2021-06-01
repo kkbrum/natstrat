@@ -44,16 +44,16 @@ test_that("epsilons across strata equal standardized diff in means across when n
 
 test_that("sum of epsilons within strata equal weighted avg of within strata standardized diff in means
           when ratios lead to integer q_s and no missingness", {
-  covs <- row.names(sds$sd_across)
-  stripped_row_names <- sapply(strsplit(row.names(results$eps), "_"),
-                               function(k) {paste0(k[-length(k)], collapse = "_")})
-  sum_eps_within <- sapply(covs, function(cov) {
-    sum(results$eps[stripped_row_names == cov &
-                            grepl("_category", row.names(results$eps))])})
-  expect_equal(sds$sd_strata_avg[, "abs_stand_diff_after"],
-               as.numeric(sum_eps_within))
+            covs <- row.names(sds$sd_across)
+            stripped_row_names <- sapply(strsplit(row.names(results$eps), "_"),
+                                         function(k) {paste0(k[-length(k)], collapse = "_")})
+            sum_eps_within <- sapply(covs, function(cov) {
+              sum(results$eps[stripped_row_names == cov &
+                                grepl("_category", row.names(results$eps))])})
+            expect_equal(sds$sd_strata_avg[, "abs_stand_diff_after"],
+                         as.numeric(sum_eps_within))
 
-})
+          })
 
 # EMD Tests ----
 
@@ -87,9 +87,9 @@ test_that("Choosing from closest strata", {
 test_that("Specified max ratio and max extra working", {
   q_s2 <- generate_qs(z, st = data$category, ratio = 2.5, max_ratio = 0, max_extra_s = 1, strata_dist = strata_dist)
   results_emd2 <- suppressWarnings(optimize_controls(z = z, X = constraints$X, st = data$category, q_s = q_s2,
-                                                    importances = constraints$importances,
-                                                    integer = FALSE, solver = "Rglpk", seed = 1, runs = 5,
-                                                    time_limit = Inf))
+                                                     importances = constraints$importances,
+                                                     integer = FALSE, solver = "Rglpk", seed = 1, runs = 5,
+                                                     time_limit = Inf))
   expect_equal(as.numeric(table(data$category[results_emd2$selected & !z]))[3], 3)
   q_s3 <- generate_qs(z, st = data$category, ratio = 2.5, max_ratio = Inf, max_extra_s = 1, strata_dist = strata_dist)
   results_emd3 <- suppressWarnings(optimize_controls(z = z, X = constraints$X, st = data$category,  q_s = q_s3,
@@ -205,3 +205,50 @@ test_that("multiple ratios still choose correct number of units", {
   expect_equal(sum(results$selected[z == 2]), sum(round(table(z, data$category)[3,] * 1) ))
 })
 
+# Multiple comparisons tests ----
+
+set.seed(64)
+z <- c(rep(0, 20), rep(1, 12), rep(2, 8))
+data <- data.frame(color = c(rep(c(rep("Red", 4), rep("White", 1), rep("Blue", 2)), 3), "Blue",
+                             rep("White", 2), rep("Red", 8), rep("White", 3), rep("Blue", 5)),
+                   number = c(sample(1:20, 20, replace = TRUE), sample(10:30, 12, replace = TRUE),
+                              sample(10:20, 8, replace = TRUE)),
+                   category = c(rep(c("1", "2"), 20)))
+data$number[c(1, 5, 11, 22, 30, 39)] <- NA
+constraints <- suppressWarnings(generate_constraints(list(color + number ~ 2 * category),
+                                                     z, data = data, treated = 2,
+                                                     autogen_missing = 4, denom_variance = "pooled"))
+results <- optimize_controls(z = z, X = constraints$X, st = data$category, ratio = 1,
+                             q_star_s = matrix(c(rep(2, 4), rep(0, 2)), nrow = 3,
+                                               byrow = TRUE, dimnames = list(NULL, c("1", "2"))),
+                             treated = 2, treated_star = 1, importances = constraints$importances,
+                             integer = FALSE, solver = "Rglpk", seed = 1, runs = 5,
+                             time_limit = Inf, correct_sizes = FALSE)
+
+
+test_that("optimization gives correct results", {
+  expect_equal(results$lpdetails$objective, 70.75291, tolerance = .000001)
+  expect_equal(results$lpdetails$objective,
+               sum(results$lpdetails$eps * constraints$importances) +
+                 sum(results$lpdetails$eps_star * constraints$importances),
+               tolerance = .000001)
+  expect_equal(results$lpdetails$objective_wo_importances, 36.69428, tolerance = .000001)
+  expect_equal(results$lpdetails$objective_wo_importances,
+               sum(results$lpdetails$eps) + sum(results$lpdetails$eps_star), tolerance = .000001)
+  expect_equal(results$objective, 64.92295, tolerance = .000001)
+  expect_equal(results$objective, sum(results$eps * constraints$importances) +
+                 sum(results$eps_star * constraints$importances),
+               tolerance = .000001)
+  expect_equal(results$objective_wo_importances, 33.35576, tolerance = .000001)
+  expect_equal(results$objective_wo_importances, sum(results$eps) + sum(results$eps_star), tolerance = .000001)
+})
+
+# Since sample sizes only correct in expectation, this won't always be correct, but it is for our seed
+test_that("number of units chosen is approximately what we wanted for each group", {
+  expect_equal(as.numeric(table(z[results$selected], data$category[results$selected])), rep(4, 6))
+  expect_equal(as.numeric(table(z[results$selected_star], data$category[results$selected_star])), rep(2, 4))
+})
+
+test_that("units chosen for either main or supplemental group", {
+  expect_equal(sum(results$selected & results$selected_star), 0)
+})
