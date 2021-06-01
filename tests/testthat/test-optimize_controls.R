@@ -221,29 +221,30 @@ constraints <- suppressWarnings(generate_constraints(list(color + number ~ 2 * c
 results <- optimize_controls(z = z, X = constraints$X, st = data$category, ratio = 1,
                              q_star_s = matrix(c(rep(2, 4), rep(0, 2)), nrow = 3,
                                                byrow = TRUE, dimnames = list(NULL, c("1", "2"))),
-                             treated = 2, treated_star = 1, importances = constraints$importances,
+                             treated = 2, treated_star = 1, weight_star = 2,
+                             importances = constraints$importances,
                              integer = FALSE, solver = "Rglpk", seed = 1, runs = 5,
                              time_limit = Inf, correct_sizes = FALSE)
 
 
 test_that("optimization gives correct results", {
-  expect_equal(results$lpdetails$objective, 70.75291, tolerance = .000001)
+  expect_equal(results$lpdetails$objective, 44.17337, tolerance = .000001)
   expect_equal(results$lpdetails$objective,
                sum(results$lpdetails$eps * constraints$importances) +
-                 sum(results$lpdetails$eps_star * constraints$importances),
+                 sum(results$lpdetails$eps_star * results$weight_star * constraints$importances),
                tolerance = .000001)
-  expect_equal(results$lpdetails$objective_wo_importances, 36.69428, tolerance = .000001)
+  expect_equal(results$lpdetails$objective_wo_importances,  17.92818, tolerance = .000001)
   expect_equal(results$lpdetails$objective_wo_importances,
                sum(results$lpdetails$eps) + sum(results$lpdetails$eps_star), tolerance = .000001)
-  expect_equal(results$objective, 64.92295, tolerance = .000001)
+  expect_equal(results$objective, 44.17337, tolerance = .000001)
   expect_equal(results$objective, sum(results$eps * constraints$importances) +
-                 sum(results$eps_star * constraints$importances),
+                 sum(results$eps_star * results$weight_star * constraints$importances),
                tolerance = .000001)
-  expect_equal(results$objective_wo_importances, 33.35576, tolerance = .000001)
+  expect_equal(results$objective_wo_importances, 17.92818, tolerance = .000001)
   expect_equal(results$objective_wo_importances, sum(results$eps) + sum(results$eps_star), tolerance = .000001)
 })
 
-# Since sample sizes only correct in expectation, this won't always be correct, but it is for our seed
+# Since sample sizes only correct in expectation, this varies from seed to seed
 test_that("number of units chosen is approximately what we wanted for each group", {
   expect_equal(as.numeric(table(z[results$selected], data$category[results$selected])), rep(4, 6))
   expect_equal(as.numeric(table(z[results$selected_star], data$category[results$selected_star])), rep(2, 4))

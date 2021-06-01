@@ -16,7 +16,8 @@ balance_LP(
   solver,
   integer,
   time_limit,
-  q_star_s = NULL
+  q_star_s = NULL,
+  weight_star = 1
 )
 }
 \arguments{
@@ -64,6 +65,9 @@ the levels of \code{z}, including the treated level.
 If \code{NULL}, \code{ratio_star} should be specified. If both are specified, \code{q_star_s} will take priority.
 Typically, if the desired ratio is not feasible for every stratum, \code{q_star_s} should be generated
 using \code{\link{generate_qs}()}.}
+
+\item{weight_star}{a numeric stating how much to prioritize balance between the supplemental units as
+compared to balance between the main units.}
 }
 \value{
 A list containing two elements:

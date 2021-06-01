@@ -15,6 +15,7 @@ optimize_controls(
   treated_star = NULL,
   ratio_star = NULL,
   q_star_s = NULL,
+  weight_star = 1,
   integer = FALSE,
   solver = "Rglpk",
   seed = NULL,
@@ -75,6 +76,9 @@ the levels of \code{z}, including the treated level.
 If \code{NULL}, \code{ratio_star} should be specified. If both are specified, \code{q_star_s} will take priority.
 Typically, if the desired ratio is not feasible for every stratum, \code{q_star_s} should be generated
 using \code{\link{generate_qs}()}.}
+
+\item{weight_star}{a numeric stating how much to prioritize balance between the supplemental units as
+compared to balance between the main units.}
 
 \item{integer}{a logical stating whether to use a mixed integer programming solver
 instead of randomized rounding. Default is \code{FALSE}.}

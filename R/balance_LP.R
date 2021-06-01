@@ -25,7 +25,7 @@
 #' @import ramify
 
 balance_LP <- function(z, X, importances, st, st_vals, S, q_s, N,
-                       solver, integer, time_limit, q_star_s = NULL) {
+                       solver, integer, time_limit, q_star_s = NULL, weight_star = 1) {
 
   if (solver == "gurobi" && !requireNamespace("gurobi", quietly = TRUE)) {
     stop("Package \'gurobi\' needed if \"solver\" parameter set to \"gurobi\". Please
@@ -44,7 +44,7 @@ balance_LP <- function(z, X, importances, st, st_vals, S, q_s, N,
   if (is.null(q_star_s)) {
     model$obj <- c(rep(0, N), rep(rep(importances, 2), kc2))
   } else {
-    model$obj <- c(rep(0, 2 * N), rep(rep(importances, 2), 2 * kc2))
+    model$obj <- c(rep(0, 2 * N), rep(rep(importances, 2), kc2), rep(rep(importances * weight_star, 2), kc2))
   }
 
   model$A <- create_balance_matrices(X = X, z = z, N = N, nvars = nvars,

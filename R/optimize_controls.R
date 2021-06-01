@@ -38,6 +38,8 @@
 #'   If \code{NULL}, \code{ratio_star} should be specified. If both are specified, \code{q_star_s} will take priority.
 #'   Typically, if the desired ratio is not feasible for every stratum, \code{q_star_s} should be generated
 #'   using \code{\link{generate_qs}()}.
+#' @param weight_star a numeric stating how much to prioritize balance between the supplemental units as
+#' compared to balance between the main units.
 #' @param importances a vector with length equal to the number of constraints or columns
 #'   in \code{X}. This can be generated using \code{\link{generate_constraints}()} and each nonnegative value
 #'   denotes how much to prioritize each constraint, with the default being 1
@@ -145,7 +147,7 @@
 
 optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
                               ratio = NULL, q_s = NULL, treated_star = NULL,
-                              ratio_star = NULL, q_star_s = NULL,
+                              ratio_star = NULL, q_star_s = NULL, weight_star = 1,
                               integer = FALSE, solver = "Rglpk",
                               seed = NULL, runs = 1,
                               time_limit = Inf, correct_sizes = TRUE) {
@@ -211,7 +213,8 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
   # Run linear program to choose control units
   lp_results <- balance_LP(z = z, X = X, importances = importances,
                            st = st, st_vals = st_vals, S = S,
-                           q_s = q_s, q_star_s = q_star_s, N = N, integer = integer, solver = solver,
+                           q_s = q_s, q_star_s = q_star_s, weight_star = weight_star,
+                           N = N, integer = integer, solver = solver,
                            time_limit = time_limit)
 
   if (is.null(lp_results)) {
@@ -342,7 +345,7 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
       }
 
       # Objective value for the randomized rounding (or integer) solution
-      run_objectives[run] <- sum(importances * eps_temp) + sum(importances * eps_temp_star)
+      run_objectives[run] <- sum(importances * eps_temp) + sum(importances * weight_star * eps_temp_star)
       run_objectives_wo_importances[run] <- sum(eps_temp) + sum(eps_temp_star)
 
       if (run_objectives[run] < best_objective) {
@@ -369,6 +372,7 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
                 eps = eps,
                 eps_star = eps_star,
                 importances = importances,
+                weight_star = weight_star,
                 selected = selected,
                 pr = pr,
                 selected_star = selected_star,
