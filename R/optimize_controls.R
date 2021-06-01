@@ -127,8 +127,12 @@
 #'                              importances = constraints$importances,
 #'                              q_s = qs)
 
+# TODO: Use ratio_star input if provided instead of q_star_s
+# TODO: Process q_star_s if not matrix
+
 optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
-                              ratio = NULL, q_s = NULL,
+                              ratio = NULL, q_s = NULL, treated_star = NULL,
+                              ratio_star = NULL, q_star_s = NULL,
                               integer = FALSE, solver = "Rglpk",
                               seed = NULL, runs = 1,
                               time_limit = Inf, correct_sizes = TRUE) {
@@ -140,18 +144,23 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
   group <- levels(z)
   k <- length(group)
   kc2 <- choose(k, 2)
-  #  if (!is.null(q_star_s) & correct_sizes) {
-  #    correct_sizes <- FALSE
-  #    warning("Sample sizes are only correct in expectation for multiple comparisons. `correct_sizes` has thus been switched to `FALSE`.")
-  #  }
-
+  if (!(is.null(q_star_s) & is.null(ratio_star))) {
+    # TODO: Add verify inputs here to check everything about these
+    if (is.null(treated_star)) {
+      stop("If `q_star_s` or `ratio_star` are not `NULL`, `treated_star` must also specify the treatment group for reference in the second comparison.")
+    }
+    if (correct_sizes) {
+      correct_sizes <- FALSE
+      warning("Sample sizes are only correct in expectation for multiple comparisons. `correct_sizes` has thus been switched to `FALSE`.")
+    }
+  }
   # Look at strata counts
   frtab <- table(z, st)
   stratios <- frtab / frtab[group == treated, ]
   st_vals <- as.character(colnames(frtab))  # stratum values
   S <- length(st_vals)  # number of strata
 
-
+  # TODO: Move all this figuring to a new function that outputs the final q_s
   if (!is.null(q_s) & is.vector(q_s)) {
     q_s <- matrix(rep(q_s, length(group)), byrow = TRUE, nrow = length(group), dimnames = list(NULL, names(q_s)))
     q_s[group == treated, ] <- frtab[group == treated, ]
@@ -160,7 +169,6 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
     ratio <- rep(ratio, length(group))
     ratio[group == treated] <- 1
   }
-
   # Determine number of controls desired for each stratum
   if (is.null(q_s)) {
     if (is.null(ratio)) {
@@ -190,7 +198,7 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
   # Run linear program to choose control units
   lp_results <- balance_LP(z = z, X = X, importances = importances,
                            st = st, st_vals = st_vals, S = S,
-                           q_s = q_s, N = N, integer = integer, solver = solver,
+                           q_s = q_s, q_star_s = q_star_s, N = N, integer = integer, solver = solver,
                            time_limit = time_limit)
 
   if (is.null(lp_results)) {
@@ -199,29 +207,51 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
     Q <- rowSums(q_s)
 
     # Epsilons for the linear program solution
-    lp_results$lpdetails$eps <- lp_results$o$solution[(N + 1):(N + (2 * nvars))]
-    lp_results$lpdetails$eps <- matrix(lp_results$lpdetails$eps, nvars, 2)
+    if (is.null(q_star_s)) {
+      lp_results$lpdetails$eps <- lp_results$o$solution[(N + 1):(N + (2 * nvars))]
+      lp_results$lpdetails$eps <- matrix(lp_results$lpdetails$eps, nvars, 2)
+    } else {
+      lp_results$lpdetails$eps <- lp_results$o$solution[(2 * N + 1):(2 * N + (2 * nvars))]
+      lp_results$lpdetails$eps <- matrix(lp_results$lpdetails$eps, nvars, 2)
+      lp_results$lpdetails$eps_star <- lp_results$o$solution[(2 * N + 2 * nvars + 1):(2 * N + (4 * nvars))]
+      lp_results$lpdetails$eps_star <- matrix(lp_results$lpdetails$eps_star, nvars, 2)
+    }
     if (!is.null(colnames(X))) {
       if (k == 2) {
         rownames(lp_results$lpdetails$eps) <- colnames(X)
+        if (!is.null(q_star_s)) {
+          rownames(lp_results$lpdetails$eps_star) <- colnames(X)
+        }
       } else {
         rownames(lp_results$lpdetails$eps) <- 1:nvars
+        if (!is.null(q_star_s)) {
+          rownames(lp_results$lpdetails$eps_star) <- 1:nvars
+        }
         pairs <- combn(group, 2)
         for (pair_num in 1:kc2) {
           group1 <- pairs[1, pair_num]
           group2 <- pairs[2, pair_num]
           rownames(lp_results$lpdetails$eps)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <-
             paste0(colnames(X), "_", group1, ":", group2)
+          if (!is.null(q_star_s)) {
+            rownames(lp_results$lpdetails$eps_star)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <-
+              paste0(colnames(X), "_", group1, ":", group2)
+          }
         }
       }
     }
+
     colnames(lp_results$lpdetails$eps) <- c("positive", "negative")
+    if (!is.null(q_star_s)) {
+      colnames(lp_results$lpdetails$eps_star) <- c("positive", "negative")
+    }
 
     # Record objectives
     lp_results$lpdetails$objective <- lp_results$o$optimum
 
     # Obj without importances for LP
-    lp_results$lpdetails$objective_wo_importances <- sum(lp_results$lpdetails$eps)
+    lp_results$lpdetails$objective_wo_importances <- sum(lp_results$lpdetails$eps) +
+      sum(lp_results$lpdetails$eps_star)
 
     best_objective <- Inf
     run_objectives <- rep(NA, runs)
@@ -231,9 +261,8 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
       seed <- sample(1:1000000, 1)
     }
     set.seed(seed)
-    # TODO: change q_star_s when we incorporate that
     balance_matrices <- create_balance_matrices(X = X, z = z, N = N, nvars = nvars_per_group,
-                                                kc2 = kc2, q_s = q_s, q_star_s = NULL)
+                                                kc2 = kc2, q_s = q_s, q_star_s = q_star_s)
 
     for (run in 1:runs) {
       # Run randomized rounding
@@ -241,9 +270,7 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
         rr_results_temp <- randomized_rounding(o = lp_results$o, N = N, st = st,
                                                st_vals = st_vals, S = S, z = z)
       } else {
-        # TODO: Change this when incorporated fully
-        multi_comp <- FALSE
-        # multi_comp <- is.null(q_star_s)
+        multi_comp <- !is.null(q_star_s)
         rr_results_temp <- randomized_rounding_expectation(o = lp_results$o, N = N,
                                                            multi_comp = multi_comp)
       }
@@ -252,6 +279,7 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
 
       # Epsilons for the randomized rounding (or integer) solution
       eps_temp <- matrix(0, nvars, 2)
+      eps_temp_star <- matrix(0, nvars, 2)
       for (i in 1:nvars) {
         row <- balance_matrices$x_blk[i, ]
         inbalance <- sum(row * rr_results_temp$select)
@@ -260,31 +288,53 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
         } else if (inbalance > 0) {
           eps_temp[i, 2] <- inbalance
         }
+        if (!is.null(q_star_s)) {
+          row <- balance_matrices$x_blk2[i, ]
+          inbalance_star <- sum(row * rr_results_temp$select)
+          if (inbalance_star < 0) {
+            eps_temp_star[i, 1] <- abs(inbalance_star)
+          } else if (inbalance > 0) {
+            eps_temp_star[i, 2] <- inbalance_star
+          }
+        }
       }
       if (k == 2) {
         if (!is.null(colnames(X))) {
           rownames(eps_temp) <- colnames(X)
+          if (!is.null(q_star_s)) {
+            rownames(eps_temp_star) <- colnames(X)
+          }
         }
       } else {
         if (!is.null(colnames(X))) {
           rownames(eps_temp) <- 1:nvars
+          if (!is.null(q_star_s)) {
+            rownames(eps_temp_star) <- 1:nvars
+          }
           pairs <- combn(unique(z), 2)
           for (pair_num in 1:kc2) {
             group1 <- pairs[1, pair_num]
             group2 <- pairs[2, pair_num]
             rownames(eps_temp)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <- paste0(colnames(X), "_", group1, ":", group2)
+            if (!is.null(q_star_s)) {
+              rownames(eps_temp_star)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <- paste0(colnames(X), "_", group1, ":", group2)
+            }
           }
         }
       }
 
       colnames(eps_temp) <- c("positive", "negative")
+      if (!is.null(q_star_s)) {
+        colnames(eps_temp_star) <- c("positive", "negative")
+      }
 
       # Objective value for the randomized rounding (or integer) solution
-      run_objectives[run] <- sum(importances * eps_temp)
-      run_objectives_wo_importances[run] <- sum(eps_temp)
+      run_objectives[run] <- sum(importances * eps_temp) + sum(importances * eps_temp_star)
+      run_objectives_wo_importances[run] <- sum(eps_temp) + sum(eps_temp_star)
 
       if (run_objectives[run] < best_objective) {
         eps <- eps_temp
+        eps_star <- eps_temp_star
         objective_wo_importances <- run_objectives_wo_importances[run]
         rr_results <- rr_results_temp
         best_objective <- run_objectives[run]
@@ -292,12 +342,22 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
 
     }
 
+    selected = rr_results$select[1:N]
+    pr = rr_results$pr[1:N]
+    if (!is.null(q_star_s)) {
+      selected_star = rr_results$select[(N+1):(2*N)]
+      pr_star = rr_results$pr[(N+1):(2*N)]
+    }
+
     return(list(objective = best_objective,
                 objective_wo_importances = objective_wo_importances,
                 eps = eps,
+                eps_star = eps_star,
                 importances = importances,
-                selected = rr_results$select,
-                pr = rr_results$pr,
+                selected = selected,
+                pr = pr,
+                selected_star = selected_star,
+                pr_star = pr_star,
                 rrdetails = list(
                   seed = seed,
                   run_objectives = run_objectives,
