@@ -61,6 +61,10 @@
 #'  be exactly correct (if \code{correct_sizes = TRUE}) or only need to be correct
 #'  in expectation. For nested comparisons, sample sizes may only be
 #'  correct in expectation.
+#' @param low_memory boolean stating whether some outputs should not be included
+#'  due to the scale of the problem being too large compared to memory space.
+#'  If \code{TRUE}, \code{eps} and \code{eps_star} will not be reported. Inbalances
+#'  can be computed post hoc using the \code{\link{check_balance}()} instead.
 #'
 #' @return List containing:
 #' \describe{
@@ -71,9 +75,13 @@
 #'   \item{\code{eps}}{the amount of imbalance obtained in each constraint from the linear program.
 #'   The row names specify the covariate, the population of interest, and, if there are
 #'   more than two comparison groups, which groups are being compared.}
+#'   \item{\code{eps_star}}{same as \code{eps} but for the supplemental units instead of the units
+#'   in the main comparison.}
 #'   \item{\code{importances}}{the importance of each on the balance constraints.}
-#'   \item{\code{selected}}{whether each unit was selected.}
-#'   \item{\code{pr}}{the linear program weight assigned to each unit.}
+#'   \item{\code{selected}}{whether each unit was selected for the main comparison.}
+#'   \item{\code{selected_star}}{whether each unit was selected for the supplement.}
+#'   \item{\code{pr}}{the linear program weight assigned to each unit for the main comparison.}
+#'   \item{\code{pr_star}}{the linear program weight assigned to each unit for the supplement.}
 #'   \item{\code{rrdetails}}{A list containing:
 #'   \describe{
 #'   \item{\code{seed}}{the seed used before commencing the random sampling.}
@@ -150,7 +158,8 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
                               ratio_star = NULL, q_star_s = NULL, weight_star = 1,
                               integer = FALSE, solver = "Rglpk",
                               seed = NULL, runs = 1,
-                              time_limit = Inf, correct_sizes = TRUE) {
+                              time_limit = Inf, correct_sizes = TRUE,
+                              low_memory = FALSE) {
 
   # Make sure inputs are good
   verify_inputs(X = X, importances = importances, ratio = ratio, q_s = q_s,
@@ -210,6 +219,7 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
   nvars_per_group <- dim(X)[2]
   nvars <- nvars_per_group * kc2
   N <- length(z)
+
   # Run linear program to choose control units
   lp_results <- balance_LP(z = z, X = X, importances = importances,
                            st = st, st_vals = st_vals, S = S,
@@ -222,52 +232,58 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
   } else {
     Q <- rowSums(q_s)
 
-    # Epsilons for the linear program solution
-    if (is.null(q_star_s)) {
-      lp_results$lpdetails$eps <- lp_results$o$solution[(N + 1):(N + (2 * nvars))]
-      lp_results$lpdetails$eps <- matrix(lp_results$lpdetails$eps, nvars, 2)
-    } else {
-      lp_results$lpdetails$eps <- lp_results$o$solution[(2 * N + 1):(2 * N + (2 * nvars))]
-      lp_results$lpdetails$eps <- matrix(lp_results$lpdetails$eps, nvars, 2)
-      lp_results$lpdetails$eps_star <- lp_results$o$solution[(2 * N + 2 * nvars + 1):(2 * N + (4 * nvars))]
-      lp_results$lpdetails$eps_star <- matrix(lp_results$lpdetails$eps_star, nvars, 2)
-    }
-    if (!is.null(colnames(X))) {
-      if (k == 2) {
-        rownames(lp_results$lpdetails$eps) <- colnames(X)
-        if (!is.null(q_star_s)) {
-          rownames(lp_results$lpdetails$eps_star) <- colnames(X)
-        }
+    if (!low_memory) {
+      # Epsilons for the linear program solution
+      if (is.null(q_star_s)) {
+        lp_results$lpdetails$eps <- lp_results$o$solution[(N + 1):(N + (2 * nvars))]
+        lp_results$lpdetails$eps <- matrix(lp_results$lpdetails$eps, nvars, 2)
       } else {
-        rownames(lp_results$lpdetails$eps) <- 1:nvars
-        if (!is.null(q_star_s)) {
-          rownames(lp_results$lpdetails$eps_star) <- 1:nvars
-        }
-        pairs <- combn(group, 2)
-        for (pair_num in 1:kc2) {
-          group1 <- pairs[1, pair_num]
-          group2 <- pairs[2, pair_num]
-          rownames(lp_results$lpdetails$eps)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <-
-            paste0(colnames(X), "_", group1, ":", group2)
+        lp_results$lpdetails$eps <- lp_results$o$solution[(2 * N + 1):(2 * N + (2 * nvars))]
+        lp_results$lpdetails$eps <- matrix(lp_results$lpdetails$eps, nvars, 2)
+        lp_results$lpdetails$eps_star <- lp_results$o$solution[(2 * N + 2 * nvars + 1):(2 * N + (4 * nvars))]
+        lp_results$lpdetails$eps_star <- matrix(lp_results$lpdetails$eps_star, nvars, 2)
+      }
+      if (!is.null(colnames(X))) {
+        if (k == 2) {
+          rownames(lp_results$lpdetails$eps) <- colnames(X)
           if (!is.null(q_star_s)) {
-            rownames(lp_results$lpdetails$eps_star)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <-
+            rownames(lp_results$lpdetails$eps_star) <- colnames(X)
+          }
+        } else {
+          rownames(lp_results$lpdetails$eps) <- 1:nvars
+          if (!is.null(q_star_s)) {
+            rownames(lp_results$lpdetails$eps_star) <- 1:nvars
+          }
+          pairs <- combn(group, 2)
+          for (pair_num in 1:kc2) {
+            group1 <- pairs[1, pair_num]
+            group2 <- pairs[2, pair_num]
+            rownames(lp_results$lpdetails$eps)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <-
               paste0(colnames(X), "_", group1, ":", group2)
+            if (!is.null(q_star_s)) {
+              rownames(lp_results$lpdetails$eps_star)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <-
+                paste0(colnames(X), "_", group1, ":", group2)
+            }
           }
         }
       }
-    }
 
-    colnames(lp_results$lpdetails$eps) <- c("positive", "negative")
-    if (!is.null(q_star_s)) {
-      colnames(lp_results$lpdetails$eps_star) <- c("positive", "negative")
+      colnames(lp_results$lpdetails$eps) <- c("positive", "negative")
+      if (!is.null(q_star_s)) {
+        colnames(lp_results$lpdetails$eps_star) <- c("positive", "negative")
+      }
     }
 
     # Record objectives
     lp_results$lpdetails$objective <- lp_results$o$optimum
-
     # Obj without importances for LP
-    lp_results$lpdetails$objective_wo_importances <- sum(lp_results$lpdetails$eps) +
-      sum(lp_results$lpdetails$eps_star)
+    if (is.null(q_star_s)) {
+      # sum of epsilons
+      lp_results$lpdetails$objective_wo_importances <- sum(lp_results$o$solution[(N + 1):(N + (2 * nvars))])
+    } else {
+      # sum of epsilons and epsilon_stars
+      lp_results$lpdetails$objective_wo_importances <- sum(lp_results$o$solution[(2 * N + 1):(2 * N + (4 * nvars))])
+    }
 
     best_objective <- Inf
     run_objectives <- rep(NA, runs)
@@ -277,8 +293,12 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
       seed <- sample(1:1000000, 1)
     }
     set.seed(seed)
+
     balance_matrices <- create_balance_matrices(X = X, z = z, N = N, nvars = nvars_per_group,
-                                                kc2 = kc2, q_s = q_s, q_star_s = q_star_s)
+                                                kc2 = kc2, q_s = q_s, q_star_s = q_star_s, return = "X")
+
+    eps <- NULL
+    eps_star <- NULL
 
     for (run in 1:runs) {
       # Run randomized rounding
@@ -293,64 +313,85 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
 
       # Calculate and format results
 
-      # Epsilons for the randomized rounding (or integer) solution
-      eps_temp <- matrix(0, nvars, 2)
-      eps_temp_star <- matrix(0, nvars, 2)
-      for (i in 1:nvars) {
-        row <- balance_matrices$x_blk[i, ]
-        inbalance <- sum(row * rr_results_temp$select)
-        if (inbalance < 0) {
-          eps_temp[i, 1] <- abs(inbalance)
-        } else if (inbalance > 0) {
-          eps_temp[i, 2] <- inbalance
-        }
-        if (!is.null(q_star_s)) {
-          row <- balance_matrices$x_blk2[i, ]
-          inbalance_star <- sum(row * rr_results_temp$select)
-          if (inbalance_star < 0) {
-            eps_temp_star[i, 1] <- abs(inbalance_star)
+      if (!low_memory) {
+        # Epsilons for the randomized rounding (or integer) solution
+        eps_temp <- matrix(0, nvars, 2)
+        eps_temp_star <- matrix(0, nvars, 2)
+        for (i in 1:nvars) {
+          row <- as.vector(balance_matrices$x_blk[i, ])
+          inbalance <- sum(row * rr_results_temp$select)
+          if (inbalance < 0) {
+            eps_temp[i, 1] <- abs(inbalance)
           } else if (inbalance > 0) {
-            eps_temp_star[i, 2] <- inbalance_star
+            eps_temp[i, 2] <- inbalance
           }
-        }
-      }
-      if (k == 2) {
-        if (!is.null(colnames(X))) {
-          rownames(eps_temp) <- colnames(X)
           if (!is.null(q_star_s)) {
-            rownames(eps_temp_star) <- colnames(X)
-          }
-        }
-      } else {
-        if (!is.null(colnames(X))) {
-          rownames(eps_temp) <- 1:nvars
-          if (!is.null(q_star_s)) {
-            rownames(eps_temp_star) <- 1:nvars
-          }
-          pairs <- combn(unique(z), 2)
-          for (pair_num in 1:kc2) {
-            group1 <- pairs[1, pair_num]
-            group2 <- pairs[2, pair_num]
-            rownames(eps_temp)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <- paste0(colnames(X), "_", group1, ":", group2)
-            if (!is.null(q_star_s)) {
-              rownames(eps_temp_star)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <- paste0(colnames(X), "_", group1, ":", group2)
+            row <- as.vector(balance_matrices$x_blk2[i, ])
+            inbalance_star <- sum(row * rr_results_temp$select)
+            if (inbalance_star < 0) {
+              eps_temp_star[i, 1] <- abs(inbalance_star)
+            } else if (inbalance > 0) {
+              eps_temp_star[i, 2] <- inbalance_star
             }
           }
         }
-      }
+        if (k == 2) {
+          if (!is.null(colnames(X))) {
+            rownames(eps_temp) <- colnames(X)
+            if (!is.null(q_star_s)) {
+              rownames(eps_temp_star) <- colnames(X)
+            }
+          }
+        } else {
+          if (!is.null(colnames(X))) {
+            rownames(eps_temp) <- 1:nvars
+            if (!is.null(q_star_s)) {
+              rownames(eps_temp_star) <- 1:nvars
+            }
+            pairs <- combn(unique(z), 2)
+            for (pair_num in 1:kc2) {
+              group1 <- pairs[1, pair_num]
+              group2 <- pairs[2, pair_num]
+              rownames(eps_temp)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <- paste0(colnames(X), "_", group1, ":", group2)
+              if (!is.null(q_star_s)) {
+                rownames(eps_temp_star)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <- paste0(colnames(X), "_", group1, ":", group2)
+              }
+            }
+          }
+        }
 
-      colnames(eps_temp) <- c("positive", "negative")
-      if (!is.null(q_star_s)) {
-        colnames(eps_temp_star) <- c("positive", "negative")
+        colnames(eps_temp) <- c("positive", "negative")
+        if (!is.null(q_star_s)) {
+          colnames(eps_temp_star) <- c("positive", "negative")
+        }
       }
 
       # Objective value for the randomized rounding (or integer) solution
-      run_objectives[run] <- sum(importances * eps_temp) + sum(importances * weight_star * eps_temp_star)
-      run_objectives_wo_importances[run] <- sum(eps_temp) + sum(eps_temp_star)
+      run_objectives[run] <- sum(abs(importances * (matrix(balance_matrices$x_blk,
+                                                           nrow = nrow(balance_matrices$x_blk),
+                                                           ncol = ncol(balance_matrices$x_blk))
+                                                    %*% rr_results_temp$select)))
+      run_objectives_wo_importances[run] <- sum(abs(matrix(balance_matrices$x_blk,
+                                                           nrow = nrow(balance_matrices$x_blk),
+                                                           ncol = ncol(balance_matrices$x_blk))
+                                                    %*% rr_results_temp$select))
+      if (!is.null(q_star_s)) {
+        run_objectives[run] <- run_objectives[run] +
+          sum(abs(importances * weight_star * (matrix(balance_matrices$x_blk2,
+                                                      nrow = nrow(balance_matrices$x_blk2),
+                                                      ncol = ncol(balance_matrices$x_blk2))
+                                               %*% rr_results_temp$select)))
+        run_objectives_wo_importances[run] <- run_objectives_wo_importances[run] +
+          sum(abs(matrix(balance_matrices$x_blk2,
+                         nrow = nrow(balance_matrices$x_blk2),
+                         ncol = ncol(balance_matrices$x_blk2)) %*% rr_results_temp$select))
+      }
 
       if (run_objectives[run] < best_objective) {
-        eps <- eps_temp
-        eps_star <- eps_temp_star
+        if (!low_memory) {
+          eps <- eps_temp
+          eps_star <- eps_temp_star
+        }
         objective_wo_importances <- run_objectives_wo_importances[run]
         rr_results <- rr_results_temp
         best_objective <- run_objectives[run]

@@ -26,7 +26,8 @@ Imports:
     sampling,
     ggplot2,
     rlang,
-    ramify
+    ramify,
+    slam
 Depends:
     R (>= 2.10),
     caret

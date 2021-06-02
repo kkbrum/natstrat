@@ -23,6 +23,7 @@
 #'
 #' @keywords internal
 #' @import ramify
+#' @import slam
 
 balance_LP <- function(z, X, importances, st, st_vals, S, q_s, N,
                        solver, integer, time_limit, q_star_s = NULL, weight_star = 1) {
@@ -48,33 +49,32 @@ balance_LP <- function(z, X, importances, st, st_vals, S, q_s, N,
   }
 
   model$A <- create_balance_matrices(X = X, z = z, N = N, nvars = nvars,
-                          kc2 = kc2, q_s = q_s, q_star_s = q_star_s)$A
+                          kc2 = kc2, q_s = q_s, q_star_s = q_star_s, return = "A")$A
 
   groups <- unique(z)
   # Now, append stratum size constraints for comparison 1
-  st_mats <- matrix(0, nrow = k * S, ncol = N)
+  st_mats <- simple_triplet_zero_matrix(nrow = k * S, ncol = N)
   for (group_num in 1:length(groups)) {
     group <- groups[group_num]
-    st_mats[((group_num - 1) * S + 1):(group_num * S), z == group] <- 1 * outer(st_vals, st[z == group], "==")
+    st_mats[((group_num - 1) * S + 1):(group_num * S), which(z == group)] <- 1 * outer(st_vals, st[z == group], "==")
   }
   if (is.null(q_star_s)) {
     model$A <- rbind(model$A,
-                     cbind(st_mats, matrix(0, k * S, 2 * kc2 * nvars)))
+                     cbind(st_mats, simple_triplet_zero_matrix(nrow = k * S, ncol = 2 * kc2 * nvars)))
   } else {
     model$A <- rbind(model$A,
-                     cbind(st_mats, matrix(0, k * S, N + 4 * kc2 * nvars)))
+                     cbind(st_mats, simple_triplet_zero_matrix(nrow = k * S, ncol = N + 4 * kc2 * nvars)))
     # Also append stratum size constraints for comparison 2 if exists
     model$A <- rbind(model$A,
-                     cbind(matrix(0, k * S, N), st_mats, matrix(0, k * S, 4 * kc2 * nvars)))
+                     cbind(simple_triplet_zero_matrix(nrow = k * S, ncol = N),
+                           st_mats, simple_triplet_zero_matrix(nrow = k * S, ncol = 4 * kc2 * nvars)))
   }
 
   # Now, if two comparisons, add constraint that two as for a unit add to <= 1
   # (so that one unit is not chosen for both comparisons)
   if (!is.null(q_star_s)) {
-    mat <- matrix(0, nrow = N, ncol = 2 * N + 4 * kc2 * nvars)
-    mat[1:N, 1:N] <- diag(N)
-    mat[1:N, (N + 1):(2 * N)] <- diag(N)
-    model$A <- rbind(model$A, mat)
+    mat<- cbind(simple_triplet_diag_matrix(rep(1, N)), simple_triplet_diag_matrix(rep(1, N)))
+    model$A <- rbind(model$A, cbind(mat, simple_triplet_zero_matrix(nrow = N, ncol = 4 * kc2 * nvars)))
   }
 
   # Constraints for eps are equalities, number of controls per strata are equalities

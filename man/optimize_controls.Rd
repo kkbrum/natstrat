@@ -21,7 +21,8 @@ optimize_controls(
   seed = NULL,
   runs = 1,
   time_limit = Inf,
-  correct_sizes = TRUE
+  correct_sizes = TRUE,
+  low_memory = FALSE
 )
 }
 \arguments{
@@ -102,6 +103,11 @@ program is allowed to run before aborting. Default is \code{Inf} for no time lim
 be exactly correct (if \code{correct_sizes = TRUE}) or only need to be correct
 in expectation. For nested comparisons, sample sizes may only be
 correct in expectation.}
+
+\item{low_memory}{boolean stating whether some outputs should not be included
+due to the scale of the problem being too large compared to memory space.
+If \code{TRUE}, \code{eps} and \code{eps_star} will not be reported. Inbalances
+can be computed post hoc using the \code{\link{check_balance}()} instead.}
 }
 \value{
 List containing:
@@ -113,9 +119,13 @@ List containing:
   \item{\code{eps}}{the amount of imbalance obtained in each constraint from the linear program.
   The row names specify the covariate, the population of interest, and, if there are
   more than two comparison groups, which groups are being compared.}
+  \item{\code{eps_star}}{same as \code{eps} but for the supplemental units instead of the units
+  in the main comparison.}
   \item{\code{importances}}{the importance of each on the balance constraints.}
-  \item{\code{selected}}{whether each unit was selected.}
-  \item{\code{pr}}{the linear program weight assigned to each unit.}
+  \item{\code{selected}}{whether each unit was selected for the main comparison.}
+  \item{\code{selected_star}}{whether each unit was selected for the supplement.}
+  \item{\code{pr}}{the linear program weight assigned to each unit for the main comparison.}
+  \item{\code{pr_star}}{the linear program weight assigned to each unit for the supplement.}
   \item{\code{rrdetails}}{A list containing:
   \describe{
   \item{\code{seed}}{the seed used before commencing the random sampling.}

@@ -224,7 +224,7 @@ results <- optimize_controls(z = z, X = constraints$X, st = data$category, ratio
                              treated = 2, treated_star = 1, weight_star = 2,
                              importances = constraints$importances,
                              integer = FALSE, solver = "Rglpk", seed = 1, runs = 5,
-                             time_limit = Inf, correct_sizes = FALSE)
+                             time_limit = Inf, correct_sizes = FALSE, low_memory = FALSE)
 
 
 test_that("optimization gives correct results", {
