@@ -65,6 +65,8 @@
 #'  due to the scale of the problem being too large compared to memory space.
 #'  If \code{TRUE}, \code{eps} and \code{eps_star} will not be reported. Inbalances
 #'  can be computed post hoc using the \code{\link{check_balance}()} instead.
+#' @param threads The maximum number of threads that should be used. This is only
+#'  applicable if \code{solver = 'gurobi'}.
 #'
 #' @return List containing:
 #' \describe{
@@ -158,17 +160,18 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
                               ratio_star = NULL, q_star_s = NULL, weight_star = 1,
                               integer = FALSE, solver = "Rglpk",
                               seed = NULL, runs = 1,
-                              time_limit = Inf, correct_sizes = TRUE,
+                              time_limit = Inf, threads = 1, correct_sizes = TRUE,
                               low_memory = FALSE) {
 
   # Make sure inputs are good
   verify_inputs(X = X, importances = importances, ratio = ratio, q_s = q_s,
                 st = st, z = z, treated = treated, integer = integer, solver = solver)
+  multi_comp <- !is.null(q_star_s)
   z <- factor(z)
   group <- levels(z)
   k <- length(group)
   kc2 <- choose(k, 2)
-  if (!(is.null(q_star_s) & is.null(ratio_star))) {
+  if (!(!multi_comp & is.null(ratio_star))) {
     # TODO: Add verify inputs here to check everything about these
     if (is.null(treated_star)) {
       stop("If `q_star_s` or `ratio_star` are not `NULL`, `treated_star` must also specify the treatment group for reference in the second comparison.")
@@ -186,11 +189,11 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
 
   # TODO: Move all this figuring to a new function that outputs the final q_s
   if (!is.null(q_s) & is.vector(q_s)) {
-    q_s <- matrix(rep(q_s, length(group)), byrow = TRUE, nrow = length(group), dimnames = list(NULL, names(q_s)))
+    q_s <- matrix(rep(q_s, k), byrow = TRUE, nrow = k, dimnames = list(NULL, names(q_s)))
     q_s[group == treated, ] <- frtab[group == treated, ]
   }
   if (!is.null(ratio) & length(ratio) == 1) {
-    ratio <- rep(ratio, length(group))
+    ratio <- rep(ratio, k)
     ratio[group == treated] <- 1
   }
   # Determine number of controls desired for each stratum
@@ -225,7 +228,7 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
                            st = st, st_vals = st_vals, S = S,
                            q_s = q_s, q_star_s = q_star_s, weight_star = weight_star,
                            N = N, integer = integer, solver = solver,
-                           time_limit = time_limit)
+                           time_limit = time_limit, threads = threads)
 
   if (is.null(lp_results)) {
     return(NULL)
@@ -234,7 +237,7 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
 
     if (!low_memory) {
       # Epsilons for the linear program solution
-      if (is.null(q_star_s)) {
+      if (!multi_comp) {
         lp_results$lpdetails$eps <- lp_results$o$solution[(N + 1):(N + (2 * nvars))]
         lp_results$lpdetails$eps <- matrix(lp_results$lpdetails$eps, nvars, 2)
       } else {
@@ -246,12 +249,12 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
       if (!is.null(colnames(X))) {
         if (k == 2) {
           rownames(lp_results$lpdetails$eps) <- colnames(X)
-          if (!is.null(q_star_s)) {
+          if (multi_comp) {
             rownames(lp_results$lpdetails$eps_star) <- colnames(X)
           }
         } else {
           rownames(lp_results$lpdetails$eps) <- 1:nvars
-          if (!is.null(q_star_s)) {
+          if (multi_comp) {
             rownames(lp_results$lpdetails$eps_star) <- 1:nvars
           }
           pairs <- combn(group, 2)
@@ -260,7 +263,7 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
             group2 <- pairs[2, pair_num]
             rownames(lp_results$lpdetails$eps)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <-
               paste0(colnames(X), "_", group1, ":", group2)
-            if (!is.null(q_star_s)) {
+            if (multi_comp) {
               rownames(lp_results$lpdetails$eps_star)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <-
                 paste0(colnames(X), "_", group1, ":", group2)
             }
@@ -269,7 +272,7 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
       }
 
       colnames(lp_results$lpdetails$eps) <- c("positive", "negative")
-      if (!is.null(q_star_s)) {
+      if (multi_comp) {
         colnames(lp_results$lpdetails$eps_star) <- c("positive", "negative")
       }
     }
@@ -277,7 +280,7 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
     # Record objectives
     lp_results$lpdetails$objective <- lp_results$o$optimum
     # Obj without importances for LP
-    if (is.null(q_star_s)) {
+    if (!multi_comp) {
       # sum of epsilons
       lp_results$lpdetails$objective_wo_importances <- sum(lp_results$o$solution[(N + 1):(N + (2 * nvars))])
     } else {
@@ -306,7 +309,6 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
         rr_results_temp <- randomized_rounding(o = lp_results$o, N = N, st = st,
                                                st_vals = st_vals, S = S, z = z)
       } else {
-        multi_comp <- !is.null(q_star_s)
         rr_results_temp <- randomized_rounding_expectation(o = lp_results$o, N = N,
                                                            multi_comp = multi_comp)
       }
@@ -325,7 +327,7 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
           } else if (inbalance > 0) {
             eps_temp[i, 2] <- inbalance
           }
-          if (!is.null(q_star_s)) {
+          if (multi_comp) {
             row <- as.vector(balance_matrices$x_blk2[i, ])
             inbalance_star <- sum(row * rr_results_temp$select)
             if (inbalance_star < 0) {
@@ -338,14 +340,14 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
         if (k == 2) {
           if (!is.null(colnames(X))) {
             rownames(eps_temp) <- colnames(X)
-            if (!is.null(q_star_s)) {
+            if (multi_comp) {
               rownames(eps_temp_star) <- colnames(X)
             }
           }
         } else {
           if (!is.null(colnames(X))) {
             rownames(eps_temp) <- 1:nvars
-            if (!is.null(q_star_s)) {
+            if (multi_comp) {
               rownames(eps_temp_star) <- 1:nvars
             }
             pairs <- combn(unique(z), 2)
@@ -353,7 +355,7 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
               group1 <- pairs[1, pair_num]
               group2 <- pairs[2, pair_num]
               rownames(eps_temp)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <- paste0(colnames(X), "_", group1, ":", group2)
-              if (!is.null(q_star_s)) {
+              if (multi_comp) {
                 rownames(eps_temp_star)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <- paste0(colnames(X), "_", group1, ":", group2)
               }
             }
@@ -361,7 +363,7 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
         }
 
         colnames(eps_temp) <- c("positive", "negative")
-        if (!is.null(q_star_s)) {
+        if (multi_comp) {
           colnames(eps_temp_star) <- c("positive", "negative")
         }
       }
@@ -375,7 +377,7 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
                                                            nrow = nrow(balance_matrices$x_blk),
                                                            ncol = ncol(balance_matrices$x_blk))
                                                     %*% rr_results_temp$select))
-      if (!is.null(q_star_s)) {
+      if (multi_comp) {
         run_objectives[run] <- run_objectives[run] +
           sum(abs(importances * weight_star * (matrix(balance_matrices$x_blk2,
                                                       nrow = nrow(balance_matrices$x_blk2),
@@ -399,11 +401,9 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
 
     }
 
-    selected <- rr_results$select[1:N]
-    pr <- rr_results$pr[1:N]
     selected_star <- NULL
     pr_star <- NULL
-    if (!is.null(q_star_s)) {
+    if (multi_comp) {
       selected_star <- rr_results$select[(N+1):(2*N)]
       pr_star <- rr_results$pr[(N+1):(2*N)]
     }
@@ -414,8 +414,8 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
                 eps_star = eps_star,
                 importances = importances,
                 weight_star = weight_star,
-                selected = selected,
-                pr = pr,
+                selected = rr_results$select[1:N],
+                pr = rr_results$pr[1:N],
                 selected_star = selected_star,
                 pr_star = pr_star,
                 rrdetails = list(

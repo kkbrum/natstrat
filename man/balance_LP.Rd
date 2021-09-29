@@ -16,6 +16,7 @@ balance_LP(
   solver,
   integer,
   time_limit,
+  threads = 1,
   q_star_s = NULL,
   weight_star = 1
 )
@@ -58,6 +59,9 @@ instead of randomized rounding. Default is \code{FALSE}.}
 
 \item{time_limit}{numeric stating maximum amount of seconds for which the
 program is allowed to run before aborting. Default is \code{Inf} for no time limit.}
+
+\item{threads}{The maximum number of threads that should be used. This is only
+applicable if \code{solver = 'gurobi'}.}
 
 \item{q_star_s}{a named vector or matrix indicating how many supplemental units are to be selected from each stratum.
 This should have one row per treatment group, where the order of the rows matches the order of

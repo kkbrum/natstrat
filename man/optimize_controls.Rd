@@ -21,6 +21,7 @@ optimize_controls(
   seed = NULL,
   runs = 1,
   time_limit = Inf,
+  threads = 1,
   correct_sizes = TRUE,
   low_memory = FALSE
 )
@@ -98,6 +99,9 @@ will only be reported for the run with the lowest objective value. The default i
 
 \item{time_limit}{numeric stating maximum amount of seconds for which the
 program is allowed to run before aborting. Default is \code{Inf} for no time limit.}
+
+\item{threads}{The maximum number of threads that should be used. This is only
+applicable if \code{solver = 'gurobi'}.}
 
 \item{correct_sizes}{boolean stating whether the desired sample sizes should
 be exactly correct (if \code{correct_sizes = TRUE}) or only need to be correct
