@@ -10,11 +10,13 @@
 coverage](https://codecov.io/gh/kkbrum/natstrat/branch/master/graph/badge.svg)](https://codecov.io/gh/kkbrum/natstrat?branch=master)
 <!-- badges: end -->
 
-The goal of natstrat is to obtain unweighted natural strata that balance
-many covariates. Natural strata fix a constant ratio of controls to
-treated units within each stratum. This ratio need not be an integer.
-The control units are chosen using randomized rounding of a linear
-program that balances many covariates.
+Natural strata can be used in observational studies to balance the
+distributions of many covariates across any number of treatment groups
+and any number of comparisons. These strata have proportional amounts of
+units within each stratum across the treatments, allowing for simple
+interpretation and aggregation across strata. Within each stratum, the
+units are chosen using randomized rounding of a linear program that
+balances many covariates.
 
 ## Installation
 

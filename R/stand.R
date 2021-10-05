@@ -99,4 +99,3 @@ stand <- function(z, x, denom_variance = "treated", treated = 1, autogen_missing
 
   return(list("covariate" = x_stand, "missingness" = miss_stand))
 }
-

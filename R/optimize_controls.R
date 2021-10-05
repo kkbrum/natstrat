@@ -16,6 +16,8 @@
 #' @param treated_star which treatment value should be considered the treated units
 #' for the supplemental comparison. This
 #' must be one of the values of \code{z}.
+#'  If multiple supplemental comparisons are desired, this should be a list with one entry per supplemental
+#'   comparison.
 #' @param ratio a numeric or vector specifying the desired ratio of controls to `treated` in
 #'   each stratum. If there is one control group and all treated units should be included,
 #'   this can be a numeric. Otherwise, this should be
@@ -24,7 +26,10 @@
 #' @param ratio_star a numeric or vector specifying the desired ratio of supplemental units to `treated_star` in
 #'   each stratum. This should be
 #'   a vector with one entry per treatment group, in the same order as the levels of
-#'   \code{z}, including the treated level. If \code{NULL}, \code{q_star_s} should be specified.
+#'   \code{z}, including the treated level. If \code{NULL} and supplemental comparisons
+#'   are desired, \code{q_star_s} should be specified.
+#'   If multiple supplemental comparisons are desired, this should be a list with one
+#'   entry per supplemental comparison.
 #' @param q_s a named vector or matrix indicating how many units are to be selected from each stratum.
 #'   If there is one control group and all treated units are desired, this can be a vector; otherwise,
 #'   this should have one row per treatment group, where the order of the rows matches the order of
@@ -32,14 +37,20 @@
 #'   If \code{NULL}, \code{ratio} should be specified. If both are specified, \code{q_s} will take priority.
 #'   Typically, if the desired ratio is not feasible for every stratum, \code{q_s} should be generated
 #'   using \code{\link{generate_qs}()}.
-#' @param q_star_s a named vector or matrix indicating how many supplemental units are to be selected from each stratum.
-#'   This should have one row per treatment group, where the order of the rows matches the order of
+#' @param q_star_s a named vector or matrix,
+#'   indicating how many supplemental units are to be selected from each stratum.
+#'   The matrix should have one row per treatment group, where the order of the rows matches the order of
 #'   the levels of \code{z}, including the treated level.
-#'   If \code{NULL}, \code{ratio_star} should be specified. If both are specified, \code{q_star_s} will take priority.
+#'   If \code{NULL} and supplemental comparisons are desired,
+#'   \code{ratio_star} should be specified. If both are specified, \code{q_star_s} will take priority.
 #'   Typically, if the desired ratio is not feasible for every stratum, \code{q_star_s} should be generated
 #'   using \code{\link{generate_qs}()}.
+#'   If multiple supplemental comparisons are desired, this should be a list with one entry per supplemental
+#'   comparison.
 #' @param weight_star a numeric stating how much to prioritize balance between the supplemental units as
 #' compared to balance between the main units.
+#'   If multiple supplemental comparisons are desired, this should be a list with one entry per supplemental
+#'   comparison.
 #' @param importances a vector with length equal to the number of constraints or columns
 #'   in \code{X}. This can be generated using \code{\link{generate_constraints}()} and each nonnegative value
 #'   denotes how much to prioritize each constraint, with the default being 1
@@ -154,6 +165,8 @@
 
 # TODO: Use ratio_star input if provided instead of q_star_s
 # TODO: Process q_star_s if not matrix
+# TODO: incorporate multiple supplemental comparisons
+# TODO: Write tests for supplemental comparisons
 
 optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
                               ratio = NULL, q_s = NULL, treated_star = NULL,
@@ -166,20 +179,15 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
   # Make sure inputs are good
   verify_inputs(X = X, importances = importances, ratio = ratio, q_s = q_s,
                 st = st, z = z, treated = treated, integer = integer, solver = solver)
-  multi_comp <- !is.null(q_star_s)
+  multi_comp <- !is.null(q_star_s) | !is.null(ratio_star) | !is.null(treated_star)
   z <- factor(z)
   group <- levels(z)
   k <- length(group)
   kc2 <- choose(k, 2)
-  if (!(!multi_comp & is.null(ratio_star))) {
-    # TODO: Add verify inputs here to check everything about these
-    if (is.null(treated_star)) {
-      stop("If `q_star_s` or `ratio_star` are not `NULL`, `treated_star` must also specify the treatment group for reference in the second comparison.")
-    }
-    if (correct_sizes) {
-      correct_sizes <- FALSE
-      warning("Sample sizes are only correct in expectation for multiple comparisons. `correct_sizes` has thus been switched to `FALSE`.")
-    }
+  if (multi_comp) {
+    # TODO: Add proper arguments here
+    verify_multi_comp_inputs()
+    correct_sizes <- FALSE
   }
   # Look at strata counts
   frtab <- table(z, st)
@@ -439,6 +447,135 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
 #' @keywords internal
 
 verify_inputs <- function(X, importances, ratio, q_s, st, z, treated, integer, solver) {
+  if (is.data.frame(X))
+    X <- as.matrix(X)
+  stopifnot(!is.null(ratio) || !is.null(q_s))
+  stopifnot(is.null(ratio) | (is.vector(ratio) & all(ratio > 0)))
+  stopifnot(is.vector(st) | is.factor(st))
+  stopifnot(is.vector(z) | is.factor(z))
+  stopifnot(is.matrix(X))
+  stopifnot(length(z) == (dim(X)[1]))
+  stopifnot(length(z) == length(st))
+  stopifnot(is.logical(integer))
+  if (!solver %in% c("gurobi", "Rglpk")) {
+    stop("\"solver\" must be one of \"gurobi\" or \"Rglpk\".",
+         call. = FALSE)
+  }
+  if (solver == "gurobi" && !requireNamespace("gurobi", quietly = TRUE)) {
+    stop("Package \'gurobi\' needed if \"solver\" parameter set to \"gurobi\". Please
+         install it or switch the \"solver\" parameter to \"Rglpk\".",
+         call. = FALSE)
+  }
+  z <- factor(z)
+  group <- levels(z)
+  if (!treated %in% group) {
+    stop("\"treated\" must be one of the values in \"z\".")
+  }
+  frtab <- table(z, st)
+  if (min(frtab[group == treated, ]) == 0) {
+    warning("Note that at least one stratum has no treated individuals.")
+  }
+  if (!is.null(q_s)) {
+    if (is.vector(q_s)) {
+      q_s <- matrix(c(q_s, frtab[group == treated, ]), byrow = TRUE, nrow = 2, dimnames = list(NULL, names(q_s)))
+      if (group[1] == treated) {
+        # TODO: Figure out why this is here!
+        q_s <- q_s[c(2, 1), ]
+      }
+    }
+    n_s <- table(z, st)
+    if (any(q_s[, colnames(n_s)] > n_s)) {
+      stop("At least one of the entries for `q_s` is greater than the number of units available in the stratum.
+           Please lower `q_s` such that all entries are at most the number of available units.",
+           call. = FALSE)
+    }
+  }
+  stopifnot(sort(names(importances)) == sort(colnames(X)))
+}
+
+# TODO: Fix the inputs to this function
+
+#' Verify the inputs for supplemental comparisons to \code{\link{optimize_controls}()}
+#'
+#' Makes sure that the inputs for supplemental comparisons to \code{\link{optimize_controls}()} are in the correct
+#' format and feasible.
+#'
+#' @inheritParams optimize_controls
+#'
+#' @return No return value. If there is a problem with the inputs to \code{\link{optimize_controls}()},
+#' an error is raised.
+#'
+#' @keywords internal
+
+verify_multi_comp_inputs <- function(X, importances, ratio, q_s, st, z, treated, integer, solver) {
+  if (is.null(treated_star)) {
+    stop("If \"q_star_s\" or \"ratio_star\" are not \"NULL\", \"treated_star\" must also specify the treatment group for reference in the second comparison.")
+  }
+  if (is.null(ratio_star) & is.null(q_star_s)) {
+    stop("If \"treated_star\" is not \"NULL\", one of \"q_star_s\" or \"ratio_star\" must also be specified.")
+  }
+  if (correct_sizes) {
+    warning("Sample sizes are only correct in expectation for multiple comparisons. \"correct_sizes\" has thus been switched to `FALSE`.")
+  }
+  for (r in ratio_star) {
+    stopifnot(is.null(r) | (is.vector(r) & all(r > 0)))
+  }
+
+  z <- factor(z)
+  group <- levels(z)
+  if (!all(unlist(treated_star) %in% group)) {
+    stop("Each entry of \"treated_star\" must be one of the values in \"z\".")
+  }
+
+  frtab <- table(z, st)
+  for (t in treated_star) {
+    if (min(frtab[group == t, ]) == 0) {
+      warning("Note that at least one stratum has no treated individuals for at least one supplemental comparison.")
+    }
+  }
+
+
+  n_s <- table(z, st)
+  if (!is.null(q_star_s)) {
+    if (!is.list(q_star_s)) {
+      q_star_s <- list(q_star_s)
+    }
+    for (comp in 1:length(q_star_s)) {
+      q <- q_star_s[comp]
+      t <- t_star[comp]
+      if (is.vector(q)) {
+        q <- matrix(c(q, frtab[group == t, ]), byrow = TRUE, nrow = 2, dimnames = list(NULL, names(q)))
+        if (group[1] == t) {
+          # TODO: Figure this line out. Why is it here and do multiple control groups affect it
+          q <- q[c(2, 1), ]
+        }
+      }
+
+      if (any(q[, colnames(n)] > n)) {
+        stop("At least one of the entries for `q_star_s` is greater than the number of units available in the stratum.
+           Please lower `q_star_s` such that all entries are at most the number of available units.",
+             call. = FALSE)
+      }
+    }
+  }
+}
+
+
+
+# TODO: Fix this function
+
+#' Process the desired sample sizes for \code{\link{optimize_controls}()}
+#'
+#' Processes the inputs to \code{\link{optimize_controls}()} to formulate sample size constraints.
+#'
+#' @inheritParams optimize_controls
+#'
+#' @return No return value. If there is a problem with the inputs to \code{\link{optimize_controls}()},
+#' an error is raised.
+#'
+#' @keywords internal
+
+process_qs <- function(X, importances, ratio, q_s, st, z, treated, integer, solver) {
   if (is.data.frame(X))
     X <- as.matrix(X)
   stopifnot(!is.null(ratio) || !is.null(q_s))

@@ -1,10 +1,10 @@
 # natstrat 2.0.0 (forthcoming)
 
-This version adds several new functionalities
-  * Multiple treatment or control groups are supported throughout
-  * Conducting two comparisons, one main comparison of all groups and a supplemental
-  comparison with additional units. This allows a comparison of all groups and then
-  a comparison of a subset of those groups with a larger sample size.
+This version adds several new functionalities:
+  * Multiple treatment or control groups
+  * Multiple separate comparisons, using various subsets of the treatment and control groups,
+  for which units are chosen in order to balance covariate distributions 
+  for all comparisons simultaeously
 
 Several changes to the interface have been made:
 
