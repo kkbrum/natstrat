@@ -163,8 +163,6 @@
 #'                              importances = constraints$importances,
 #'                              q_s = qs)
 
-# TODO: Use ratio_star input if provided instead of q_star_s
-# TODO: Process q_star_s if not matrix
 # TODO: incorporate multiple supplemental comparisons
 # TODO: Write tests for supplemental comparisons
 
@@ -184,40 +182,39 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
   group <- levels(z)
   k <- length(group)
   kc2 <- choose(k, 2)
-  if (multi_comp) {
-    # TODO: Add proper arguments here
-    verify_multi_comp_inputs()
-    correct_sizes <- FALSE
-  }
+
   # Look at strata counts
-  frtab <- table(z, st)
-  stratios <- frtab / frtab[group == treated, ]
-  st_vals <- as.character(colnames(frtab))  # stratum values
+  n_s <- table(z, st)
+  stratios <- n_s / n_s[group == treated, ]
+  st_vals <- as.character(colnames(n_s))  # stratum values
   S <- length(st_vals)  # number of strata
 
-  # TODO: Move all this figuring to a new function that outputs the final q_s
-  if (!is.null(q_s) & is.vector(q_s)) {
-    q_s <- matrix(rep(q_s, k), byrow = TRUE, nrow = k, dimnames = list(NULL, names(q_s)))
-    q_s[group == treated, ] <- frtab[group == treated, ]
-  }
-  if (!is.null(ratio) & length(ratio) == 1) {
-    ratio <- rep(ratio, k)
-    ratio[group == treated] <- 1
-  }
-  # Determine number of controls desired for each stratum
-  if (is.null(q_s)) {
-    if (is.null(ratio)) {
-      ratio <- sapply(1:nrow(stratios), function(i) min(1, min(stratios[i, ])))
+  # Prepare sample size matrix for main comparison
+  q_s <- process_qs(ratio = ratio, q_s = q_s, n_s = n_s, treated = treated)
+
+  # Make sure inputs are good for supplemental comparisons
+  if (multi_comp) {
+    verify_multi_comp_inputs(q_s = q_s, ratio_star = ratio_star, q_star_s = q_star_s,
+                             n_s = n_s, treated = treated, treated_star = treated_star,
+                             correct_sizes = correct_sizes)
+    correct_sizes <- FALSE
+    n_comp <- length(treated_star)
+    if (is.null(q_star_s)) {
+      q_star_s <- list()
     }
-    q_s <- round(ratio %*% t(frtab[group == treated, ]))
-    n_s <- table(z, st)
-    if (any(q_s > n_s)) {
-      stop("The ratio you specified is not feasible.
-            Please supply `q_s` instead of `ratio` or lower the `ratio` input.",
+    Q_s <- q_s
+    for (comp in 1:n_comp) {
+      q_star_s[[comp]] <- process_qs(ratio = ratio_star[[comp]], q_s = q_star_s[[comp]], n_s = n_s,
+                 treated = treated_star[[comp]])
+      Q_s <- Q_s + q_star_s[[comp]]
+    }
+    if (any(Q_s[, colnames(n_s)] > n_s)) {
+      stop("The total number of units desired across comparisons for at least one stratum
+            is greater than the number of units available in the stratum.
+            Please lower `q_s` or `q_star_s` accordingly.",
            call. = FALSE)
     }
-  } else {
-    q_s <- q_s[, st_vals]
+
   }
 
   # Prepare importances
@@ -434,6 +431,7 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
   }
 }
 
+
 #' Verify the inputs to \code{\link{optimize_controls}()}
 #'
 #' Makes sure that the inputs to \code{\link{optimize_controls}()} are in the correct
@@ -471,19 +469,17 @@ verify_inputs <- function(X, importances, ratio, q_s, st, z, treated, integer, s
   if (!treated %in% group) {
     stop("\"treated\" must be one of the values in \"z\".")
   }
-  frtab <- table(z, st)
-  if (min(frtab[group == treated, ]) == 0) {
+  n_s <- table(z, st)
+  if (min(n_s[group == treated, ]) == 0) {
     warning("Note that at least one stratum has no treated individuals.")
   }
   if (!is.null(q_s)) {
     if (is.vector(q_s)) {
-      q_s <- matrix(c(q_s, frtab[group == treated, ]), byrow = TRUE, nrow = 2, dimnames = list(NULL, names(q_s)))
+      q_s <- matrix(c(q_s, n_s[group == treated, ]), byrow = TRUE, nrow = 2, dimnames = list(NULL, names(q_s)))
       if (group[1] == treated) {
-        # TODO: Figure out why this is here!
         q_s <- q_s[c(2, 1), ]
       }
     }
-    n_s <- table(z, st)
     if (any(q_s[, colnames(n_s)] > n_s)) {
       stop("At least one of the entries for `q_s` is greater than the number of units available in the stratum.
            Please lower `q_s` such that all entries are at most the number of available units.",
@@ -493,7 +489,6 @@ verify_inputs <- function(X, importances, ratio, q_s, st, z, treated, integer, s
   stopifnot(sort(names(importances)) == sort(colnames(X)))
 }
 
-# TODO: Fix the inputs to this function
 
 #' Verify the inputs for supplemental comparisons to \code{\link{optimize_controls}()}
 #'
@@ -507,7 +502,7 @@ verify_inputs <- function(X, importances, ratio, q_s, st, z, treated, integer, s
 #'
 #' @keywords internal
 
-verify_multi_comp_inputs <- function(X, importances, ratio, q_s, st, z, treated, integer, solver) {
+verify_multi_comp_inputs <- function(q_s, ratio_star, q_star_s, n_s, treated, treated_star, correct_sizes) {
   if (is.null(treated_star)) {
     stop("If \"q_star_s\" or \"ratio_star\" are not \"NULL\", \"treated_star\" must also specify the treatment group for reference in the second comparison.")
   }
@@ -521,48 +516,58 @@ verify_multi_comp_inputs <- function(X, importances, ratio, q_s, st, z, treated,
     stopifnot(is.null(r) | (is.vector(r) & all(r > 0)))
   }
 
-  z <- factor(z)
-  group <- levels(z)
   if (!all(unlist(treated_star) %in% group)) {
     stop("Each entry of \"treated_star\" must be one of the values in \"z\".")
   }
 
-  frtab <- table(z, st)
   for (t in treated_star) {
-    if (min(frtab[group == t, ]) == 0) {
+    if (min(n_s[group == t, ]) == 0) {
       warning("Note that at least one stratum has no treated individuals for at least one supplemental comparison.")
     }
   }
 
-
-  n_s <- table(z, st)
   if (!is.null(q_star_s)) {
     if (!is.list(q_star_s)) {
       q_star_s <- list(q_star_s)
     }
+    # Set up q_s for first comparison
+    # TODO: This needs to be after q_s is set up even if ratio is used
+    if (is.vector(q_s)) {
+      q_s <- matrix(c(q_s, n_s[group == treated, ]), byrow = TRUE, nrow = 2, dimnames = list(NULL, names(q_s)))
+      if (group[1] == treated) {
+        q_s <- q_s[c(2, 1), ]
+      }
+    }
+    Q_s <- q_s
+    # Check whether a sample size within a comparison is too large
     for (comp in 1:length(q_star_s)) {
-      q <- q_star_s[comp]
-      t <- t_star[comp]
+      q <- q_star_s[[comp]]
+      t <- t_star[[comp]]
       if (is.vector(q)) {
-        q <- matrix(c(q, frtab[group == t, ]), byrow = TRUE, nrow = 2, dimnames = list(NULL, names(q)))
+        q <- matrix(c(q, n_s[group == t, ]), byrow = TRUE, nrow = 2, dimnames = list(NULL, names(q)))
         if (group[1] == t) {
-          # TODO: Figure this line out. Why is it here and do multiple control groups affect it
           q <- q[c(2, 1), ]
         }
       }
+      Q_s <- Q_s + q
 
-      if (any(q[, colnames(n)] > n)) {
+      if (any(q[, colnames(n_s)] > n_s)) {
         stop("At least one of the entries for `q_star_s` is greater than the number of units available in the stratum.
            Please lower `q_star_s` such that all entries are at most the number of available units.",
              call. = FALSE)
       }
     }
+    # Check whether sample size across comparisons is too large
+    if (any(Q_s[, colnames(n_s)] > n_s)) {
+      stop("The total number of units desired across comparisons for at least one stratum
+            is greater than the number of units available in the stratum.
+            Please lower `q_s` or `q_star_s` accordingly.",
+           call. = FALSE)
+    }
   }
 }
 
 
-
-# TODO: Fix this function
 
 #' Process the desired sample sizes for \code{\link{optimize_controls}()}
 #'
@@ -570,54 +575,34 @@ verify_multi_comp_inputs <- function(X, importances, ratio, q_s, st, z, treated,
 #'
 #' @inheritParams optimize_controls
 #'
-#' @return No return value. If there is a problem with the inputs to \code{\link{optimize_controls}()},
-#' an error is raised.
+#' @return A matrix of sample sizes for each treatment and stratum.
 #'
 #' @keywords internal
 
-process_qs <- function(X, importances, ratio, q_s, st, z, treated, integer, solver) {
-  if (is.data.frame(X))
-    X <- as.matrix(X)
-  stopifnot(!is.null(ratio) || !is.null(q_s))
-  stopifnot(is.null(ratio) | (is.vector(ratio) & all(ratio > 0)))
-  stopifnot(is.vector(st) | is.factor(st))
-  stopifnot(is.vector(z) | is.factor(z))
-  stopifnot(is.matrix(X))
-  stopifnot(length(z) == (dim(X)[1]))
-  stopifnot(length(z) == length(st))
-  stopifnot(is.logical(integer))
-  if (!solver %in% c("gurobi", "Rglpk")) {
-    stop("\"solver\" must be one of \"gurobi\" or \"Rglpk\".",
-         call. = FALSE)
+process_qs <- function(ratio, q_s, n_s, treated) {
+  if (!is.null(q_s) & is.vector(q_s)) {
+    q_s <- matrix(rep(q_s, k), byrow = TRUE, nrow = k, dimnames = list(NULL, names(q_s)))
+    q_s[group == treated, ] <- n_s[group == treated, ]
   }
-  if (solver == "gurobi" && !requireNamespace("gurobi", quietly = TRUE)) {
-    stop("Package \'gurobi\' needed if \"solver\" parameter set to \"gurobi\". Please
-         install it or switch the \"solver\" parameter to \"Rglpk\".",
-         call. = FALSE)
+  if (!is.null(ratio) & length(ratio) == 1) {
+    ratio <- rep(ratio, k)
+    ratio[group == treated] <- 1
   }
-  z <- factor(z)
-  group <- levels(z)
-  if (!treated %in% group) {
-    stop("\"treated\" must be one of the values in \"z\".")
-  }
-  frtab <- table(z, st)
-  if (min(frtab[group == treated, ]) == 0) {
-    warning("Note that at least one stratum has no treated individuals.")
-  }
-  if (!is.null(q_s)) {
-    if (is.vector(q_s)) {
-      q_s <- matrix(c(q_s, frtab[group == treated, ]), byrow = TRUE, nrow = 2, dimnames = list(NULL, names(q_s)))
-      if (group[1] == treated) {
-        q_s <- q_s[c(2, 1), ]
-      }
+  # Determine number of controls desired for each stratum
+  if (is.null(q_s)) {
+    if (is.null(ratio)) {
+      ratio <- sapply(1:nrow(stratios), function(i) min(1, min(stratios[i, ])))
     }
-    n_s <- table(z, st)
-    if (any(q_s[, colnames(n_s)] > n_s)) {
-      stop("At least one of the entries for `q_s` is greater than the number of units available in the stratum.
-           Please lower `q_s` such that all entries are at most the number of available units.",
+    q_s <- round(ratio %*% t(n_s[group == treated, ]))
+    if (any(q_s > n_s)) {
+      stop("The ratio you specified is not feasible.
+            Please supply `q_s` instead of `ratio` or lower the `ratio` input.",
            call. = FALSE)
     }
+  } else {
+    q_s <- q_s[, st_vals]
   }
-  stopifnot(sort(names(importances)) == sort(colnames(X)))
+
+  return(q_s)
 }
 
