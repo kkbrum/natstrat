@@ -562,6 +562,7 @@ verify_multi_comp_inputs <- function(q_s, q_star_s, n_s, treated, treated_star, 
       }
     }
     Q_s <- q_s
+
     # Check whether a sample size within a comparison is too large
     for (comp in 1:length(q_star_s)) {
       q <- q_star_s[[comp]]

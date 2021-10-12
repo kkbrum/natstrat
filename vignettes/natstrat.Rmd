@@ -86,6 +86,8 @@ DT::datatable(st_ratios[, c('Stratum', 'Age', 'Sex', 'Control', 'Treated', 'Rati
 
 Natural strata are defined by having a fixed ratio of controls to treated units within each stratum, so we now select the fixed ratio of controls we will strive for. As the minimum ratio of controls to treated units available is 2.3, we set a fixed ratio of 1 for our natural strata. Note that we can select a noninteger ratio, such as 1.5 controls for every treated unit. However, if we select too large a ratio compared to the minimum available ratio, it will become difficult to balance covariates in this small dataset. 
 
+If we had multiple control or treated groups, as in `nh0506_3groups`, we could also use natural strata, specifying a ratio for each group relative to the primary treated group.
+
 <a id="sec3"></a>
 
 ### Generating covariate balance constraints
@@ -141,7 +143,9 @@ results <- optimize_controls(z = nh0506$z,
 names(results)
 ```
 
-We see the return of `optimize_controls()` is a list with 8 elements. The most useful element is `selected`, which is a boolean vector stating whether each unit should be included in the analysis or not. This includes both treated and control units. The rest of the elements in the list are useful in analyzing the performance of the linear program and randomized rounding solutions, and are described in the help page for the function. 
+We see the return of `optimize_controls()` is a list. The most useful element is `selected`, which is a boolean vector stating whether each unit should be included in the analysis or not. This includes both treated and control units. The rest of the elements in the list are useful in analyzing the performance of the linear program and randomized rounding solutions, and are described in the help page for the function. 
+
+This package also supports optimizing for multiple comparisons simultaneously; see the [Additional `optimize_controls()` arguments] section to learn more.
 
 <a id="sec5"></a>
 
@@ -270,6 +274,75 @@ qs[1, ]
 We see that for the control group (row 1 of `qs`), 8 extra units will be drawn from the `40 - 50 years:Female` stratum, yielding a ratio of 2.60, and 9 extra units will be drawn from the `> 50 years:Male` stratum, yielding a ratio of 2.58. These are two of the three strata that are 1 distance unit away from our deficient stratum.
 
 Once we have these `qs` generated, we can plug these into `optimize_controls()` and set the `ratio` argument to `NULL`. Everything else holds the same.
+
+### Multiple comparisons
+
+This package supports optimizing covariate balance for multiple separate comparisons simultaneously. This is useful when there are multiple treatment or control groups of vastly varying sizes, such that you might want to have a main analysis with all groups, and supplement this with another analysis of a subset of groups with larger sample sizes. 
+
+In the NHANES data, splitting into three exposures yields the following:
+```{r}
+data('nh0506_3groups')
+table(nh0506_3groups$z)
+```
+
+In this case, we might want a primary analysis of 581 people from each exposure, and then a larger analysis of 1529 people from both the never smokers and occasional smokers. This larger analysis would yield greater power to detect differences between these two groups, where the treatment effect would be calculated for the occasional smoker population, as opposed to the daily smoker population as in the primary analysis. 
+
+To set this up, we first repeat the stratifying and constraint generating process from before:
+
+```{r}
+age_cat2 <- cut(nh0506_3groups$age, 
+               breaks = c(19, 39, 50, 85), 
+               labels = c('< 40 years', '40 - 50 years', '> 50 years'))
+strata2 <- age_cat2 : nh0506_3groups$sex
+```
+
+```{r, echo = FALSE}
+st_tab2 <- table(strata2, nh0506_3groups$z)
+st_ratios <- data.frame(Stratum = row.names(st_tab2),
+                        Control = st_tab2[, 1],
+                        Treated = st_tab2[, 2],
+                        Ratio = round(st_tab2[, 1] / st_tab2[, 2], 1),
+                        row.names = NULL)
+st_ratios2[, c('Age', 'Sex')] <- stringr::str_split_fixed(st_ratios2$Stratum, ':', 2)
+DT::datatable(st_ratios2[, c('Stratum', 'Age', 'Sex', 'Control', 'Treated', 'Ratio')], 
+              options = list(paging = FALSE, searching = FALSE))
+```
+
+```{r}
+constraints2 <- generate_constraints(
+  balance_formulas = list(age + race + education + povertyr + bmi ~ 1 + strata2), 
+  z = nh0506_3groups$z, 
+  data = nh0506_3groups,
+  treated = 'daily smoker')
+
+names(constraints2)
+dim(constraints2$X)
+length(constraints2$importances)
+```
+
+The optimization step is where we need to specify information about each comparison. We will provide the supplemental comparison information in the `_star` arguments. 
+
+For the second comparison, although we want to use all 1529 occasional smokers and 1529 never smokers, we will already have selected 581 of each for the main comparison, which we will reuse in the second comparison. Note that we do not have to reuse these people, but we would need to be careful about specifying the treatment effect of interest if we did not use all the occasional smokers.
+
+We thus want to select $1529 - 581 = 948$ people from each group for the second analysis, which we will split into strata and specify in the `q_star_s` argument. We also add arguments for `treated` and `treated_star`, which will specify the primary treated group in each comparison. Finally, we add `correct_sizes = FALSE`, meaning that sample sizes will only be correct in expectation, which is needed for multiple comparisons.
+```{r}
+
+q_star_s <- matrix(c(rep(table(nh0506_3groups$z, strata2)['some smoking', ] - table(nh0506_3groups$z, strata2)['daily smoker', ], 2), rep(0, 6)), byrow = TRUE, nrow = 3, dimnames = list(levels(nh0506_3groups$z), levels(strata2)))
+q_star_s
+
+# TODO: one of the strata has more units in never smokers than occasional
+results <- optimize_controls(z = nh0506_3groups$z, 
+                             X = constraints2$X, 
+                             importances = constraints2$importances,
+                             st = strata2, 
+                             ratio = 1, 
+                             treated = 'daily smoker', 
+                             treated_star = 'some smoking',
+                             q_star_s = q_star_s,
+                             correct_sizes = FALSE)
+
+names(results)
+```
 
 ### Balance formula syntax
 
