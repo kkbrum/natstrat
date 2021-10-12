@@ -70,8 +70,6 @@ must be one of the values of \code{z}.
 indicating how many supplemental units are to be selected from each stratum.
 The matrix should have one row per treatment group, where the order of the rows matches the order of
 the levels of \code{z}, including the treated level.
-Typically, if the desired ratio is not feasible for every stratum, \code{q_star_s} should be generated
-using \code{\link{generate_qs}()}.
 If multiple supplemental comparisons are desired, this should be a list with one entry per supplemental
 comparison.}
 
@@ -103,12 +101,12 @@ applicable if \code{solver = 'gurobi'}.}
 
 \item{correct_sizes}{boolean stating whether the desired sample sizes should
 be exactly correct (if \code{correct_sizes = TRUE}) or only need to be correct
-in expectation. For nested comparisons, sample sizes may only be
+in expectation. For multiple comparisons, sample sizes may only be
 correct in expectation.}
 
 \item{low_memory}{boolean stating whether some outputs should not be included
 due to the scale of the problem being too large compared to memory space.
-If \code{TRUE}, \code{eps} and \code{eps_star} will not be reported. Inbalances
+If \code{TRUE}, \code{eps} and \code{eps_star} will not be reported. Imbalances
 can be computed post hoc using the \code{\link{check_balance}()} instead.}
 }
 \value{
@@ -122,12 +120,20 @@ List containing:
   The row names specify the covariate, the population of interest, and, if there are
   more than two comparison groups, which groups are being compared.}
   \item{\code{eps_star}}{same as \code{eps} but for the supplemental units instead of the units
-  in the main comparison.}
+  in the main comparison. If there are multiple supplemental comparisons, this is a list.
+  If there are none, this is \code{NULL}.}
   \item{\code{importances}}{the importance of each on the balance constraints.}
+  \item{\code{weight_star}}{the importance of balancing in the supplemental comparison
+  relative to the main comparison. If there are multiple supplemental comparisons,
+  this is a vector. If there are none, this is \code{NULL}.}
   \item{\code{selected}}{whether each unit was selected for the main comparison.}
-  \item{\code{selected_star}}{whether each unit was selected for the supplement.}
+  \item{\code{selected_star}}{whether each unit was selected for the supplement.
+  If there are multiple supplemental comparisons, this is a list.
+  If there are none, this is \code{NULL}.}
   \item{\code{pr}}{the linear program weight assigned to each unit for the main comparison.}
-  \item{\code{pr_star}}{the linear program weight assigned to each unit for the supplement.}
+  \item{\code{pr_star}}{the linear program weight assigned to each unit for the supplement.
+  If there are multiple supplemental comparisons, this is a list.
+  If there are none, this is \code{NULL}.}
   \item{\code{rrdetails}}{A list containing:
   \describe{
   \item{\code{seed}}{the seed used before commencing the random sampling.}
@@ -197,4 +203,30 @@ results <- optimize_controls(z = nh0506$z,
                              st = strata,
                              importances = constraints$importances,
                              q_s = qs)
+
+# We can also have multiple treatment and control groups,
+# as well as multiple simultaneous comparisons:
+
+data('nh0506_3groups')
+strata2 <- cut(nh0506_3groups$age, breaks = c(19, 39, 50, 85),
+              labels = c('< 40 years', '40 - 50 years', '> 50 years'))
+constraints2 <- generate_constraints(
+  balance_formulas = list(age + race + education + povertyr + bmi + sex ~ 1 + strata2),
+  z = nh0506_3groups$z,
+  data = nh0506_3groups,
+  treated = 'daily smoker')
+q_star_s <- matrix(c(rep(table(nh0506_3groups$z, strata2)['some smoking', ] -
+                           table(nh0506_3groups$z, strata2)['daily smoker', ], 2),
+                     rep(0, 3)), byrow = TRUE, nrow = 3,
+                   dimnames = list(levels(nh0506_3groups$z), levels(strata2)))
+
+results <- optimize_controls(z = nh0506_3groups$z,
+                             X = constraints2$X,
+                             importances = constraints2$importances,
+                             st = strata2,
+                             ratio = 1,
+                             treated = 'daily smoker',
+                             treated_star = 'some smoking',
+                             q_star_s = q_star_s,
+                             correct_sizes = FALSE)
 }

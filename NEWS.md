@@ -1,4 +1,4 @@
-# natstrat 2.0.0 (forthcoming)
+# natstrat 2.0.0 (2021-10-12)
 
 This version adds several new functionalities:
   * Multiple treatment or control groups
@@ -13,8 +13,8 @@ Several changes to the interface have been made:
 * many arguments can be specified for each of the treatment levels
     * `q_s`, `max_entry_s` can have a row per treatment level
     * `ratio`, `max_ratio` can have an entry per treatment level
-* inputs for the supplemental comparison have been added across the functions. `q_star_s`,
-`ratio_star`, `treated_star`
+* inputs for the supplemental comparison have been added across the functions: `q_star_s`,
+`ratio_star`, `treated_star`, `weight_star`
     
 There are several changes to the outputs:
 

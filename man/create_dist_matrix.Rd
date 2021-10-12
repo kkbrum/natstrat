@@ -15,7 +15,7 @@ which correspond to the levels of the stratifying factor.}
 Matrix containing the distances between all levels of the factor of all
 interactions between the inputted factors. The row and column names correspond
 to the levels of the strata, formed by combining the level name of each stratifying
-factor separated with ':'.
+factor separated with `:`.
 }
 \description{
 Create a distance matrix between strata levels created from the interactions

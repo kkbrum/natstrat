@@ -40,6 +40,8 @@ vignette: >
   [6.](#sec6) Conduct outcome analysis and visualizations
   
 We will demonstrate each of these steps using an extended example, and then go into [Further details] about some of the functions and arguments.
+
+Note that natural strata can also be used with any number of treatment or control groups and any number of simultaneous comparisons between subsets of treatment and control groups, as shown in [Multiple comparisons]. In addition, natural strata can deal with deviations from proportionality, as demonstrated in [Deviating from proportionality].
   
   *** 
   
@@ -198,7 +200,7 @@ ggplot(nh0506[results$selected, ], aes(x = group, y = log(homocysteine))) +
   geom_boxplot()
 ```
 
-We can also calculate the average treatment effect (ATT) on the treated in terms of log of homocysteine, both within the strata and across:
+We can also calculate the average treatment effect on the treated (ATT) in terms of log of homocysteine, both within the strata and across:
 
 ```{r}
 
@@ -287,30 +289,29 @@ table(nh0506_3groups$z)
 
 In this case, we might want a primary analysis of 581 people from each exposure, and then a larger analysis of 1529 people from both the never smokers and occasional smokers. This larger analysis would yield greater power to detect differences between these two groups, where the treatment effect would be calculated for the occasional smoker population, as opposed to the daily smoker population as in the primary analysis. 
 
-To set this up, we first repeat the stratifying and constraint generating process from before:
+To set this up, we first repeat the stratifying and constraint generating process from before. In this case, we only stratify on age and instead balance for sex later:
 
 ```{r}
-age_cat2 <- cut(nh0506_3groups$age, 
+strata2 <- cut(nh0506_3groups$age, 
                breaks = c(19, 39, 50, 85), 
                labels = c('< 40 years', '40 - 50 years', '> 50 years'))
-strata2 <- age_cat2 : nh0506_3groups$sex
 ```
 
 ```{r, echo = FALSE}
 st_tab2 <- table(strata2, nh0506_3groups$z)
-st_ratios <- data.frame(Stratum = row.names(st_tab2),
-                        Control = st_tab2[, 1],
-                        Treated = st_tab2[, 2],
-                        Ratio = round(st_tab2[, 1] / st_tab2[, 2], 1),
+st_ratios2 <- data.frame(Stratum = row.names(st_tab2),
+                        'Never smokers' = st_tab2[, 1],
+                        'Some smoking' = st_tab2[, 2],
+                        'Daily smokers' = st_tab2[, 3],
                         row.names = NULL)
-st_ratios2[, c('Age', 'Sex')] <- stringr::str_split_fixed(st_ratios2$Stratum, ':', 2)
-DT::datatable(st_ratios2[, c('Stratum', 'Age', 'Sex', 'Control', 'Treated', 'Ratio')], 
+DT::datatable(st_ratios2[, c('Stratum', 'Daily.smokers', 'Some.smoking', 'Never.smokers')],
+              colnames = c('Stratum', 'Daily smokers', 'Some smoking', 'Never smokers'), 
               options = list(paging = FALSE, searching = FALSE))
 ```
 
 ```{r}
 constraints2 <- generate_constraints(
-  balance_formulas = list(age + race + education + povertyr + bmi ~ 1 + strata2), 
+  balance_formulas = list(age + race + education + povertyr + bmi + sex ~ 1 + strata2), 
   z = nh0506_3groups$z, 
   data = nh0506_3groups,
   treated = 'daily smoker')
@@ -319,18 +320,20 @@ names(constraints2)
 dim(constraints2$X)
 length(constraints2$importances)
 ```
+Note that although we have 68 constraints, these will be enforced for each pair of groups within each comparison, such that we will have 4 times this many constraints-- 3 for the main comparison and 1 for the supplemental comparison.
 
 The optimization step is where we need to specify information about each comparison. We will provide the supplemental comparison information in the `_star` arguments. 
 
-For the second comparison, although we want to use all 1529 occasional smokers and 1529 never smokers, we will already have selected 581 of each for the main comparison, which we will reuse in the second comparison. Note that we do not have to reuse these people, but we would need to be careful about specifying the treatment effect of interest if we did not use all the occasional smokers.
+For the second comparison, although we want to use all occasional smokers and an equivalent amount of never smokers, we will already have selected some of each for the main comparison, which we will reuse in the second comparison. Note that we do not have to reuse these people, but we would need to be careful about specifying the treatment effect of interest if we did not use all the occasional smokers.
 
-We thus want to select $1529 - 581 = 948$ people from each group for the second analysis, which we will split into strata and specify in the `q_star_s` argument. We also add arguments for `treated` and `treated_star`, which will specify the primary treated group in each comparison. Finally, we add `correct_sizes = FALSE`, meaning that sample sizes will only be correct in expectation, which is needed for multiple comparisons.
+We thus want to select the difference between the number of people we want from each group for the second analysis and for the main analysis, which we will split into strata and specify in the `q_star_s` argument. We also add arguments for `treated` and `treated_star`, which will specify the primary treated group in each comparison. Finally, we add `correct_sizes = FALSE`, meaning that sample sizes will only be correct in expectation, which is needed for multiple comparisons.
 ```{r}
-
-q_star_s <- matrix(c(rep(table(nh0506_3groups$z, strata2)['some smoking', ] - table(nh0506_3groups$z, strata2)['daily smoker', ], 2), rep(0, 6)), byrow = TRUE, nrow = 3, dimnames = list(levels(nh0506_3groups$z), levels(strata2)))
+q_star_s <- matrix(c(rep(table(nh0506_3groups$z, strata2)['some smoking', ] - 
+                           table(nh0506_3groups$z, strata2)['daily smoker', ], 2), 
+                     rep(0, 3)), byrow = TRUE, nrow = 3, 
+                   dimnames = list(levels(nh0506_3groups$z), levels(strata2)))
 q_star_s
 
-# TODO: one of the strata has more units in never smokers than occasional
 results <- optimize_controls(z = nh0506_3groups$z, 
                              X = constraints2$X, 
                              importances = constraints2$importances,
@@ -340,9 +343,9 @@ results <- optimize_controls(z = nh0506_3groups$z,
                              treated_star = 'some smoking',
                              q_star_s = q_star_s,
                              correct_sizes = FALSE)
-
-names(results)
 ```
+
+We can then analyze our balance results and estimate our treatment effects in the same way as before.
 
 ### Balance formula syntax
 
@@ -374,10 +377,14 @@ We combine any amount of such balance formulas in a list. For example, another w
 ### Additional `optimize_controls()` arguments
 
 * `q_s`: This is a named vector specifying how many controls to take from each stratum. This should only be used if the ratio of controls to treated units in each stratum is not constant. This could occur if a certain ratio is not feasible in a stratum and thus you'd like to select fewer controls from that stratum or compensate by selecting controls from other specified strata. The function `generate_qs()`, described in the [Deviating from proportionality] section above, is useful for specifying this argument
+* `weight_star`: This is a scalar or vector specifying how much to prioritize balancing each supplemental comparison relative to the main comparison.
 * `integer`: Whether to solve the integer solution as opposed to using randomized rounding. Note that using the integer solver is not recommended for large datasets as the optimization may take an excessively long time or never finish. It is instead suggested to leave `integer = FALSE` (default), which will conduct randomized rounding of the linear program as described in the manuscript `Brumberg et al. (2021+)`
 * `solver`: The solver we'd like to use ('Rglpk' or 'gurobi'). Note that we use the 'Rglpk' solver here as we have a small dataset and the software is publicly available. However, we recommend using the 'gurobi' software for larger datasets if available
 * `seed`: The seed we'd like to set when conducting randomized rounding of the linear program solution if `integer = FALSE`
 * `runs`: The number of times we'd like to conduct randomized rounding if `integer = FALSE` before taking the best solution
 * `time_limit`: Time limit for the optimization
+* `threads`: A scalar indicating how many threads the solver should use
+* `correct_sizes`: If set to `TRUE`, the sampling algorithm will not strictly enforce the sample size constraints. This must be set to `TRUE` when using multiple comparisons
+* `low_memory`: If set to `TRUE`, the result will not contain the epsilon matrices, which show the imbalance that each covariate contributes to the objective function
 
 
