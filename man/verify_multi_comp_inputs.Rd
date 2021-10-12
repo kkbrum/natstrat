@@ -6,11 +6,11 @@
 \usage{
 verify_multi_comp_inputs(
   q_s,
-  ratio_star,
   q_star_s,
   n_s,
   treated,
   treated_star,
+  weight_star,
   group,
   correct_sizes
 )
@@ -24,20 +24,10 @@ If \code{NULL}, \code{ratio} should be specified. If both are specified, \code{q
 Typically, if the desired ratio is not feasible for every stratum, \code{q_s} should be generated
 using \code{\link{generate_qs}()}.}
 
-\item{ratio_star}{a numeric or vector specifying the desired ratio of supplemental units to `treated_star` in
-each stratum. This should be
-a vector with one entry per treatment group, in the same order as the levels of
-\code{z}, including the treated level. If \code{NULL} and supplemental comparisons
-are desired, \code{q_star_s} should be specified.
-If multiple supplemental comparisons are desired, this should be a list with one
-entry per supplemental comparison.}
-
 \item{q_star_s}{a named vector or matrix,
 indicating how many supplemental units are to be selected from each stratum.
 The matrix should have one row per treatment group, where the order of the rows matches the order of
 the levels of \code{z}, including the treated level.
-If \code{NULL} and supplemental comparisons are desired,
-\code{ratio_star} should be specified. If both are specified, \code{q_star_s} will take priority.
 Typically, if the desired ratio is not feasible for every stratum, \code{q_star_s} should be generated
 using \code{\link{generate_qs}()}.
 If multiple supplemental comparisons are desired, this should be a list with one entry per supplemental
@@ -50,6 +40,11 @@ must be one of the values of \code{z}.}
 for the supplemental comparison. This
 must be one of the values of \code{z}.
  If multiple supplemental comparisons are desired, this should be a vector with one entry per supplemental
+  comparison.}
+
+\item{weight_star}{a numeric stating how much to prioritize balance between the supplemental units as
+compared to balance between the main units.
+  If multiple supplemental comparisons are desired, this should be a vector with one entry per supplemental
   comparison.}
 
 \item{correct_sizes}{boolean stating whether the desired sample sizes should

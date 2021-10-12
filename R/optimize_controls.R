@@ -23,13 +23,6 @@
 #'   this can be a numeric. Otherwise, this should be
 #'   a vector with one entry per treatment group, in the same order as the levels of
 #'   \code{z}, including the treated level. If \code{NULL}, \code{q_s} should be specified.
-#' @param ratio_star a numeric or vector specifying the desired ratio of supplemental units to `treated_star` in
-#'   each stratum. This should be
-#'   a vector with one entry per treatment group, in the same order as the levels of
-#'   \code{z}, including the treated level. If \code{NULL} and supplemental comparisons
-#'   are desired, \code{q_star_s} should be specified.
-#'   If multiple supplemental comparisons are desired, this should be a list with one
-#'   entry per supplemental comparison.
 #' @param q_s a named vector or matrix indicating how many units are to be selected from each stratum.
 #'   If there is one control group and all treated units are desired, this can be a vector; otherwise,
 #'   this should have one row per treatment group, where the order of the rows matches the order of
@@ -41,8 +34,6 @@
 #'   indicating how many supplemental units are to be selected from each stratum.
 #'   The matrix should have one row per treatment group, where the order of the rows matches the order of
 #'   the levels of \code{z}, including the treated level.
-#'   If \code{NULL} and supplemental comparisons are desired,
-#'   \code{ratio_star} should be specified. If both are specified, \code{q_star_s} will take priority.
 #'   Typically, if the desired ratio is not feasible for every stratum, \code{q_star_s} should be generated
 #'   using \code{\link{generate_qs}()}.
 #'   If multiple supplemental comparisons are desired, this should be a list with one entry per supplemental
@@ -163,12 +154,9 @@
 #'                              importances = constraints$importances,
 #'                              q_s = qs)
 
-# TODO: check supplemental comparisons
-# TODO: Write tests for supplemental comparisons
-
 optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
                               ratio = NULL, q_s = NULL, treated_star = NULL,
-                              ratio_star = NULL, q_star_s = NULL, weight_star = 1,
+                              q_star_s = NULL, weight_star = 1,
                               integer = FALSE, solver = "Rglpk",
                               seed = NULL, runs = 1,
                               time_limit = Inf, threads = 1, correct_sizes = TRUE,
@@ -177,7 +165,7 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
   # Make sure inputs are good
   verify_inputs(X = X, importances = importances, ratio = ratio, q_s = q_s,
                 st = st, z = z, treated = treated, integer = integer, solver = solver)
-  multi_comp <- !is.null(q_star_s) | !is.null(ratio_star) | !is.null(treated_star)
+  multi_comp <- !is.null(q_star_s) | !is.null(treated_star)
   z <- factor(z)
   group <- levels(z)
   k <- length(group)
@@ -195,8 +183,9 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
 
   # Make sure inputs are good for supplemental comparisons
   if (multi_comp) {
-    verify_multi_comp_inputs(q_s = q_s, ratio_star = ratio_star, q_star_s = q_star_s,
+    verify_multi_comp_inputs(q_s = q_s, q_star_s = q_star_s,
                              n_s = n_s, treated = treated, treated_star = treated_star,
+                             weight_star = weight_star,
                              group = group, correct_sizes = correct_sizes)
     correct_sizes <- FALSE
     n_comp <- length(treated_star) + 1
@@ -212,7 +201,7 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
       } else {
         q_temp <- q_star_s[[comp]]
       }
-      q_star_s[[comp]] <- process_qs(ratio = ratio_star[comp], q_s = q_temp, n_s = n_s,
+      q_star_s[[comp]] <- process_qs(q_s = q_temp, ratio = NULL, n_s = n_s,
                  treated = treated_star[comp], k = k, group = group, st_vals = st_vals)
       Q_s <- Q_s + q_star_s[[comp]]
     }
@@ -294,8 +283,11 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
       colnames(lp_results$lpdetails$eps[[comp]]) <- c("positive", "negative")
       }
 
-      if (n_comp > 1) {
-        lp_results$lpdetails$eps_star <- lp_results$lpdetails$eps[[2:n_comp]]
+      if (n_comp == 2) {
+        lp_results$lpdetails$eps_star <- lp_results$lpdetails$eps[[2]]
+      }
+      if(n_comp > 2) {
+        lp_results$lpdetails$eps_star <- lp_results$lpdetails$eps[2:n_comp]
       }
       lp_results$lpdetails$eps <- lp_results$lpdetails$eps[[1]]
 
@@ -413,14 +405,21 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
     eps_star <- NULL
     weight_star <- NULL
     if (n_comp > 1) {
-      for (comp in 2:n_comp) {
-      selected_star <- append(selected_star, rr_results$select[((comp - 1) * N+1):(comp*N)])
-      pr_star <- append(pr_star, rr_results$pr[((comp - 1) * N+1):(comp*N)])
+      selected_star <- rr_results$select[(N+1):(2*N)]
+      pr_star <- rr_results$pr[(N+1):(2*N)]
+      eps_star <- eps[[2]]
+      weight_star <- weight_comp[2]
+      if (n_comp > 2) {
+        selected_star <- list(selected_star)
+        pr_star <- list(pr_star)
+        for (comp in 3:n_comp) {
+          selected_star <- append(selected_star, list(rr_results$select[((comp - 1) * N+1):(comp*N)]))
+          pr_star <- append(pr_star, list(rr_results$pr[((comp - 1) * N+1):(comp*N)]))
+        }
+        eps_star <- eps[2:n_comp]
+        weight_star = weight_comp[2:n_comp]
       }
-      eps_star <- eps[[2:n_comp]]
-      weight_star = weight_comp[2:n_comp]
     }
-
 
     return(list(objective = best_objective,
                 objective_wo_importances = objective_wo_importances,
@@ -511,18 +510,28 @@ verify_inputs <- function(X, importances, ratio, q_s, st, z, treated, integer, s
 #'
 #' @keywords internal
 
-verify_multi_comp_inputs <- function(q_s, ratio_star, q_star_s, n_s, treated, treated_star, group, correct_sizes) {
+verify_multi_comp_inputs <- function(q_s, q_star_s, n_s, treated, treated_star, weight_star, group, correct_sizes) {
   if (is.null(treated_star)) {
-    stop("If \"q_star_s\" or \"ratio_star\" are not \"NULL\", \"treated_star\" must also specify the treatment group for reference in the second comparison.")
+    stop("If \"q_star_s\" is not \"NULL\", \"treated_star\" must also specify the treatment group for reference in each supplemental comparison.")
+  } else if (is.list(treated_star)) {
+    stop("\"treated_star\" should be a scalar or vector.")
   }
-  if (is.null(ratio_star) & is.null(q_star_s)) {
-    stop("If \"treated_star\" is not \"NULL\", one of \"q_star_s\" or \"ratio_star\" must also be specified.")
+  if (!is.null(q_star_s) & is.list(q_star_s) & length(q_star_s) != length(treated_star)) {
+    stop("\"q_star_s\" should be a list with the same number of elements as the vector \"treated_star\".")
+  }
+  if (!is.null(weight_star)) {
+    if(is.list(weight_star)) {
+      stop("\"weight_star\" should be a scalar or vector.")
+    }
+    if(length(weight_star) != length(treated_star)) {
+    stop("\"weight_star\" should be a vector with the same number of elements as the vector \"treated_star\".")
+    }
+  }
+  if (is.null(q_star_s)) {
+    stop("If \"treated_star\" is not \"NULL\", \"q_star_s\" must also be specified.")
   }
   if (correct_sizes) {
     warning("Sample sizes are only correct in expectation for multiple comparisons. \"correct_sizes\" has thus been switched to `FALSE`.")
-  }
-  for (r in ratio_star) {
-    stopifnot(is.null(r) | (is.vector(r) & all(r > 0)))
   }
 
   if (!all(treated_star %in% group)) {
@@ -540,7 +549,6 @@ verify_multi_comp_inputs <- function(q_s, ratio_star, q_star_s, n_s, treated, tr
       q_star_s <- list(q_star_s)
     }
     # Set up q_s for first comparison
-    # TODO: This needs to be after q_s is set up even if ratio is used
     if (is.vector(q_s)) {
       q_s <- matrix(c(q_s, n_s[group == treated, ]), byrow = TRUE, nrow = 2, dimnames = list(NULL, names(q_s)))
       if (group[1] == treated) {

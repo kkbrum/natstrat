@@ -13,7 +13,6 @@ optimize_controls(
   ratio = NULL,
   q_s = NULL,
   treated_star = NULL,
-  ratio_star = NULL,
   q_star_s = NULL,
   weight_star = 1,
   integer = FALSE,
@@ -67,20 +66,10 @@ must be one of the values of \code{z}.
  If multiple supplemental comparisons are desired, this should be a vector with one entry per supplemental
   comparison.}
 
-\item{ratio_star}{a numeric or vector specifying the desired ratio of supplemental units to `treated_star` in
-each stratum. This should be
-a vector with one entry per treatment group, in the same order as the levels of
-\code{z}, including the treated level. If \code{NULL} and supplemental comparisons
-are desired, \code{q_star_s} should be specified.
-If multiple supplemental comparisons are desired, this should be a list with one
-entry per supplemental comparison.}
-
 \item{q_star_s}{a named vector or matrix,
 indicating how many supplemental units are to be selected from each stratum.
 The matrix should have one row per treatment group, where the order of the rows matches the order of
 the levels of \code{z}, including the treated level.
-If \code{NULL} and supplemental comparisons are desired,
-\code{ratio_star} should be specified. If both are specified, \code{q_star_s} will take priority.
 Typically, if the desired ratio is not feasible for every stratum, \code{q_star_s} should be generated
 using \code{\link{generate_qs}()}.
 If multiple supplemental comparisons are desired, this should be a list with one entry per supplemental

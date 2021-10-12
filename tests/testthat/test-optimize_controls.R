@@ -205,7 +205,7 @@ test_that("multiple ratios still choose correct number of units", {
   expect_equal(sum(results$selected[z == 2]), sum(round(table(z, data$category)[3,] * 1) ))
 })
 
-# Multiple comparisons tests ----
+# Two comparisons tests ----
 
 set.seed(64)
 z <- c(rep(0, 20), rep(1, 12), rep(2, 8))
@@ -218,7 +218,7 @@ data$number[c(1, 5, 11, 22, 30, 39)] <- NA
 constraints <- suppressWarnings(generate_constraints(list(color + number ~ 2 * category),
                                                      z, data = data, treated = 2,
                                                      autogen_missing = 4, denom_variance = "pooled"))
-results <- optimize_controls(z = z, X = constraints$X, st = data$category, ratio = 1,
+results_two <- optimize_controls(z = z, X = constraints$X, st = data$category, ratio = 1,
                              q_star_s = matrix(c(rep(2, 4), rep(0, 2)), nrow = 3,
                                                byrow = TRUE, dimnames = list(NULL, c("1", "2"))),
                              treated = 2, treated_star = 1, weight_star = 2,
@@ -228,33 +228,116 @@ results <- optimize_controls(z = z, X = constraints$X, st = data$category, ratio
 
 
 test_that("optimization gives correct results", {
-  expect_equal(results$lpdetails$objective, 44.17337, tolerance = .000001)
-  expect_equal(results$lpdetails$objective,
-               sum(results$lpdetails$eps * constraints$importances) +
-                 sum(results$lpdetails$eps_star * results$weight_star * constraints$importances),
+  expect_equal(results_two$lpdetails$objective, 44.17337, tolerance = .000001)
+  expect_equal(results_two$lpdetails$objective,
+               sum(results_two$lpdetails$eps * constraints$importances) +
+                 sum(results_two$lpdetails$eps_star * results_two$weight_star * constraints$importances),
                tolerance = .000001)
-  expect_equal(results$lpdetails$objective_wo_importances,  17.92818, tolerance = .000001)
-  expect_equal(results$lpdetails$objective_wo_importances,
-               sum(results$lpdetails$eps) + sum(results$lpdetails$eps_star), tolerance = .000001)
-  # TODO: Why is this test failing?
-  expect_equal(results$objective, 44.17337, tolerance = .000001)
-  expect_equal(results$objective, sum(results$eps * constraints$importances) +
-                 sum(results$eps_star * results$weight_star * constraints$importances),
+  expect_equal(results_two$lpdetails$objective_wo_importances,  17.92818, tolerance = .000001)
+  expect_equal(results_two$lpdetails$objective_wo_importances,
+               sum(results_two$lpdetails$eps) + sum(results_two$lpdetails$eps_star), tolerance = .000001)
+  expect_equal(results_two$objective, 44.17337, tolerance = .000001)
+  expect_equal(results_two$objective, sum(results_two$eps * constraints$importances) +
+                 sum(results_two$eps_star * results_two$weight_star * constraints$importances),
                tolerance = .000001)
-  expect_equal(results$objective_wo_importances, 17.92818, tolerance = .000001)
-  expect_equal(results$objective_wo_importances, sum(results$eps) + sum(results$eps_star), tolerance = .000001)
+  expect_equal(results_two$objective_wo_importances, 17.92818, tolerance = .000001)
+  expect_equal(results_two$objective_wo_importances, sum(results_two$eps) + sum(results_two$eps_star), tolerance = .000001)
 })
 
 # Since sample sizes only correct in expectation, this varies from seed to seed
 test_that("number of units chosen is approximately what we wanted for each group", {
-  expect_equal(as.numeric(table(z[results$selected], data$category[results$selected])), rep(4, 6))
-  expect_equal(as.numeric(table(z[results$selected_star], data$category[results$selected_star])), rep(2, 4))
+  expect_equal(as.numeric(table(z[results_two$selected], data$category[results_two$selected])), rep(4, 6))
+  expect_equal(as.numeric(table(z[results_two$selected_star], data$category[results_two$selected_star])), rep(2, 4))
 })
 
 test_that("units chosen for either main or supplemental group", {
-  expect_equal(sum(results$selected & results$selected_star), 0)
+  expect_equal(sum(results_two$selected & results_two$selected_star), 0)
+})
+
+# Three comparisons tests ----
+
+set.seed(64)
+results_three <- optimize_controls(z = z, X = constraints$X, st = data$category, ratio = 1,
+                             q_star_s = list(matrix(c(rep(1, 4), rep(0, 2)), nrow = 3,
+                                               byrow = TRUE, dimnames = list(NULL, c("1", "2"))),
+                                             matrix(c(rep(1, 4), rep(0, 2)), nrow = 3,
+                                                    byrow = TRUE, dimnames = list(NULL, c("1", "2")))),
+                             treated = 2, treated_star = c(1, 1), weight_star = c(2, 1),
+                             importances = constraints$importances,
+                             integer = FALSE, solver = "Rglpk", seed = 1, runs = 5,
+                             time_limit = Inf, correct_sizes = FALSE, low_memory = FALSE)
+
+
+test_that("optimization gives correct results_three", {
+  expect_equal(results_three$lpdetails$objective, 45.36925, tolerance = .000001)
+  lp_sum_w_imp <- sum(results_three$lpdetails$eps * constraints$importances)
+  lp_sum_wo_imp <- sum(results_three$lpdetails$eps)
+  sum_w_imp <- sum(results_three$eps * constraints$importances)
+  sum_wo_imp <- sum(results_three$eps)
+
+  for (supp_comp in 1:2) {
+    lp_sum_w_imp <- lp_sum_w_imp + sum(results_three$lpdetails$eps_star[[supp_comp]] *
+                                   results_three$weight_star[supp_comp] * constraints$importances)
+    lp_sum_wo_imp <- lp_sum_wo_imp + sum(results_three$lpdetails$eps_star[[supp_comp]])
+    sum_w_imp <- sum_w_imp + sum(results_three$eps_star[[supp_comp]] *
+                                   results_three$weight_star[supp_comp] * constraints$importances)
+    sum_wo_imp <- sum_wo_imp + sum(results_three$eps_star[[supp_comp]])
+  }
+  expect_equal(results_three$lpdetails$objective,
+               lp_sum_w_imp,
+               tolerance = .000001)
+  expect_equal(results_three$lpdetails$objective_wo_importances,  19.22373, tolerance = .000001)
+  expect_equal(results_three$lpdetails$objective_wo_importances,
+               lp_sum_wo_imp, tolerance = .000001)
+  expect_equal(results_three$objective, 46.86411, tolerance = .000001)
+  expect_equal(results_three$objective, sum_w_imp,
+               tolerance = .000001)
+  expect_equal(results_three$objective_wo_importances, 19.82167, tolerance = .000001)
+  expect_equal(results_three$objective_wo_importances, sum_wo_imp, tolerance = .000001)
+})
+
+# Since sample sizes only correct in expectation, this varies from seed to seed
+test_that("number of units chosen is approximately what we wanted for each group", {
+  expect_equal(as.numeric(table(z[results_three$selected], data$category[results_three$selected])), rep(4, 6))
+  expect_equal(as.numeric(table(z[results_three$selected_star[[1]]], data$category[results_three$selected_star[[1]]])), rep(1, 4))
+  expect_equal(as.numeric(table(z[results_three$selected_star[[2]]], data$category[results_three$selected_star[[2]]])), rep(1, 4))
+})
+
+test_that("units chosen for either main or supplemental group", {
+  expect_equal(sum(results_three$selected + results_three$selected_star[[1]] + results_three$selected_star[[2]] > 1), 0)
 })
 
 
 
-####### TODO: Add test for low memory
+
+# Tests for low memory ----
+
+set.seed(64)
+results_three_low_mem <- optimize_controls(z = z, X = constraints$X, st = data$category, ratio = 1,
+                             q_star_s = list(matrix(c(rep(1, 4), rep(0, 2)), nrow = 3,
+                                                    byrow = TRUE, dimnames = list(NULL, c("1", "2"))),
+                                             matrix(c(rep(1, 4), rep(0, 2)), nrow = 3,
+                                                    byrow = TRUE, dimnames = list(NULL, c("1", "2")))),
+                             treated = 2, treated_star = c(1, 1), weight_star = c(2, 1),
+                             importances = constraints$importances,
+                             integer = FALSE, solver = "Rglpk", seed = 1, runs = 5,
+                             time_limit = Inf, correct_sizes = FALSE, low_memory = TRUE)
+
+
+test_that("optimization gives correct results", {
+  expect_equal(results_three_low_mem$lpdetails$objective,
+               results_three$lpdetails$objective, tolerance = .000001)
+  expect_equal(results_three_low_mem$lpdetails$objective_wo_importances,
+               results_three$lpdetails$objective_wo_importances, tolerance = .000001)
+ expect_equal(results_three_low_mem$objective,
+              results_three$objective, tolerance = .000001)
+  expect_equal(results_three_low_mem$objective_wo_importances,
+               results_three$objective_wo_importances, tolerance = .000001)
+})
+
+test_that("eps not reported", {
+  expect_true(is.null(results_three_low_mem$eps))
+  expect_true(is.null(results_three_low_mem$eps_star))
+  expect_true(is.null(results_three_low_mem$lpdetails$eps))
+  expect_true(is.null(results_three_low_mem$lpdetails$eps_star))
+})
