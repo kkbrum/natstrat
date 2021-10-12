@@ -21,27 +21,19 @@
 #' @keywords internal
 #' @importFrom stats rbinom rmultinom
 
-randomized_rounding_expectation <- function(o, N, multi_comp = FALSE) {
-  if (multi_comp) {
-    pr <- o$solution[1:(2 * N)]
-  } else {
-    pr <- o$solution[1:N]
-  }
+randomized_rounding_expectation <- function(o, N, n_comp) {
+  pr <- o$solution[1:(n_comp * N)]
   pr <- round(pr, 5)
   select <- rep(FALSE, length(pr))
   for (i in 1:N) {
-    if (multi_comp) {
-      draw <- rmultinom(1, 1, c(pr[i], pr[N + i], round(1 - pr[i] - pr[N + i], 5)))
-      if (draw[1] == 1) {
-        select[i] <- TRUE
-      } else if (draw[2] == 1) {
-        select[N + i] <- TRUE
-      }
-    } else {
-      draw <- rbinom(1, 1, pr[i])
-      if (draw[1] == 1) {
-        select[i] <- TRUE
-      }
+    pr_i <- c()
+    for (comp in 1:n_comp) {
+      pr_i <- c(pr_i, pr[N * (comp - 1) + i])
+    }
+    draw <- rmultinom(1, 1, c(pr_i, round(1 - sum(pr_i), 5)))
+    comp_i <- which(draw == 1)
+    if (comp_i <= n_comp) {
+      select[N * (comp_i - 1) + i] <- TRUE
     }
   }
 

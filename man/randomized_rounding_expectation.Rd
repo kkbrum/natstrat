@@ -4,7 +4,7 @@
 \alias{randomized_rounding_expectation}
 \title{Sample integer solution from linear programming solution with sample sizes correct in expectation}
 \usage{
-randomized_rounding_expectation(o, N, multi_comp = FALSE)
+randomized_rounding_expectation(o, N, n_comp)
 }
 \arguments{
 \item{o}{linear programming results, as found in the `o` element of the

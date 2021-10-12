@@ -17,8 +17,7 @@ balance_LP(
   integer,
   time_limit,
   threads = 1,
-  q_star_s = NULL,
-  weight_star = 1
+  weight_comp = 1
 )
 }
 \arguments{
@@ -62,16 +61,6 @@ program is allowed to run before aborting. Default is \code{Inf} for no time lim
 
 \item{threads}{The maximum number of threads that should be used. This is only
 applicable if \code{solver = 'gurobi'}.}
-
-\item{q_star_s}{a named vector or matrix indicating how many supplemental units are to be selected from each stratum.
-This should have one row per treatment group, where the order of the rows matches the order of
-the levels of \code{z}, including the treated level.
-If \code{NULL}, \code{ratio_star} should be specified. If both are specified, \code{q_star_s} will take priority.
-Typically, if the desired ratio is not feasible for every stratum, \code{q_star_s} should be generated
-using \code{\link{generate_qs}()}.}
-
-\item{weight_star}{a numeric stating how much to prioritize balance between the supplemental units as
-compared to balance between the main units.}
 }
 \value{
 A list containing two elements:

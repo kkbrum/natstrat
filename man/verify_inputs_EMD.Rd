@@ -20,9 +20,7 @@ as \code{z}.}
 \item{z}{a factor with the \code{i}th entry equal to the treatment of unit \code{i}.}
 
 \item{treated}{which treatment value should be considered the treated units. This
-must be one of the values of \code{z}. This
-is used if \code{denom_variance = "treated"} for calculating the variance
-to use in the standardization.}
+must be one of the values of \code{z}.}
 }
 \value{
 No return value. If there is a problem with the inputs to \code{\link{generate_qs}()},

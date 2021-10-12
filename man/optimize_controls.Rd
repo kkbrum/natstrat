@@ -45,9 +45,7 @@ denotes how much to prioritize each constraint, with the default being 1
 for all constraints.}
 
 \item{treated}{which treatment value should be considered the treated units. This
-must be one of the values of \code{z}. This
-is used if \code{denom_variance = "treated"} for calculating the variance
-to use in the standardization.}
+must be one of the values of \code{z}.}
 
 \item{ratio}{a numeric or vector specifying the desired ratio of controls to `treated` in
 each stratum. If there is one control group and all treated units should be included,
@@ -65,22 +63,33 @@ using \code{\link{generate_qs}()}.}
 
 \item{treated_star}{which treatment value should be considered the treated units
 for the supplemental comparison. This
-must be one of the values of \code{z}.}
+must be one of the values of \code{z}.
+ If multiple supplemental comparisons are desired, this should be a vector with one entry per supplemental
+  comparison.}
 
 \item{ratio_star}{a numeric or vector specifying the desired ratio of supplemental units to `treated_star` in
 each stratum. This should be
 a vector with one entry per treatment group, in the same order as the levels of
-\code{z}, including the treated level. If \code{NULL}, \code{q_star_s} should be specified.}
+\code{z}, including the treated level. If \code{NULL} and supplemental comparisons
+are desired, \code{q_star_s} should be specified.
+If multiple supplemental comparisons are desired, this should be a list with one
+entry per supplemental comparison.}
 
-\item{q_star_s}{a named vector or matrix indicating how many supplemental units are to be selected from each stratum.
-This should have one row per treatment group, where the order of the rows matches the order of
+\item{q_star_s}{a named vector or matrix,
+indicating how many supplemental units are to be selected from each stratum.
+The matrix should have one row per treatment group, where the order of the rows matches the order of
 the levels of \code{z}, including the treated level.
-If \code{NULL}, \code{ratio_star} should be specified. If both are specified, \code{q_star_s} will take priority.
+If \code{NULL} and supplemental comparisons are desired,
+\code{ratio_star} should be specified. If both are specified, \code{q_star_s} will take priority.
 Typically, if the desired ratio is not feasible for every stratum, \code{q_star_s} should be generated
-using \code{\link{generate_qs}()}.}
+using \code{\link{generate_qs}()}.
+If multiple supplemental comparisons are desired, this should be a list with one entry per supplemental
+comparison.}
 
 \item{weight_star}{a numeric stating how much to prioritize balance between the supplemental units as
-compared to balance between the main units.}
+compared to balance between the main units.
+  If multiple supplemental comparisons are desired, this should be a vector with one entry per supplemental
+  comparison.}
 
 \item{integer}{a logical stating whether to use a mixed integer programming solver
 instead of randomized rounding. Default is \code{FALSE}.}

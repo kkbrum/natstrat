@@ -15,9 +15,7 @@
 #'   the \code{treated} argument, or "pooled", meaning
 #'   the standardization will use the average of the variances of each treatment group.
 #' @param treated which treatment value should be considered the treated units. This
-#' must be one of the values of \code{z}. This
-#' is used if \code{denom_variance = "treated"} for calculating the variance
-#' to use in the standardization.
+#' must be one of the values of \code{z}.
 #' @param autogen_missing whether to automatically generate missingness constraint
 #'   and how heavily to prioritize it. Should be a numeric
 #'   or \code{NULL} value. \code{NULL} indicates that

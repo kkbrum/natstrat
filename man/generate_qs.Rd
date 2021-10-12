@@ -28,9 +28,7 @@ a vector with one entry per treatment group, in the same order as the levels of
 \code{z}, including the treated level. If \code{NULL}, \code{q_s} should be specified.}
 
 \item{treated}{which treatment value should be considered the treated units. This
-must be one of the values of \code{z}. This
-is used if \code{denom_variance = "treated"} for calculating the variance
-to use in the standardization.}
+must be one of the values of \code{z}.}
 
 \item{max_ratio}{a numeric or vector specifying the maximum ratio to allow in a stratum to achieve
 the overall \code{ratio} specified. If \code{NULL}, it is set by default to 1.1 times the desired \code{ratio}.

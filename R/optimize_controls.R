@@ -16,7 +16,7 @@
 #' @param treated_star which treatment value should be considered the treated units
 #' for the supplemental comparison. This
 #' must be one of the values of \code{z}.
-#'  If multiple supplemental comparisons are desired, this should be a list with one entry per supplemental
+#'  If multiple supplemental comparisons are desired, this should be a vector with one entry per supplemental
 #'   comparison.
 #' @param ratio a numeric or vector specifying the desired ratio of controls to `treated` in
 #'   each stratum. If there is one control group and all treated units should be included,
@@ -49,7 +49,7 @@
 #'   comparison.
 #' @param weight_star a numeric stating how much to prioritize balance between the supplemental units as
 #' compared to balance between the main units.
-#'   If multiple supplemental comparisons are desired, this should be a list with one entry per supplemental
+#'   If multiple supplemental comparisons are desired, this should be a vector with one entry per supplemental
 #'   comparison.
 #' @param importances a vector with length equal to the number of constraints or columns
 #'   in \code{X}. This can be generated using \code{\link{generate_constraints}()} and each nonnegative value
@@ -163,7 +163,7 @@
 #'                              importances = constraints$importances,
 #'                              q_s = qs)
 
-# TODO: incorporate multiple supplemental comparisons
+# TODO: check supplemental comparisons
 # TODO: Write tests for supplemental comparisons
 
 optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
@@ -190,22 +190,30 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
   S <- length(st_vals)  # number of strata
 
   # Prepare sample size matrix for main comparison
-  q_s <- process_qs(ratio = ratio, q_s = q_s, n_s = n_s, treated = treated)
+  q_s <- process_qs(ratio = ratio, q_s = q_s, n_s = n_s, treated = treated,
+                    k = k, group = group, st_vals = st_vals, stratios = stratios)
 
   # Make sure inputs are good for supplemental comparisons
   if (multi_comp) {
     verify_multi_comp_inputs(q_s = q_s, ratio_star = ratio_star, q_star_s = q_star_s,
                              n_s = n_s, treated = treated, treated_star = treated_star,
-                             correct_sizes = correct_sizes)
+                             group = group, correct_sizes = correct_sizes)
     correct_sizes <- FALSE
-    n_comp <- length(treated_star)
+    n_comp <- length(treated_star) + 1
     if (is.null(q_star_s)) {
       q_star_s <- list()
+    } else if (!is.list(q_star_s)) {
+      q_star_s <- list(q_star_s)
     }
     Q_s <- q_s
-    for (comp in 1:n_comp) {
-      q_star_s[[comp]] <- process_qs(ratio = ratio_star[[comp]], q_s = q_star_s[[comp]], n_s = n_s,
-                 treated = treated_star[[comp]])
+    for (comp in 1:(n_comp - 1)) {
+      if(length(q_star_s) < comp) {
+        q_temp <- NULL
+      } else {
+        q_temp <- q_star_s[[comp]]
+      }
+      q_star_s[[comp]] <- process_qs(ratio = ratio_star[comp], q_s = q_temp, n_s = n_s,
+                 treated = treated_star[comp], k = k, group = group, st_vals = st_vals)
       Q_s <- Q_s + q_star_s[[comp]]
     }
     if (any(Q_s[, colnames(n_s)] > n_s)) {
@@ -215,6 +223,21 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
            call. = FALSE)
     }
 
+  } else {
+    n_comp <- 1
+  }
+  # Combine the first and the supplemental comparisons into a single list of comparisons
+
+  if (!is.null(treated)) {
+    weight_comp <- 1
+  }
+  if (!is.null(q_s)) {
+    q_s <- list(q_s)
+  }
+  if (!is.null(q_star_s)) {
+    q_s <- append(q_s, q_star_s)
+    treated <- c(treated, treated_star)
+    weight_comp <- c(weight_comp, weight_star)
   }
 
   # Prepare importances
@@ -231,67 +254,58 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
   # Run linear program to choose control units
   lp_results <- balance_LP(z = z, X = X, importances = importances,
                            st = st, st_vals = st_vals, S = S,
-                           q_s = q_s, q_star_s = q_star_s, weight_star = weight_star,
+                           q_s = q_s, weight_comp = weight_comp,
                            N = N, integer = integer, solver = solver,
                            time_limit = time_limit, threads = threads)
-
   if (is.null(lp_results)) {
     return(NULL)
   } else {
-    Q <- rowSums(q_s)
+    Q <- lapply(q_s, rowSums)
 
     if (!low_memory) {
       # Epsilons for the linear program solution
-      if (!multi_comp) {
-        lp_results$lpdetails$eps <- lp_results$o$solution[(N + 1):(N + (2 * nvars))]
-        lp_results$lpdetails$eps <- matrix(lp_results$lpdetails$eps, nvars, 2)
-      } else {
-        lp_results$lpdetails$eps <- lp_results$o$solution[(2 * N + 1):(2 * N + (2 * nvars))]
-        lp_results$lpdetails$eps <- matrix(lp_results$lpdetails$eps, nvars, 2)
-        lp_results$lpdetails$eps_star <- lp_results$o$solution[(2 * N + 2 * nvars + 1):(2 * N + (4 * nvars))]
-        lp_results$lpdetails$eps_star <- matrix(lp_results$lpdetails$eps_star, nvars, 2)
+      lp_results$lpdetails$eps <- list()
+      for (comp in 1:n_comp) {
+        lp_results$lpdetails$eps[[comp]] <- lp_results$o$solution[(n_comp * N + 2 * (comp - 1) * nvars + 1):(n_comp * N + (2 * comp * nvars))]
+        lp_results$lpdetails$eps[[comp]] <- matrix(lp_results$lpdetails$eps[[comp]], nvars, 2)
       }
       if (!is.null(colnames(X))) {
         if (k == 2) {
-          rownames(lp_results$lpdetails$eps) <- colnames(X)
-          if (multi_comp) {
-            rownames(lp_results$lpdetails$eps_star) <- colnames(X)
+          for (comp in 1:n_comp) {
+            rownames(lp_results$lpdetails$eps[[comp]]) <- colnames(X)
           }
         } else {
-          rownames(lp_results$lpdetails$eps) <- 1:nvars
-          if (multi_comp) {
-            rownames(lp_results$lpdetails$eps_star) <- 1:nvars
+          for (comp in 1:n_comp) {
+            rownames(lp_results$lpdetails$eps[[comp]]) <- 1:nvars
           }
           pairs <- combn(group, 2)
           for (pair_num in 1:kc2) {
             group1 <- pairs[1, pair_num]
             group2 <- pairs[2, pair_num]
-            rownames(lp_results$lpdetails$eps)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <-
-              paste0(colnames(X), "_", group1, ":", group2)
-            if (multi_comp) {
-              rownames(lp_results$lpdetails$eps_star)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <-
+            for (comp in 1:n_comp) {
+              rownames(lp_results$lpdetails$eps[[comp]])[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <-
                 paste0(colnames(X), "_", group1, ":", group2)
             }
           }
         }
       }
 
-      colnames(lp_results$lpdetails$eps) <- c("positive", "negative")
-      if (multi_comp) {
-        colnames(lp_results$lpdetails$eps_star) <- c("positive", "negative")
+      for (comp in 1:n_comp) {
+      colnames(lp_results$lpdetails$eps[[comp]]) <- c("positive", "negative")
       }
+
+      if (n_comp > 1) {
+        lp_results$lpdetails$eps_star <- lp_results$lpdetails$eps[[2:n_comp]]
+      }
+      lp_results$lpdetails$eps <- lp_results$lpdetails$eps[[1]]
+
     }
 
     # Record objectives
     lp_results$lpdetails$objective <- lp_results$o$optimum
     # Obj without importances for LP
-    if (!multi_comp) {
-      # sum of epsilons
-      lp_results$lpdetails$objective_wo_importances <- sum(lp_results$o$solution[(N + 1):(N + (2 * nvars))])
-    } else {
-      # sum of epsilons and epsilon_stars
-      lp_results$lpdetails$objective_wo_importances <- sum(lp_results$o$solution[(2 * N + 1):(2 * N + (4 * nvars))])
-    }
+    # sum of epsilons for all comparisons
+    lp_results$lpdetails$objective_wo_importances <- sum(lp_results$o$solution[(n_comp * N + 1):(n_comp * N + (2 * n_comp * nvars))])
 
     best_objective <- Inf
     run_objectives <- rep(NA, runs)
@@ -303,10 +317,9 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
     set.seed(seed)
 
     balance_matrices <- create_balance_matrices(X = X, z = z, N = N, nvars = nvars_per_group,
-                                                kc2 = kc2, q_s = q_s, q_star_s = q_star_s, return = "X")
+                                                kc2 = kc2, q_s = q_s, return = "X")
 
     eps <- NULL
-    eps_star <- NULL
 
     for (run in 1:runs) {
       # Run randomized rounding
@@ -315,89 +328,78 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
                                                st_vals = st_vals, S = S, z = z)
       } else {
         rr_results_temp <- randomized_rounding_expectation(o = lp_results$o, N = N,
-                                                           multi_comp = multi_comp)
+                                                           n_comp = n_comp)
       }
 
       # Calculate and format results
 
       if (!low_memory) {
         # Epsilons for the randomized rounding (or integer) solution
-        eps_temp <- matrix(0, nvars, 2)
-        eps_temp_star <- matrix(0, nvars, 2)
+        eps_zero <- matrix(0, nvars, 2)
+        eps_temp <- list()
+        for (comp in 1:n_comp) {
+          eps_temp[[comp]] <- eps_zero
+        }
+
         for (i in 1:nvars) {
-          row <- as.vector(balance_matrices$x_blk[i, ])
-          inbalance <- sum(row * rr_results_temp$select)
-          if (inbalance < 0) {
-            eps_temp[i, 1] <- abs(inbalance)
-          } else if (inbalance > 0) {
-            eps_temp[i, 2] <- inbalance
-          }
-          if (multi_comp) {
-            row <- as.vector(balance_matrices$x_blk2[i, ])
-            inbalance_star <- sum(row * rr_results_temp$select)
-            if (inbalance_star < 0) {
-              eps_temp_star[i, 1] <- abs(inbalance_star)
+          for (comp in 1:n_comp) {
+            row <- as.vector(balance_matrices$x_blk[(comp - 1) * nvars + i, ])
+            inbalance <- sum(row * rr_results_temp$select)
+            if (inbalance < 0) {
+              eps_temp[[comp]][i, 1] <- abs(inbalance)
             } else if (inbalance > 0) {
-              eps_temp_star[i, 2] <- inbalance_star
+              eps_temp[[comp]][i, 2] <- inbalance
             }
           }
         }
+
         if (k == 2) {
           if (!is.null(colnames(X))) {
-            rownames(eps_temp) <- colnames(X)
-            if (multi_comp) {
-              rownames(eps_temp_star) <- colnames(X)
+            for (comp in 1:n_comp) {
+              rownames(eps_temp[[comp]]) <- colnames(X)
             }
           }
         } else {
           if (!is.null(colnames(X))) {
-            rownames(eps_temp) <- 1:nvars
-            if (multi_comp) {
-              rownames(eps_temp_star) <- 1:nvars
+            for (comp in 1:n_comp) {
+              rownames(eps_temp[[comp]]) <- 1:nvars
             }
             pairs <- combn(unique(z), 2)
             for (pair_num in 1:kc2) {
               group1 <- pairs[1, pair_num]
               group2 <- pairs[2, pair_num]
-              rownames(eps_temp)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <- paste0(colnames(X), "_", group1, ":", group2)
-              if (multi_comp) {
-                rownames(eps_temp_star)[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <- paste0(colnames(X), "_", group1, ":", group2)
+              for (comp in 1:n_comp) {
+                rownames(eps_temp[[comp]])[((pair_num - 1) * nvars_per_group + 1):(pair_num * nvars_per_group)] <- paste0(colnames(X), "_", group1, ":", group2)
               }
             }
           }
         }
 
-        colnames(eps_temp) <- c("positive", "negative")
-        if (multi_comp) {
-          colnames(eps_temp_star) <- c("positive", "negative")
+        for (comp in 1:n_comp) {
+          colnames(eps_temp[[comp]]) <- c("positive", "negative")
         }
+
       }
 
       # Objective value for the randomized rounding (or integer) solution
-      run_objectives[run] <- sum(abs(importances * (matrix(balance_matrices$x_blk,
-                                                           nrow = nrow(balance_matrices$x_blk),
-                                                           ncol = ncol(balance_matrices$x_blk))
-                                                    %*% rr_results_temp$select)))
-      run_objectives_wo_importances[run] <- sum(abs(matrix(balance_matrices$x_blk,
-                                                           nrow = nrow(balance_matrices$x_blk),
-                                                           ncol = ncol(balance_matrices$x_blk))
-                                                    %*% rr_results_temp$select))
-      if (multi_comp) {
+      run_objectives[run] <- 0
+      run_objectives_wo_importances[run] <- 0
+      for (comp in 1:n_comp) {
         run_objectives[run] <- run_objectives[run] +
-          sum(abs(importances * weight_star * (matrix(balance_matrices$x_blk2,
-                                                      nrow = nrow(balance_matrices$x_blk2),
-                                                      ncol = ncol(balance_matrices$x_blk2))
+          sum(abs(importances * weight_comp[comp] * (matrix(balance_matrices$x_blk[((comp - 1) * nvars + 1):(comp * nvars), ],
+                                                      nrow = nvars,
+                                                      ncol = n_comp * N)
                                                %*% rr_results_temp$select)))
         run_objectives_wo_importances[run] <- run_objectives_wo_importances[run] +
-          sum(abs(matrix(balance_matrices$x_blk2,
-                         nrow = nrow(balance_matrices$x_blk2),
-                         ncol = ncol(balance_matrices$x_blk2)) %*% rr_results_temp$select))
+          sum(abs(matrix(balance_matrices$x_blk[((comp - 1) * nvars + 1):(comp * nvars), ],
+                                                              nrow = nvars,
+                                                              ncol = n_comp * N)
+                                                       %*% rr_results_temp$select))
       }
 
       if (run_objectives[run] < best_objective) {
         if (!low_memory) {
           eps <- eps_temp
-          eps_star <- eps_temp_star
         }
         objective_wo_importances <- run_objectives_wo_importances[run]
         rr_results <- rr_results_temp
@@ -408,14 +410,21 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
 
     selected_star <- NULL
     pr_star <- NULL
-    if (multi_comp) {
-      selected_star <- rr_results$select[(N+1):(2*N)]
-      pr_star <- rr_results$pr[(N+1):(2*N)]
+    eps_star <- NULL
+    weight_star <- NULL
+    if (n_comp > 1) {
+      for (comp in 2:n_comp) {
+      selected_star <- append(selected_star, rr_results$select[((comp - 1) * N+1):(comp*N)])
+      pr_star <- append(pr_star, rr_results$pr[((comp - 1) * N+1):(comp*N)])
+      }
+      eps_star <- eps[[2:n_comp]]
+      weight_star = weight_comp[2:n_comp]
     }
+
 
     return(list(objective = best_objective,
                 objective_wo_importances = objective_wo_importances,
-                eps = eps,
+                eps = eps[[1]],
                 eps_star = eps_star,
                 importances = importances,
                 weight_star = weight_star,
@@ -502,7 +511,7 @@ verify_inputs <- function(X, importances, ratio, q_s, st, z, treated, integer, s
 #'
 #' @keywords internal
 
-verify_multi_comp_inputs <- function(q_s, ratio_star, q_star_s, n_s, treated, treated_star, correct_sizes) {
+verify_multi_comp_inputs <- function(q_s, ratio_star, q_star_s, n_s, treated, treated_star, group, correct_sizes) {
   if (is.null(treated_star)) {
     stop("If \"q_star_s\" or \"ratio_star\" are not \"NULL\", \"treated_star\" must also specify the treatment group for reference in the second comparison.")
   }
@@ -516,7 +525,7 @@ verify_multi_comp_inputs <- function(q_s, ratio_star, q_star_s, n_s, treated, tr
     stopifnot(is.null(r) | (is.vector(r) & all(r > 0)))
   }
 
-  if (!all(unlist(treated_star) %in% group)) {
+  if (!all(treated_star %in% group)) {
     stop("Each entry of \"treated_star\" must be one of the values in \"z\".")
   }
 
@@ -542,13 +551,14 @@ verify_multi_comp_inputs <- function(q_s, ratio_star, q_star_s, n_s, treated, tr
     # Check whether a sample size within a comparison is too large
     for (comp in 1:length(q_star_s)) {
       q <- q_star_s[[comp]]
-      t <- t_star[[comp]]
+      t <- treated_star[comp]
       if (is.vector(q)) {
         q <- matrix(c(q, n_s[group == t, ]), byrow = TRUE, nrow = 2, dimnames = list(NULL, names(q)))
         if (group[1] == t) {
           q <- q[c(2, 1), ]
         }
       }
+
       Q_s <- Q_s + q
 
       if (any(q[, colnames(n_s)] > n_s)) {
@@ -579,7 +589,7 @@ verify_multi_comp_inputs <- function(q_s, ratio_star, q_star_s, n_s, treated, tr
 #'
 #' @keywords internal
 
-process_qs <- function(ratio, q_s, n_s, treated) {
+process_qs <- function(ratio, q_s, n_s, treated, k, group, st_vals, stratios) {
   if (!is.null(q_s) & is.vector(q_s)) {
     q_s <- matrix(rep(q_s, k), byrow = TRUE, nrow = k, dimnames = list(NULL, names(q_s)))
     q_s[group == treated, ] <- n_s[group == treated, ]
@@ -599,6 +609,7 @@ process_qs <- function(ratio, q_s, n_s, treated) {
             Please supply `q_s` instead of `ratio` or lower the `ratio` input.",
            call. = FALSE)
     }
+    colnames(q_s) <- st_vals
   } else {
     q_s <- q_s[, st_vals]
   }

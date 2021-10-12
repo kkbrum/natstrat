@@ -27,7 +27,7 @@
 
 balance_LP <- function(z, X, importances, st, st_vals, S, q_s, N,
                        solver, integer, time_limit, threads = 1,
-                       q_star_s = NULL, weight_star = 1) {
+                       weight_comp = 1) {
 
   if (solver == "gurobi" && !requireNamespace("gurobi", quietly = TRUE)) {
     stop("Package \'gurobi\' needed if \"solver\" parameter set to \"gurobi\". Please
@@ -38,80 +38,63 @@ balance_LP <- function(z, X, importances, st, st_vals, S, q_s, N,
   groups <- levels(z)
   k <- length(groups)
   kc2 <- choose(k, 2)
-  multi_comp <- !is.null(q_star_s)
+  n_comp <- length(q_s)
 
   # Set up and solve the linear program
   model <- list()
   params <- list(TimeLimit = time_limit, OutputFlag = 0, Threads = threads)
 
   nvars <- dim(X)[2]  # number of variables
-  if (!multi_comp) {
-    model$obj <- c(rep(0, N), rep(rep(importances, 2), kc2))
-  } else {
-    model$obj <- c(rep(0, 2 * N), rep(rep(importances, 2), kc2), rep(rep(importances * weight_star, 2), kc2))
+  model$obj <- rep(0, n_comp * N)
+  for (comp in 1:n_comp) {
+    model$obj <- c(model$obj, rep(rep(importances * weight_comp[comp], 2), kc2))
   }
 
   model$A <- create_balance_matrices(X = X, z = z, N = N, nvars = nvars,
-                          kc2 = kc2, q_s = q_s, q_star_s = q_star_s, return = "A")$A
+                          kc2 = kc2, q_s = q_s, return = "A")$A
 
-  # Now, append stratum size constraints for comparison 1
+  # Now, append stratum size constraints for each comparison
   st_mats <- simple_triplet_zero_matrix(nrow = k * S, ncol = N)
   for (group_num in 1:k) {
     group <- groups[group_num]
     st_mats[((group_num - 1) * S + 1):(group_num * S), which(z == group)] <- 1 * outer(st_vals, st[z == group], "==")
   }
-  if (!multi_comp) {
+  for (comp in 1:n_comp) {
     model$A <- rbind(model$A,
-                     cbind(st_mats, simple_triplet_zero_matrix(nrow = k * S, ncol = 2 * kc2 * nvars)))
-  } else {
-    model$A <- rbind(model$A,
-                     cbind(st_mats, simple_triplet_zero_matrix(nrow = k * S, ncol = N + 4 * kc2 * nvars)))
-    # Also append stratum size constraints for comparison 2 if exists
-    model$A <- rbind(model$A,
-                     cbind(simple_triplet_zero_matrix(nrow = k * S, ncol = N),
-                           st_mats, simple_triplet_zero_matrix(nrow = k * S, ncol = 4 * kc2 * nvars)))
+                     cbind(simple_triplet_zero_matrix(nrow = k * S, ncol = (N * (comp - 1))),
+                           st_mats, simple_triplet_zero_matrix(nrow = k * S, ncol = N * (n_comp - comp) + 2 * n_comp * kc2 * nvars)))
   }
 
-  # Now, if two comparisons, add constraint that two as for a unit add to <= 1
-  # (so that one unit is not chosen for both comparisons)
-  if (multi_comp) {
-    mat<- cbind(simple_triplet_diag_matrix(rep(1, N)), simple_triplet_diag_matrix(rep(1, N)))
-    model$A <- rbind(model$A, cbind(mat, simple_triplet_zero_matrix(nrow = N, ncol = 4 * kc2 * nvars)))
+  # Now, if multiple comparisons, add constraint that all a's for a unit add to <= 1
+  # (so that one unit is not chosen for multiple comparisons)
+  if (n_comp > 1) {
+    mat <- do.call(cbind, replicate(n_comp, simple_triplet_diag_matrix(rep(1, N)), simplify=FALSE))
+    model$A <- rbind(model$A, cbind(mat, simple_triplet_zero_matrix(nrow = N, ncol = 2 * n_comp * kc2 * nvars)))
   }
 
   # Constraints for eps are equalities, number of controls per strata are equalities
   # Constraints for units only counting in one comparison are <=
-  if (!multi_comp) {
-    model$sense <- c(rep("==", kc2 * nvars), rep("==", k * S))
-  } else {
-    model$sense <- c(rep("==", 2 * kc2 * nvars), rep("==", 2 * k * S), rep("<=", N))
+  model$sense <- c(rep("==", n_comp * kc2 * nvars), rep("==", n_comp * k * S))
+  if (n_comp > 1) {
+    model$sense <- c(model$sense, rep("<=", N))
   }
 
   # right hand side of constraints
-  if (!multi_comp) {
-    model$rhs <- c(rep(0, kc2 * nvars), ramify::flatten(q_s))
-  } else {
-    model$rhs <- c(rep(0, 2 * kc2 * nvars),
-                   ramify::flatten(q_s), ramify::flatten(q_star_s),
-                   rep(1, N))
+  model$rhs <- rep(0, n_comp * kc2 * nvars)
+  for (comp in 1:n_comp) {
+    model$rhs <- c(model$rhs, ramify::flatten(q_s[[comp]]))
+  }
+  if (n_comp > 1) {
+    model$rhs <- c(model$rhs, rep(1, N))
   }
 
-  if (!multi_comp) {
-    ndecv <- as.integer(N + (2 * kc2 * nvars))  # number of decision variables
-    model$ub <- c(rep(1, N), rep(Inf, 2 * kc2 * nvars))
-  } else {
-    ndecv <- as.integer(2 * N + (4 * kc2 * nvars))  # number of decision variables
-    model$ub <- c(rep(1, 2 * N), rep(Inf, 4 * kc2 * nvars))
-  }
+  ndecv <- as.integer(n_comp * N + (2 * n_comp * kc2 * nvars))  # number of decision variables
+  model$ub <- c(rep(1, n_comp * N), rep(Inf, 2 * n_comp * kc2 * nvars))
   model$lb <- rep(0, ndecv)
   bounds <- list(lower = list(ind = 1:ndecv, val = model$lb),
                  upper = list(ind = 1:ndecv, val = model$ub))
   if (integer) {
-    if (!multi_comp) {
-      model$vtype <- c(rep("B", N), rep("C", 2 * kc2 * nvars))
-    } else {
-      model$vtype <- c(rep("B", 2 * N), rep("C", 4 * kc2 * nvars))
-    }
+    model$vtype <- c(rep("B", n_comp * N), rep("C", 2 * n_comp * kc2 * nvars))
   } else {
     model$vtype <- rep("C", ndecv)
   }
@@ -122,7 +105,8 @@ balance_LP <- function(z, X, importances, st, st_vals, S, q_s, N,
     } else {
       params$TimeLimit <- 0
     }
-    o <- Rglpk::Rglpk_solve_LP(model$obj, model$A, model$sense, model$rhs, bounds = bounds,
+    o <- Rglpk::Rglpk_solve_LP(obj = model$obj, mat = model$A, dir = model$sense,
+                               rhs = model$rhs, bounds = bounds,
                                types = model$vtype, control = list(
                                  canonicalize_status = FALSE, tm_limit = params$TimeLimit))
     if (o$status != 5) {
@@ -133,12 +117,8 @@ balance_LP <- function(z, X, importances, st, st_vals, S, q_s, N,
   }
   if (solver == "gurobi") {
     # Note that for gurobi, all inequalities are interpreted to be "or equal to"
-    if (!multi_comp) {
-      model$sense <- c(rep("=", kc2 * nvars), rep("=", k * S))
-    } else {
-      model$sense <- c(rep("=", 2 * kc2 * nvars), rep("=", 2 * k * S),
-                       rep("<", N))
-    }
+    model$sense <- c(rep("=", n_comp * kc2 * nvars), rep("=", n_comp * k * S),
+                     rep("<", N))
     o <- gurobi::gurobi(model, params)
     if (o$status != "OPTIMAL") {
       warning("No solution found for the linear program.")

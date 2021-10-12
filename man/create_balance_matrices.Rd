@@ -4,7 +4,7 @@
 \alias{create_balance_matrices}
 \title{Create matrix of balance constraints for linear program}
 \usage{
-create_balance_matrices(X, z, N, nvars, kc2, q_s, q_star_s, return = "all")
+create_balance_matrices(X, z, N, nvars, kc2, q_s, return = "all")
 }
 \arguments{
 \item{X}{a matrix or data frame containing constraints in the columns. The number
@@ -25,22 +25,17 @@ If \code{NULL}, \code{ratio} should be specified. If both are specified, \code{q
 Typically, if the desired ratio is not feasible for every stratum, \code{q_s} should be generated
 using \code{\link{generate_qs}()}.}
 
-\item{q_star_s}{a named vector or matrix indicating how many supplemental units are to be selected from each stratum.
-This should have one row per treatment group, where the order of the rows matches the order of
-the levels of \code{z}, including the treated level.
-If \code{NULL}, \code{ratio_star} should be specified. If both are specified, \code{q_star_s} will take priority.
-Typically, if the desired ratio is not feasible for every stratum, \code{q_star_s} should be generated
-using \code{\link{generate_qs}()}.}
-
 \item{return}{one of "all", "A", or "X", denoting whether all matrices should be
 returned, or just A or just the X matrix blocks.}
 }
 \value{
 A list containing up to three elements:
 \describe{
-\item{\code{A}}{The matrix of coefficients that will set the epsilons equal to the inbalances.}
-\item{\code{x_blk}}{Just the coefficients equal to the inbalances for the main comparisons.}
-\item{\code{x_blk2}}{Just the coefficients equal to the inbalances for the supplement.}
+\item{\code{A}}{The matrix of covariate values and +/- 1s that are used as coefficients
+for the unit indicators and the epsilons in order to set the epsilons equal to
+the covariate imbalances.}
+\item{\code{x_blk}}{The covariate values used as coefficients for the unit
+indicators in the objective function.}
 }
 }
 \description{

@@ -11,80 +11,53 @@
 #'
 #' @return A list containing up to three elements:
 #' \describe{
-#' \item{\code{A}}{The matrix of coefficients that will set the epsilons equal to the inbalances.}
-#' \item{\code{x_blk}}{Just the coefficients equal to the inbalances for the main comparisons.}
-#' \item{\code{x_blk2}}{Just the coefficients equal to the inbalances for the supplement.}
+#' \item{\code{A}}{The matrix of covariate values and +/- 1s that are used as coefficients
+#' for the unit indicators and the epsilons in order to set the epsilons equal to
+#' the covariate imbalances.}
+#' \item{\code{x_blk}}{The covariate values used as coefficients for the unit
+#' indicators in the objective function.}
 #' }
 #'
 #' @keywords internal
 #' @import slam
 
 # Set up balance constraints
-create_balance_matrices <- function(X, z, N, nvars, kc2, q_s, q_star_s, return = "all") {
-  multi_comp <- !is.null(q_star_s)
+create_balance_matrices <- function(X, z, N, nvars, kc2, q_s, return = "all") {
+  n_comp <- length(q_s)
   X[is.na(X)] <- 0
-  if (!multi_comp) {
-    zero_blk <- simple_triplet_zero_matrix(nrow = nvars, ncol = N)
-    zero_eps_blk <- simple_triplet_zero_matrix(nrow = nvars, ncol = 2 * nvars * kc2)
-  } else {
-    zero_blk <- simple_triplet_zero_matrix(nrow = nvars, ncol = 2 * N)
-    zero_eps_blk <- simple_triplet_zero_matrix(nrow = nvars, ncol = 4 * nvars * kc2)
-    zero_eps_blk2 <- simple_triplet_zero_matrix(nrow = nvars, ncol = 4 * nvars * kc2)
-  }
+    zero_blk <- simple_triplet_zero_matrix(nrow = nvars, ncol = n_comp * N)
+    zero_eps_blk <- simple_triplet_zero_matrix(nrow = nvars, ncol = 2 * n_comp * nvars * kc2)
   A <- NULL
   full_x_blk <- NULL
-  full_x_blk2 <- NULL
-  x_blk2 <- NULL
   pairs <- combn(levels(z), 2)
-  for (pair_num in 1:kc2) {
-    group1 <- pairs[1, pair_num]
-    group2 <- pairs[2, pair_num]
-    Q1 <- sum(q_s[levels(z) == group1, ])
-    Q2 <- sum(q_s[levels(z) == group2, ])
-    Q_star1 <- sum(q_star_s[levels(z) == group1, ])
-    Q_star2 <- sum(q_star_s[levels(z) == group2, ])
-    x_blk <- zero_blk
-    eps_blk <- zero_eps_blk
-    if (!multi_comp & Q1 > 0 & Q2 > 0) {
-      x_blk[, which(z == group1)] <- t(X[z == group1, ] / Q1)
-      x_blk[, which(z == group2)] <- -t(X[z == group2, ] / Q2)
-    } else if (multi_comp) {
-      x_blk2 <- zero_blk
+  for (comp in 1:n_comp) {
+    for (pair_num in 1:kc2) {
+      group1 <- pairs[1, pair_num]
+      group2 <- pairs[2, pair_num]
+      Q1 <- sum(q_s[[comp]][levels(z) == group1, ])
+      Q2 <- sum(q_s[[comp]][levels(z) == group2, ])
+      x_blk <- zero_blk
+      eps_blk <- zero_eps_blk
       if (Q1 > 0 & Q2 > 0) {
-        x_blk[, which(z == group1)] <- t(X[z == group1, ] / Q1)
-        x_blk[, which(z == group2)] <- -t(X[z == group2, ] / Q2)
+        # TODO: Allow for dividing by something other than Q1 and Q2
+        x_blk[, (N * (comp - 1) + which(z == group1))] <- t(X[z == group1, ] / Q1)
+        x_blk[, (N * (comp - 1) + which(z == group2))] <- -t(X[z == group2, ] / Q2)
       }
-      if (Q_star1 > 0 & Q_star2 > 0) {
-        x_blk2[, (N + which(z == group1))] <- t(X[z == group1, ] / Q_star1)
-        x_blk2[, (N + which(z == group2))] <- -t(X[z == group2, ] / Q_star2)
-      }
-    }
-    eps_blk[, ((pair_num - 1) * nvars + 1):(pair_num * nvars)] <-
-      simple_triplet_diag_matrix(rep(1, nvars))
-    eps_blk[, (nvars * kc2 + (pair_num - 1) * nvars + 1):(nvars * kc2 + pair_num * nvars)] <-
-      simple_triplet_diag_matrix(rep(-1, nvars))
-    if (multi_comp) {
-      eps_blk2 <- zero_eps_blk2
-      eps_blk2[, (2 * nvars * kc2 + (pair_num - 1) * nvars + 1):(2 * nvars * kc2 + pair_num * nvars)] <-
+      eps_blk[, ((2 * comp - 2) * nvars * kc2 + (pair_num - 1) * nvars + 1):((2 * comp - 2) * nvars * kc2 + pair_num * nvars)] <-
         simple_triplet_diag_matrix(rep(1, nvars))
-      eps_blk2[, (3 * nvars * kc2 + (pair_num - 1) * nvars + 1):(3 * nvars * kc2 + pair_num * nvars)] <-
+      eps_blk[, ((2 * comp - 1) * nvars * kc2 + (pair_num - 1) * nvars + 1):((2 * comp - 1) * nvars * kc2 + pair_num * nvars)] <-
         simple_triplet_diag_matrix(rep(-1, nvars))
-    }
-    new_A <- cbind(x_blk, eps_blk)
-    A <- rbind(A, new_A)
-    full_x_blk <- rbind(full_x_blk, x_blk)
-    if (multi_comp) {
-      new_A2 <- cbind(x_blk2, eps_blk2)
-      A <- rbind(A, new_A2)
-      full_x_blk2 <- rbind(full_x_blk2, x_blk2)
+      new_A <- cbind(x_blk, eps_blk)
+      A <- rbind(A, new_A)
+      full_x_blk <- rbind(full_x_blk, x_blk)
     }
   }
   if (return == "A") {
     return(list(A = A))
   }
   if (return == "X") {
-    return(list(x_blk = full_x_blk, x_blk2 = full_x_blk2))
+    return(list(x_blk = full_x_blk))
   } else {
-    return(list(A = A, x_blk = full_x_blk, x_blk2 = full_x_blk2))
+    return(list(A = A, x_blk = full_x_blk))
   }
 }

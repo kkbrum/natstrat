@@ -236,6 +236,7 @@ test_that("optimization gives correct results", {
   expect_equal(results$lpdetails$objective_wo_importances,  17.92818, tolerance = .000001)
   expect_equal(results$lpdetails$objective_wo_importances,
                sum(results$lpdetails$eps) + sum(results$lpdetails$eps_star), tolerance = .000001)
+  # TODO: Why is this test failing?
   expect_equal(results$objective, 44.17337, tolerance = .000001)
   expect_equal(results$objective, sum(results$eps * constraints$importances) +
                  sum(results$eps_star * results$weight_star * constraints$importances),
@@ -253,3 +254,7 @@ test_that("number of units chosen is approximately what we wanted for each group
 test_that("units chosen for either main or supplemental group", {
   expect_equal(sum(results$selected & results$selected_star), 0)
 })
+
+
+
+####### TODO: Add test for low memory
