@@ -34,8 +34,6 @@
 #'   indicating how many supplemental units are to be selected from each stratum.
 #'   The matrix should have one row per treatment group, where the order of the rows matches the order of
 #'   the levels of \code{z}, including the treated level.
-#'   Typically, if the desired ratio is not feasible for every stratum, \code{q_star_s} should be generated
-#'   using \code{\link{generate_qs}()}.
 #'   If multiple supplemental comparisons are desired, this should be a list with one entry per supplemental
 #'   comparison.
 #' @param weight_star a numeric stating how much to prioritize balance between the supplemental units as
@@ -61,11 +59,11 @@
 #'   program is allowed to run before aborting. Default is \code{Inf} for no time limit.
 #' @param correct_sizes boolean stating whether the desired sample sizes should
 #'  be exactly correct (if \code{correct_sizes = TRUE}) or only need to be correct
-#'  in expectation. For nested comparisons, sample sizes may only be
+#'  in expectation. For multiple comparisons, sample sizes may only be
 #'  correct in expectation.
 #' @param low_memory boolean stating whether some outputs should not be included
 #'  due to the scale of the problem being too large compared to memory space.
-#'  If \code{TRUE}, \code{eps} and \code{eps_star} will not be reported. Inbalances
+#'  If \code{TRUE}, \code{eps} and \code{eps_star} will not be reported. Imbalances
 #'  can be computed post hoc using the \code{\link{check_balance}()} instead.
 #' @param threads The maximum number of threads that should be used. This is only
 #'  applicable if \code{solver = 'gurobi'}.
@@ -80,12 +78,20 @@
 #'   The row names specify the covariate, the population of interest, and, if there are
 #'   more than two comparison groups, which groups are being compared.}
 #'   \item{\code{eps_star}}{same as \code{eps} but for the supplemental units instead of the units
-#'   in the main comparison.}
+#'   in the main comparison. If there are multiple supplemental comparisons, this is a list.
+#'   If there are none, this is \code{NULL}.}
 #'   \item{\code{importances}}{the importance of each on the balance constraints.}
+#'   \item{\code{weight_star}}{the importance of balancing in the supplemental comparison
+#'   relative to the main comparison. If there are multiple supplemental comparisons,
+#'   this is a vector. If there are none, this is \code{NULL}.}
 #'   \item{\code{selected}}{whether each unit was selected for the main comparison.}
-#'   \item{\code{selected_star}}{whether each unit was selected for the supplement.}
+#'   \item{\code{selected_star}}{whether each unit was selected for the supplement.
+#'   If there are multiple supplemental comparisons, this is a list.
+#'   If there are none, this is \code{NULL}.}
 #'   \item{\code{pr}}{the linear program weight assigned to each unit for the main comparison.}
-#'   \item{\code{pr_star}}{the linear program weight assigned to each unit for the supplement.}
+#'   \item{\code{pr_star}}{the linear program weight assigned to each unit for the supplement.
+#'   If there are multiple supplemental comparisons, this is a list.
+#'   If there are none, this is \code{NULL}.}
 #'   \item{\code{rrdetails}}{A list containing:
 #'   \describe{
 #'   \item{\code{seed}}{the seed used before commencing the random sampling.}
@@ -336,11 +342,11 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
         for (i in 1:nvars) {
           for (comp in 1:n_comp) {
             row <- as.vector(balance_matrices$x_blk[(comp - 1) * nvars + i, ])
-            inbalance <- sum(row * rr_results_temp$select)
-            if (inbalance < 0) {
-              eps_temp[[comp]][i, 1] <- abs(inbalance)
-            } else if (inbalance > 0) {
-              eps_temp[[comp]][i, 2] <- inbalance
+            imbalance <- sum(row * rr_results_temp$select)
+            if (imbalance < 0) {
+              eps_temp[[comp]][i, 1] <- abs(imbalance)
+            } else if (imbalance > 0) {
+              eps_temp[[comp]][i, 2] <- imbalance
             }
           }
         }
@@ -428,8 +434,8 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
                 importances = importances,
                 weight_star = weight_star,
                 selected = rr_results$select[1:N],
-                pr = rr_results$pr[1:N],
                 selected_star = selected_star,
+                pr = rr_results$pr[1:N],
                 pr_star = pr_star,
                 rrdetails = list(
                   seed = seed,
