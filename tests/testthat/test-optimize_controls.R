@@ -259,7 +259,7 @@ test_that("units chosen for either main or supplemental group", {
 set.seed(64, kind = "Mersenne-Twister")
 
 results_three <- optimize_controls(z = z, X = constraints$X, st = data$category, ratio = 1,
-                             q_star_s = list(matrix(c(rep(1, 4), rep(0, 2)), nrow = 3,
+                             q_star_s = list(matrix(c(0, rep(1, 3), rep(0, 2)), nrow = 3,
                                                byrow = TRUE, dimnames = list(NULL, c("1", "2"))),
                                              matrix(c(1, 0, 1, 0, rep(0, 2)), nrow = 3,
                                                     byrow = TRUE, dimnames = list(NULL, c("1", "2")))),
@@ -267,8 +267,8 @@ results_three <- optimize_controls(z = z, X = constraints$X, st = data$category,
                              importances = constraints$importances,
                              integer = FALSE, solver = "Rglpk", seed = 1, runs = 5,
                              time_limit = Inf, correct_sizes = FALSE, low_memory = FALSE)
+results_three$lpdetails$objective_wo_importances
 results_three$objective_wo_importances
-results_three$objective
 
 print(results_three$eps)
 print(results_three$eps_star)
@@ -278,7 +278,7 @@ print(results_three$selected)
 print(results_three$selected_star)
 
 test_that("optimization gives correct results", {
-  expect_equal(results_three$lpdetails$objective, 37.75969, tolerance = .0001)
+  expect_equal(results_three$lpdetails$objective, 49.5996, tolerance = .0001)
   lp_sum_w_imp <- sum(results_three$lpdetails$eps * constraints$importances)
   lp_sum_wo_imp <- sum(results_three$lpdetails$eps)
   sum_w_imp <- sum(results_three$eps * constraints$importances)
@@ -295,21 +295,21 @@ test_that("optimization gives correct results", {
   expect_equal(results_three$lpdetails$objective,
                lp_sum_w_imp,
                tolerance = .0001)
-  expect_equal(results_three$lpdetails$objective_wo_importances,  18.12156, tolerance = .0001)
+  expect_equal(results_three$lpdetails$objective_wo_importances,  20.88223, tolerance = .0001)
   expect_equal(results_three$lpdetails$objective_wo_importances,
                lp_sum_wo_imp, tolerance = .0001)
-  expect_equal(results_three$objective, 38.80609, tolerance = .0001)
+  expect_equal(results_three$objective, 50.44668, tolerance = .0001)
   expect_equal(results_three$objective, sum_w_imp,
                tolerance = .0001)
-  expect_equal(results_three$objective_wo_importances, 18.42054, tolerance = .0001)
+  expect_equal(results_three$objective_wo_importances, 21.08154, tolerance = .0001)
   expect_equal(results_three$objective_wo_importances, sum_wo_imp, tolerance = .0001)
 })
 
 # Since sample sizes only correct in expectation, this varies from seed to seed
 test_that("number of units chosen is approximately what we wanted for each group", {
   expect_equal(as.numeric(table(z[results_three$selected], data$category[results_three$selected])), rep(4, 6))
-  expect_equal(as.numeric(table(z[results_three$selected_star[[1]]], data$category[results_three$selected_star[[1]]])), rep(1, 4))
-  expect_equal(as.numeric(table(z[results_three$selected_star[[2]]], data$category[results_three$selected_star[[2]]])), c(1,1))
+  expect_equal(as.numeric(table(z[results_three$selected_star[[1]]], data$category[results_three$selected_star[[1]]])), c(0, 1, 1, 1))
+  expect_equal(as.numeric(table(z[results_three$selected_star[[2]]], data$category[results_three$selected_star[[2]]])), rep(1, 2))
 })
 
 test_that("units chosen for either main or supplemental group", {
@@ -323,7 +323,7 @@ test_that("units chosen for either main or supplemental group", {
 
 set.seed(64, kind = "Mersenne-Twister")
 results_three_low_mem <- optimize_controls(z = z, X = constraints$X, st = data$category, ratio = 1,
-                             q_star_s = list(matrix(c(rep(1, 4), rep(0, 2)), nrow = 3,
+                             q_star_s = list(matrix(c(0, rep(1, 3), rep(0, 2)), nrow = 3,
                                                     byrow = TRUE, dimnames = list(NULL, c("1", "2"))),
                                              matrix(c(1,0,1,0, rep(0, 2)), nrow = 3,
                                                     byrow = TRUE, dimnames = list(NULL, c("1", "2")))),
