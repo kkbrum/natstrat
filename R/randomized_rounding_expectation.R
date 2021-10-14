@@ -26,7 +26,6 @@ randomized_rounding_expectation <- function(o, N, n_comp) {
   pr <- round(pr, 5)
   select <- rep(FALSE, length(pr))
   for (i in 1:N) {
-    print(i)
     pr_i <- c()
     for (comp in 1:n_comp) {
       pr_i <- c(pr_i, pr[N * (comp - 1) + i])
