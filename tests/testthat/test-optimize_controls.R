@@ -257,17 +257,19 @@ test_that("units chosen for either main or supplemental group", {
 # Three comparisons tests ----
 
 set.seed(64, kind = "Mersenne-Twister")
+
 results_three <- optimize_controls(z = z, X = constraints$X, st = data$category, ratio = 1,
                              q_star_s = list(matrix(c(rep(1, 4), rep(0, 2)), nrow = 3,
                                                byrow = TRUE, dimnames = list(NULL, c("1", "2"))),
-                                             matrix(c(rep(1, 4), rep(0, 2)), nrow = 3,
+                                             matrix(c(1, 0, 1, 0, rep(0, 2)), nrow = 3,
                                                     byrow = TRUE, dimnames = list(NULL, c("1", "2")))),
                              treated = 2, treated_star = c(1, 1), weight_star = c(2, 1),
                              importances = constraints$importances,
                              integer = FALSE, solver = "Rglpk", seed = 1, runs = 5,
                              time_limit = Inf, correct_sizes = FALSE, low_memory = FALSE)
-print(results_three$objective_wo_importances)
-print(results_three$objective)
+results_three$objective_wo_importances
+results_three$objective
+
 print(results_three$eps)
 print(results_three$eps_star)
 print(results_three$pr)
@@ -276,7 +278,7 @@ print(results_three$selected)
 print(results_three$selected_star)
 
 test_that("optimization gives correct results", {
-  expect_equal(results_three$lpdetails$objective, 45.36925, tolerance = .0001)
+  expect_equal(results_three$lpdetails$objective, 37.75969, tolerance = .0001)
   lp_sum_w_imp <- sum(results_three$lpdetails$eps * constraints$importances)
   lp_sum_wo_imp <- sum(results_three$lpdetails$eps)
   sum_w_imp <- sum(results_three$eps * constraints$importances)
@@ -293,13 +295,13 @@ test_that("optimization gives correct results", {
   expect_equal(results_three$lpdetails$objective,
                lp_sum_w_imp,
                tolerance = .0001)
-  expect_equal(results_three$lpdetails$objective_wo_importances,  19.22373, tolerance = .0001)
+  expect_equal(results_three$lpdetails$objective_wo_importances,  18.12156, tolerance = .0001)
   expect_equal(results_three$lpdetails$objective_wo_importances,
                lp_sum_wo_imp, tolerance = .0001)
-  expect_equal(results_three$objective, 46.86411, tolerance = .0001)
+  expect_equal(results_three$objective, 38.80609, tolerance = .0001)
   expect_equal(results_three$objective, sum_w_imp,
                tolerance = .0001)
-  expect_equal(results_three$objective_wo_importances, 19.82167, tolerance = .0001)
+  expect_equal(results_three$objective_wo_importances, 18.42054, tolerance = .0001)
   expect_equal(results_three$objective_wo_importances, sum_wo_imp, tolerance = .0001)
 })
 
@@ -307,7 +309,7 @@ test_that("optimization gives correct results", {
 test_that("number of units chosen is approximately what we wanted for each group", {
   expect_equal(as.numeric(table(z[results_three$selected], data$category[results_three$selected])), rep(4, 6))
   expect_equal(as.numeric(table(z[results_three$selected_star[[1]]], data$category[results_three$selected_star[[1]]])), rep(1, 4))
-  expect_equal(as.numeric(table(z[results_three$selected_star[[2]]], data$category[results_three$selected_star[[2]]])), rep(1, 4))
+  expect_equal(as.numeric(table(z[results_three$selected_star[[2]]], data$category[results_three$selected_star[[2]]])), c(1,1))
 })
 
 test_that("units chosen for either main or supplemental group", {
@@ -323,7 +325,7 @@ set.seed(64, kind = "Mersenne-Twister")
 results_three_low_mem <- optimize_controls(z = z, X = constraints$X, st = data$category, ratio = 1,
                              q_star_s = list(matrix(c(rep(1, 4), rep(0, 2)), nrow = 3,
                                                     byrow = TRUE, dimnames = list(NULL, c("1", "2"))),
-                                             matrix(c(rep(1, 4), rep(0, 2)), nrow = 3,
+                                             matrix(c(1,0,1,0, rep(0, 2)), nrow = 3,
                                                     byrow = TRUE, dimnames = list(NULL, c("1", "2")))),
                              treated = 2, treated_star = c(1, 1), weight_star = c(2, 1),
                              importances = constraints$importances,
