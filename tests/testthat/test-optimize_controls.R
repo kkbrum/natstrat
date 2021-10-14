@@ -266,7 +266,14 @@ results_three <- optimize_controls(z = z, X = constraints$X, st = data$category,
                              importances = constraints$importances,
                              integer = FALSE, solver = "Rglpk", seed = 1, runs = 5,
                              time_limit = Inf, correct_sizes = FALSE, low_memory = FALSE)
-
+print(results_three$objective_wo_importances)
+print(results_three$objective)
+print(results_three$eps)
+print(results_three$eps_star)
+print(results$pr)
+print(results$pr_star)
+print(results$selected)
+print(results$selected_star)
 
 test_that("optimization gives correct results", {
   expect_equal(results_three$lpdetails$objective, 45.36925, tolerance = .0001)
