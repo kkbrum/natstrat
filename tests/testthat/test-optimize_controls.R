@@ -1,5 +1,5 @@
 # General optimization tests ----
-set.seed(64)
+set.seed(64, kind = "Mersenne-Twister")
 z <- c(rep(0, 14), rep(1, 6))
 data <- data.frame(color = c(rep("Red", 4), rep("White", 7), rep("Blue", 3), rep("White", 2), rep("Red", 4)),
                    number = rnorm(20),
@@ -207,7 +207,7 @@ test_that("multiple ratios still choose correct number of units", {
 
 # Two comparisons tests ----
 
-set.seed(64)
+set.seed(64, kind = "Mersenne-Twister")
 z <- c(rep(0, 20), rep(1, 12), rep(2, 8))
 data <- data.frame(color = c(rep(c(rep("Red", 4), rep("White", 1), rep("Blue", 2)), 3), "Blue",
                              rep("White", 2), rep("Red", 8), rep("White", 3), rep("Blue", 5)),
@@ -256,7 +256,7 @@ test_that("units chosen for either main or supplemental group", {
 
 # Three comparisons tests ----
 
-set.seed(64)
+set.seed(64, kind = "Mersenne-Twister")
 results_three <- optimize_controls(z = z, X = constraints$X, st = data$category, ratio = 1,
                              q_star_s = list(matrix(c(rep(1, 4), rep(0, 2)), nrow = 3,
                                                byrow = TRUE, dimnames = list(NULL, c("1", "2"))),
@@ -319,7 +319,7 @@ test_that("units chosen for either main or supplemental group", {
 
 # Tests for low memory ----
 
-set.seed(64)
+set.seed(64, kind = "Mersenne-Twister")
 results_three_low_mem <- optimize_controls(z = z, X = constraints$X, st = data$category, ratio = 1,
                              q_star_s = list(matrix(c(rep(1, 4), rep(0, 2)), nrow = 3,
                                                     byrow = TRUE, dimnames = list(NULL, c("1", "2"))),

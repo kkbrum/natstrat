@@ -345,7 +345,8 @@ optimize_controls <- function(z, X, st, importances = NULL, treated = 1,
     if (is.null(seed)) {
       seed <- sample(1:1000000, 1)
     }
-    set.seed(seed)
+    set.seed(seed, kind = "Mersenne-Twister")
+
 
     balance_matrices <- create_balance_matrices(X = X, z = z, N = N, nvars = nvars_per_group,
                                                 kc2 = kc2, q_s = q_s, return = "X")
