@@ -55,6 +55,8 @@ test_that("sum of epsilons within strata equal weighted avg of within strata sta
 
           })
 
+
+
 # EMD Tests ----
 
 z <- c(rep(0, 15), rep(1, 5))
@@ -104,6 +106,8 @@ test_that("Specified max ratio and max extra working", {
                                                      time_limit = Inf))
   expect_equal(as.numeric(table(data$category[results_emd4$selected & !z]))[3], 3)
 })
+
+
 
 # Multiple control group tests ----
 
@@ -205,6 +209,8 @@ test_that("multiple ratios still choose correct number of units", {
   expect_equal(sum(results$selected[z == 2]), sum(round(table(z, data$category)[3,] * 1) ))
 })
 
+
+
 # Two comparisons tests ----
 
 set.seed(64, kind = "Mersenne-Twister")
@@ -254,6 +260,8 @@ test_that("units chosen for either main or supplemental group", {
   expect_equal(sum(results_two$selected & results_two$selected_star), 0)
 })
 
+
+
 # Three comparisons tests ----
 
 set.seed(64, kind = "Mersenne-Twister")
@@ -267,15 +275,6 @@ results_three <- optimize_controls(z = z, X = constraints$X, st = data$category,
                              importances = constraints$importances,
                              integer = FALSE, solver = "Rglpk", seed = 1, runs = 5,
                              time_limit = Inf, correct_sizes = FALSE, low_memory = FALSE)
-results_three$lpdetails$objective_wo_importances
-results_three$objective_wo_importances
-
-print(results_three$eps)
-print(results_three$eps_star)
-print(results_three$pr)
-print(results_three$pr_star)
-print(results_three$selected)
-print(results_three$selected_star)
 
 test_that("optimization gives correct results", {
   expect_equal(results_three$lpdetails$objective, 49.5996, tolerance = .0001)
@@ -315,7 +314,6 @@ test_that("number of units chosen is approximately what we wanted for each group
 test_that("units chosen for either main or supplemental group", {
   expect_equal(sum(results_three$selected + results_three$selected_star[[1]] + results_three$selected_star[[2]] > 1), 0)
 })
-
 
 
 
