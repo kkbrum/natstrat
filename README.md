@@ -7,7 +7,7 @@
 
 [![R-CMD-check](https://github.com/kkbrum/natstrat/workflows/R-CMD-check/badge.svg)](https://github.com/kkbrum/natstrat/actions)
 [![Codecov test
-coverage](https://codecov.io/gh/kkbrum/natstrat/branch/master/graph/badge.svg)](https://codecov.io/gh/kkbrum/natstrat?branch=master)
+coverage](https://codecov.io/gh/kkbrum/natstrat/branch/master/graph/badge.svg)](https://app.codecov.io/gh/kkbrum/natstrat?branch=master)
 <!-- badges: end -->
 
 Natural strata can be used in observational studies to balance the

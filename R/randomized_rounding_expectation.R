@@ -26,11 +26,12 @@ randomized_rounding_expectation <- function(o, N, n_comp) {
   pr <- round(pr, 5)
   select <- rep(FALSE, length(pr))
   for (i in 1:N) {
+    print(i)
     pr_i <- c()
     for (comp in 1:n_comp) {
       pr_i <- c(pr_i, pr[N * (comp - 1) + i])
     }
-    draw <- rmultinom(1, 1, c(pr_i, round(1 - sum(pr_i), 5)))
+    draw <- rmultinom(1, 1, c(pr_i, max(round(1 - sum(pr_i), 5), 0)))
     comp_i <- which(draw == 1)
     if (comp_i <= n_comp) {
       select[N * (comp_i - 1) + i] <- TRUE

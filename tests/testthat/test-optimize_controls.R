@@ -13,8 +13,8 @@ results <- optimize_controls(z = z, X = constraints$X, st = data$category, ratio
                              time_limit = Inf)
 
 test_that("optimization gives correct results", {
-  expect_equal(results$lpdetails$objective, 6.124562, tolerance = .000001)
-  expect_equal(results$objective, 6.264861, tolerance = .000001)
+  expect_equal(results$lpdetails$objective, 6.124562, tolerance = .0001)
+  expect_equal(results$objective, 6.264861, tolerance = .0001)
 })
 
 test_that("optimization chooses correct number of units", {
@@ -122,16 +122,16 @@ results <- optimize_controls(z = z, X = constraints$X, st = data$category, ratio
                              time_limit = Inf)
 
 test_that("optimization gives correct results", {
-  expect_equal(results$lpdetails$objective, 60.63904, tolerance = .000001)
+  expect_equal(results$lpdetails$objective, 60.63904, tolerance = .0001)
   expect_equal(results$lpdetails$objective, sum(results$lpdetails$eps * constraints$importances),
-               tolerance = .000001)
-  expect_equal(results$lpdetails$objective_wo_importances, 40.06041, tolerance = .000001)
-  expect_equal(results$lpdetails$objective_wo_importances, sum(results$lpdetails$eps), tolerance = .000001)
-  expect_equal(results$objective, 61.7425, tolerance = .000001)
+               tolerance = .0001)
+  expect_equal(results$lpdetails$objective_wo_importances, 40.06041, tolerance = .0001)
+  expect_equal(results$lpdetails$objective_wo_importances, sum(results$lpdetails$eps), tolerance = .0001)
+  expect_equal(results$objective, 61.7425, tolerance = .0001)
   expect_equal(results$objective, sum(results$eps * constraints$importances),
-               tolerance = .000001)
-  expect_equal(results$objective_wo_importances, 40.97886, tolerance = .000001)
-  expect_equal(results$objective_wo_importances, sum(results$eps), tolerance = .000001)
+               tolerance = .0001)
+  expect_equal(results$objective_wo_importances, 40.97886, tolerance = .0001)
+  expect_equal(results$objective_wo_importances, sum(results$eps), tolerance = .0001)
 })
 
 test_that("optimization chooses correct number of units", {
@@ -228,20 +228,20 @@ results_two <- optimize_controls(z = z, X = constraints$X, st = data$category, r
 
 
 test_that("optimization gives correct results", {
-  expect_equal(results_two$lpdetails$objective, 44.17337, tolerance = .000001)
+  expect_equal(results_two$lpdetails$objective, 44.17337, tolerance = .0001)
   expect_equal(results_two$lpdetails$objective,
                sum(results_two$lpdetails$eps * constraints$importances) +
                  sum(results_two$lpdetails$eps_star * results_two$weight_star * constraints$importances),
-               tolerance = .000001)
-  expect_equal(results_two$lpdetails$objective_wo_importances,  17.92818, tolerance = .000001)
+               tolerance = .0001)
+  expect_equal(results_two$lpdetails$objective_wo_importances,  17.92818, tolerance = .0001)
   expect_equal(results_two$lpdetails$objective_wo_importances,
-               sum(results_two$lpdetails$eps) + sum(results_two$lpdetails$eps_star), tolerance = .000001)
-  expect_equal(results_two$objective, 44.17337, tolerance = .000001)
+               sum(results_two$lpdetails$eps) + sum(results_two$lpdetails$eps_star), tolerance = .0001)
+  expect_equal(results_two$objective, 44.17337, tolerance = .0001)
   expect_equal(results_two$objective, sum(results_two$eps * constraints$importances) +
                  sum(results_two$eps_star * results_two$weight_star * constraints$importances),
-               tolerance = .000001)
-  expect_equal(results_two$objective_wo_importances, 17.92818, tolerance = .000001)
-  expect_equal(results_two$objective_wo_importances, sum(results_two$eps) + sum(results_two$eps_star), tolerance = .000001)
+               tolerance = .0001)
+  expect_equal(results_two$objective_wo_importances, 17.92818, tolerance = .0001)
+  expect_equal(results_two$objective_wo_importances, sum(results_two$eps) + sum(results_two$eps_star), tolerance = .0001)
 })
 
 # Since sample sizes only correct in expectation, this varies from seed to seed
@@ -268,8 +268,8 @@ results_three <- optimize_controls(z = z, X = constraints$X, st = data$category,
                              time_limit = Inf, correct_sizes = FALSE, low_memory = FALSE)
 
 
-test_that("optimization gives correct results_three", {
-  expect_equal(results_three$lpdetails$objective, 45.36925, tolerance = .000001)
+test_that("optimization gives correct results", {
+  expect_equal(results_three$lpdetails$objective, 45.36925, tolerance = .0001)
   lp_sum_w_imp <- sum(results_three$lpdetails$eps * constraints$importances)
   lp_sum_wo_imp <- sum(results_three$lpdetails$eps)
   sum_w_imp <- sum(results_three$eps * constraints$importances)
@@ -285,15 +285,15 @@ test_that("optimization gives correct results_three", {
   }
   expect_equal(results_three$lpdetails$objective,
                lp_sum_w_imp,
-               tolerance = .000001)
-  expect_equal(results_three$lpdetails$objective_wo_importances,  19.22373, tolerance = .000001)
+               tolerance = .0001)
+  expect_equal(results_three$lpdetails$objective_wo_importances,  19.22373, tolerance = .0001)
   expect_equal(results_three$lpdetails$objective_wo_importances,
-               lp_sum_wo_imp, tolerance = .000001)
-  expect_equal(results_three$objective, 46.86411, tolerance = .000001)
+               lp_sum_wo_imp, tolerance = .0001)
+  expect_equal(results_three$objective, 46.86411, tolerance = .0001)
   expect_equal(results_three$objective, sum_w_imp,
-               tolerance = .000001)
-  expect_equal(results_three$objective_wo_importances, 19.82167, tolerance = .000001)
-  expect_equal(results_three$objective_wo_importances, sum_wo_imp, tolerance = .000001)
+               tolerance = .0001)
+  expect_equal(results_three$objective_wo_importances, 19.82167, tolerance = .0001)
+  expect_equal(results_three$objective_wo_importances, sum_wo_imp, tolerance = .0001)
 })
 
 # Since sample sizes only correct in expectation, this varies from seed to seed
@@ -326,13 +326,13 @@ results_three_low_mem <- optimize_controls(z = z, X = constraints$X, st = data$c
 
 test_that("optimization gives correct results", {
   expect_equal(results_three_low_mem$lpdetails$objective,
-               results_three$lpdetails$objective, tolerance = .000001)
+               results_three$lpdetails$objective, tolerance = .0001)
   expect_equal(results_three_low_mem$lpdetails$objective_wo_importances,
-               results_three$lpdetails$objective_wo_importances, tolerance = .000001)
+               results_three$lpdetails$objective_wo_importances, tolerance = .0001)
  expect_equal(results_three_low_mem$objective,
-              results_three$objective, tolerance = .000001)
+              results_three$objective, tolerance = .0001)
   expect_equal(results_three_low_mem$objective_wo_importances,
-               results_three$objective_wo_importances, tolerance = .000001)
+               results_three$objective_wo_importances, tolerance = .0001)
 })
 
 test_that("eps not reported", {

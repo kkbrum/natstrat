@@ -1,38 +1,37 @@
-## Resubmission
-This is a resubmission. In this version I have:
-
-* Written all package names and software names in single quotes.
-
-* I did not add references describing the methods in my package as they are not available yet.
-
-* Return values are described in the documentation for balance_LP(), presolve_EMD(), verify_inputs_EMD(), and verify_inputs().
+## Updated package
+This is an update to an existing package. In this major version I have added 
+a lot of new functionality, which is almost entirely backwards compatible.
 
 ## Test environments
 * local windows install, R 4.0.3
-* ubuntu-20.04 release (on github actions)
-* ubuntu-20.04 devel (on github actions)
-* macOS-latest release (on github actions)
+[TODO]* ubuntu-20.04 release (on github actions)
+[TODO]* ubuntu-20.04 devel (on github actions)
+[TODO]* macOS-latest release (on github actions)
 * win-builder (devel and release)
 
 ## R CMD check results
-There were no ERRORs or WARNINGs.
+There were no ERRORs or WARNINGs on release or devel.
 
-There were 2 NOTEs:
+Only in my local windows install, using version 4.0.3 of R,
+there is 1 WARNING:
+     Warning: package 'ggplot2' was built under R version 4.0.5
+As my package does not rely heavily on ggplot2, there should not be any issues
+with users using my package with earlier versions of R. There do not seem
+to have been any ggplot2 changes that affect my package.
 
-* checking CRAN incoming feasibility ... NOTE
-Maintainer: 'Katherine Brumberg <kbrum@wharton.upenn.edu>'
+There were the following NOTEs:
 
-New submission
-
-Possibly mis-spelled words in DESCRIPTION:
-  Unweighted (3:15)
-
-  "Unweighted" is how we describe the resulting strata of our method.
+* Suggests or Enhances not in mainstream repositories:
+  gurobi
   
-* checking package dependencies ... NOTE
-Package suggested but not available for checking: 'gurobi'
+  This is a commercial optimization software, and is not required for the use of my package, although it is recommended.
+  
+* Package suggested but not available for checking: 'gurobi'
 
-As 'Gurobi' is a commercial software, the R package needs to be installed through a download from their website and is not available on CRAN. This package is not required for my package as I provide an alternative using 'Rglpk' from CRAN, but it is recommended. I have checked for the 'gurobi' package in the code before using it with requireNamespace(), and have mentioned 'gurobi' and its installation in the description of the package.
+
+
+
+
 
 ## Downstream dependencies
 There are currently no downstream dependencies for this package.

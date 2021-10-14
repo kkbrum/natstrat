@@ -30,6 +30,7 @@ create_balance_matrices <- function(X, z, N, nvars, kc2, q_s, return = "all") {
   A <- NULL
   full_x_blk <- NULL
   pairs <- combn(levels(z), 2)
+
   for (comp in 1:n_comp) {
     for (pair_num in 1:kc2) {
       group1 <- pairs[1, pair_num]
@@ -39,8 +40,8 @@ create_balance_matrices <- function(X, z, N, nvars, kc2, q_s, return = "all") {
       x_blk <- zero_blk
       eps_blk <- zero_eps_blk
       if (Q1 > 0 & Q2 > 0) {
-        x_blk[, (N * (comp - 1) + which(z == group1))] <- t(X[z == group1, ] / Q1)
-        x_blk[, (N * (comp - 1) + which(z == group2))] <- -t(X[z == group2, ] / Q2)
+        x_blk[1:nrow(x_blk), (N * (comp - 1) + which(z == group1))] <- t(X[z == group1, 1:ncol(X)] / Q1)
+        x_blk[1:nrow(x_blk), (N * (comp - 1) + which(z == group2))] <- -t(X[z == group2, 1:ncol(X)] / Q2)
       }
       eps_blk[, ((2 * comp - 2) * nvars * kc2 + (pair_num - 1) * nvars + 1):((2 * comp - 2) * nvars * kc2 + pair_num * nvars)] <-
         simple_triplet_diag_matrix(rep(1, nvars))
@@ -51,6 +52,7 @@ create_balance_matrices <- function(X, z, N, nvars, kc2, q_s, return = "all") {
       full_x_blk <- rbind(full_x_blk, x_blk)
     }
   }
+
   if (return == "A") {
     return(list(A = A))
   }

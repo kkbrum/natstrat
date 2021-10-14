@@ -4,7 +4,7 @@ This version adds several new functionalities:
   * Multiple treatment or control groups
   * Multiple separate comparisons, using various subsets of the treatment and control groups,
   for which units are chosen in order to balance covariate distributions 
-  for all comparisons simultaeously
+  for all comparisons simultaneously
 
 Several changes to the interface have been made:
 
@@ -21,7 +21,7 @@ There are several changes to the outputs:
 * `optimize_controls` now has only one version of `eps`, `objective`, `objective_wo_importances` 
 instead of a raw and regular version. The version now reported is the raw version, not corrected
 for missingness. If you would like corrected versions, refer to the standardized differences
-outputed by `check_balance` instead
+outputted by `check_balance` instead
 * `generate_constraints` now returns only standardized outputs, not centered. The centering
 now takes place within `optimize_controls` instead
 

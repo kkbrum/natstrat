@@ -34,7 +34,6 @@ balance_LP <- function(z, X, importances, st, st_vals, S, q_s, N,
          install it or switch the \"solver\" parameter to \"Rglpk\".",
          call. = FALSE)
   }
-
   groups <- levels(z)
   k <- length(groups)
   kc2 <- choose(k, 2)
@@ -49,11 +48,10 @@ balance_LP <- function(z, X, importances, st, st_vals, S, q_s, N,
   for (comp in 1:n_comp) {
     model$obj <- c(model$obj, rep(rep(importances * weight_comp[comp], 2), kc2))
   }
-
   model$A <- create_balance_matrices(X = X, z = z, N = N, nvars = nvars,
                           kc2 = kc2, q_s = q_s, return = "A")$A
 
-  # Now, append stratum size constraints for each comparison
+    # Now, append stratum size constraints for each comparison
   st_mats <- simple_triplet_zero_matrix(nrow = k * S, ncol = N)
   for (group_num in 1:k) {
     group <- groups[group_num]
