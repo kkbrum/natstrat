@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Parse the nonstandard balance formulas — parse_formula • natstrat</title>
+<title>Homocysteine and smoking example data with multiple control groups — nh0506_3groups • natstrat</title>
 
 
 <!-- jquery -->
@@ -39,9 +39,9 @@
 
 
 
-<meta property="og:title" content="Parse the nonstandard balance formulas — parse_formula" />
-<meta property="og:description" content="This function takes nonstandard formulas as inputs and returns regular formulas
-as well as lists of weights to be used in generate_constraints()." />
+<meta property="og:title" content="Homocysteine and smoking example data with multiple control groups — nh0506_3groups" />
+<meta property="og:description" content="NHANES 2005-2006 data on smoking and homocysteine levels in adults,
+comparing daily smokers to never smokers and occasional smokers." />
 
 
 
@@ -115,46 +115,60 @@ as well as lists of weights to be used in generate_constraints()." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Parse the nonstandard balance formulas</h1>
-    <small class="dont-index">Source: <a href='https://github.com/kkbrum/natstrat/blob/master/R/parse_formula.R'><code>R/parse_formula.R</code></a></small>
-    <div class="hidden name"><code>parse_formula.Rd</code></div>
+    <h1>Homocysteine and smoking example data with multiple control groups</h1>
+    <small class="dont-index">Source: <a href='https://github.com/kkbrum/natstrat/blob/master/R/data.R'><code>R/data.R</code></a></small>
+    <div class="hidden name"><code>nh0506_3groups.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>This function takes nonstandard formulas as inputs and returns regular formulas
-as well as lists of weights to be used in <code><a href='generate_constraints.html'>generate_constraints</a>()</code>.</p>
+    <p>NHANES 2005-2006 data on smoking and homocysteine levels in adults,
+comparing daily smokers to never smokers and occasional smokers.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>parse_formula</span><span class='op'>(</span><span class='va'>balance_formula</span>, default_rhs <span class='op'>=</span> <span class='cn'>NULL</span>, data <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='va'>nh0506_3groups</span></pre>
 
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>balance_formula</th>
-      <td><p>a formula that may have multiple terms on the left hand side,
-"." on the left hand side, and coefficients, making it not a standard formula.</p></td>
-    </tr>
-    <tr>
-      <th>default_rhs</th>
-      <td><p>the list of <code>balance_formulas</code> can also contain entries
-that are just the character corresponding to a covariate to balance. If so,
-the covariate will be balanced according to <code>default_rhs</code>.</p></td>
-    </tr>
-    <tr>
-      <th>data</th>
-      <td><p>a data frame containing the relevant covariates in the columns. The number
-of rows should equal the length of <code>treated</code>.</p></td>
-    </tr>
-    </table>
 
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+    <h2 class="hasAnchor" id="format"><a class="anchor" href="#format"></a>Format</h2>
 
-    <p>A named list containing <code>new_formula</code>: the standard formula to be used
-in <code><a href='generate_constraints.html'>generate_constraints</a></code>, <code>rhs_weights</code>: a named list with the
-coefficients of the terms on the right hand side, and <code>lhs_weights</code>:
-a named list with coefficients of the terms on the left hand side.</p>
+    <p>A data frame with 4457 rows and 11 variables:</p><dl>
+  <dt>SEQN</dt><dd><p>NHANES identification number.</p></dd>
+  <dt>z</dt><dd><p>smoking status treatment factor: 0 = never smoker, 1 = some smoking, 2 = daily smoker.</p></dd>
+  <dt>sex</dt><dd><p>factor with levels "Male" and "Female".</p></dd>
+  <dt>age</dt><dd><p>age in years, 20-85, with 85 recorded for everyone &gt;= 85 years.</p></dd>
+  <dt>race</dt><dd><p>factor with levels "Mexican American",
+  "Other Hispanic", "Non-Hispanic White", "Non-Hispanic Black", and
+  "Other Race - Including Multi-Racial".</p></dd>
+  <dt>education</dt><dd><p>factor with levels "&lt; Grade 9",
+  "9-11th grade", "High school grad/GED", "Some college or AA degree",
+  "College graduate or above".</p></dd>
+  <dt>povertyr</dt><dd><p>ratio of family income to the poverty level,
+  capped at 5 times poverty, has missing entries.</p></dd>
+  <dt>bmi</dt><dd><p>BMI (body mass index), has missing entries.</p></dd>
+  <dt>cigsperday30</dt><dd><p>cigarettes smoked per day, 0 for never smokers.</p></dd>
+  <dt>cotinine</dt><dd><p>blood cotinine level, a biomarker of recent exposure to tobacco.</p></dd>
+  <dt>homocysteine</dt><dd><p>homocysteine level.</p></dd>
 
+</dl>
+
+    <h2 class="hasAnchor" id="source"><a class="anchor" href="#source"></a>Source</h2>
+
+    <p><a href='https://wwwn.cdc.gov/nchs/nhanes/ContinuousNhanes/Default.aspx?BeginYear=2005'>https://wwwn.cdc.gov/nchs/nhanes/ContinuousNhanes/Default.aspx?BeginYear=2005</a></p>
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>The code used to generate this data is documented
+in the source version of this package under `data-raw/`.
+This data is composed of adults aged at least 20 years.
+Individuals who have smoked at least 100 cigarettes
+but do not now smoke at least 10 cigarettes daily are
+excluded. Individuals with missing homocysteine
+values, cotinine values, or smoking information are excluded.
+After filtering for all these criteria,
+five individuals with unknown education remain and are also excluded.
+Missing values remain in the poverty ratio and bmi covariates.</p>
+
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span><span class='op'>(</span><span class='st'>'nh0506_3groups'</span><span class='op'>)</span>
+</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

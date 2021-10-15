@@ -73,7 +73,7 @@ format and feasible." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">natstrat</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
       </span>
     </div>
 
@@ -116,7 +116,7 @@ format and feasible." />
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Verify the inputs to <code><a href='optimize_controls.html'>optimize_controls</a>()</code></h1>
-    <small class="dont-index">Source: <a href='https://github.com/kkbrum/natstrat/blob/master/R/optimize_controls.R'><code>R/optimize_controls.R</code></a></small>
+    <small class="dont-index">Source: <a href='https://github.com/kkbrum/natstrat/blob/master/R/verify_optimize_controls_inputs.R'><code>R/verify_optimize_controls_inputs.R</code></a></small>
     <div class="hidden name"><code>verify_inputs.Rd</code></div>
     </div>
 
@@ -125,7 +125,7 @@ format and feasible." />
 format and feasible.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>verify_inputs</span><span class='op'>(</span><span class='va'>X</span>, <span class='va'>importances</span>, <span class='va'>ratio</span>, <span class='va'>q_s</span>, <span class='va'>st</span>, <span class='va'>z</span>, <span class='va'>integer</span>, <span class='va'>solver</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>verify_inputs</span><span class='op'>(</span><span class='va'>X</span>, <span class='va'>importances</span>, <span class='va'>ratio</span>, <span class='va'>q_s</span>, <span class='va'>st</span>, <span class='va'>z</span>, <span class='va'>treated</span>, <span class='va'>integer</span>, <span class='va'>solver</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -147,12 +147,18 @@ for all constraints.</p></td>
     </tr>
     <tr>
       <th>ratio</th>
-      <td><p>a numeric specifying the desired ratio of controls to treated in
-each stratum. If <code>NULL</code>, <code>q_s</code> should be specified.</p></td>
+      <td><p>a numeric or vector specifying the desired ratio of controls to `treated` in
+each stratum. If there is one control group and all treated units should be included,
+this can be a numeric. Otherwise, this should be
+a vector with one entry per treatment group, in the same order as the levels of
+<code>z</code>, including the treated level. If <code>NULL</code>, <code>q_s</code> should be specified.</p></td>
     </tr>
     <tr>
       <th>q_s</th>
-      <td><p>a named vector indicating how many control units are to be selected from each stratum.
+      <td><p>a named vector or matrix indicating how many units are to be selected from each stratum.
+If there is one control group and all treated units are desired, this can be a vector; otherwise,
+this should have one row per treatment group, where the order of the rows matches the order of
+the levels of <code>z</code>, including the treated level.
 If <code>NULL</code>, <code>ratio</code> should be specified. If both are specified, <code>q_s</code> will take priority.
 Typically, if the desired ratio is not feasible for every stratum, <code>q_s</code> should be generated
 using <code><a href='generate_qs.html'>generate_qs</a>()</code>.</p></td>
@@ -165,8 +171,12 @@ as <code>z</code>.</p></td>
     </tr>
     <tr>
       <th>z</th>
-      <td><p>a treatment indicator vector with <code>i</code>th entry equal to 0 if
-unit <code>i</code> is a control and equal to 1 if unit <code>i</code> is treated.</p></td>
+      <td><p>a factor with the <code>i</code>th entry equal to the treatment of unit <code>i</code>.</p></td>
+    </tr>
+    <tr>
+      <th>treated</th>
+      <td><p>which treatment value should be considered the treated units. This
+must be one of the values of <code>z</code>.</p></td>
     </tr>
     <tr>
       <th>integer</th>

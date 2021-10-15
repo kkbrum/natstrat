@@ -73,7 +73,7 @@ to select." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">natstrat</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
       </span>
     </div>
 
@@ -136,7 +136,9 @@ to select.</p>
   <span class='va'>N</span>,
   <span class='va'>solver</span>,
   <span class='va'>integer</span>,
-  <span class='va'>time_limit</span>
+  <span class='va'>time_limit</span>,
+  threads <span class='op'>=</span> <span class='fl'>1</span>,
+  weight_comp <span class='op'>=</span> <span class='fl'>1</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -144,8 +146,7 @@ to select.</p>
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>z</th>
-      <td><p>a treatment indicator vector with <code>i</code>th entry equal to 0 if
-unit <code>i</code> is a control and equal to 1 if unit <code>i</code> is treated.</p></td>
+      <td><p>a factor with the <code>i</code>th entry equal to the treatment of unit <code>i</code>.</p></td>
     </tr>
     <tr>
       <th>X</th>
@@ -178,7 +179,10 @@ as <code>z</code>.</p></td>
     </tr>
     <tr>
       <th>q_s</th>
-      <td><p>a named vector indicating how many control units are to be selected from each stratum.</p></td>
+      <td><p>a named vector or matrix indicating how many control units are to be selected from each stratum.
+If there is one control group and all treated units are desired, this can be a vector; otherwise,
+this should have one row per treatment group, where the order of the rows matches the order of
+the levels of <code>z</code>, including the treated level.</p></td>
     </tr>
     <tr>
       <th>N</th>
@@ -199,6 +203,11 @@ instead of randomized rounding. Default is <code>FALSE</code>.</p></td>
       <th>time_limit</th>
       <td><p>numeric stating maximum amount of seconds for which the
 program is allowed to run before aborting. Default is <code>Inf</code> for no time limit.</p></td>
+    </tr>
+    <tr>
+      <th>threads</th>
+      <td><p>The maximum number of threads that should be used. This is only
+applicable if <code>solver = 'gurobi'</code>.</p></td>
     </tr>
     </table>
 

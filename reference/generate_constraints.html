@@ -77,7 +77,7 @@ indicators can also be added and weighted for any covariate that has NA values."
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">natstrat</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
       </span>
     </div>
 
@@ -140,6 +140,7 @@ indicators can also be added and weighted for any covariate that has <code>NA</c
   default_rhs <span class='op'>=</span> <span class='cn'>NULL</span>,
   weight_by_size <span class='op'>=</span> <span class='fl'>0</span>,
   denom_variance <span class='op'>=</span> <span class='st'>"treated"</span>,
+  treated <span class='op'>=</span> <span class='fl'>1</span>,
   autogen_missing <span class='op'>=</span> <span class='fl'>50</span>
 <span class='op'>)</span></pre>
 
@@ -150,13 +151,12 @@ indicators can also be added and weighted for any covariate that has <code>NA</c
       <th>balance_formulas</th>
       <td><p>a list of formulas where the left hand side represents
 the covariate to be balanced, and the terms on the right hand side represent
-the groups within which the covariate should be balanced. More information can
+the populations within which the covariate should be balanced. More information can
 be found in the details below.</p></td>
     </tr>
     <tr>
       <th>z</th>
-      <td><p>a treatment indicator vector with <code>i</code>th entry equal to 0 if
-unit <code>i</code> is a control and equal to 1 if unit <code>i</code> is treated.</p></td>
+      <td><p>a factor with the <code>i</code>th entry equal to the treatment of unit <code>i</code>.</p></td>
     </tr>
     <tr>
       <th>data</th>
@@ -172,19 +172,28 @@ the covariate will be balanced according to <code>default_rhs</code>.</p></td>
     <tr>
       <th>weight_by_size</th>
       <td><p>numeric between 0 and 1 stating how to adjust constraints
-for the size of the groups they represent. Default is 0, meaning imbalance
-within groups is viewed in absolute terms, not relative to the group size.
+for the size of the population they represent. Default is 0, meaning imbalance
+within populations is viewed in absolute terms, not relative to the population size.
 The program may thus prioritize
-balancing the covariate in larger groups compared to smaller groups. A value
-of 1 means that imbalance will be measured relative to the group's size, not
-in absolute terms, implying that it is equally important to balance in every group.</p></td>
+balancing the covariate in larger populations compared to smaller populations. A value
+of 1 means that imbalance will be measured relative to the population's size, not
+in absolute terms, implying that it is equally important to balance in every population.</p></td>
     </tr>
     <tr>
       <th>denom_variance</th>
       <td><p>character stating what variance to use in the standardization:
 either the default "treated", meaning the standardization will use the
-treated variance (across all strata), or "pooled", meaning
-the standardization will use the average of the treated and control variances.</p></td>
+treated variance (across all strata), where the treated group is declared in
+the <code>treated</code> argument, or "pooled", meaning
+the standardization will use the average of the variances of each treatment group.</p></td>
+    </tr>
+    <tr>
+      <th>treated</th>
+      <td><p>which treatment value should be considered the treated group. This
+must be one of the values of <code>z</code>. This
+is used if <code>denom_variance = "treated"</code> for calculating the variance
+to use in the standardization or if <code>weight_by_size &gt; 0</code> to determine which
+treatment group to use to calculate population sizes.</p></td>
     </tr>
     <tr>
       <th>autogen_missing</th>

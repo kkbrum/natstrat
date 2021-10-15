@@ -12,10 +12,13 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
 <script src="pkgdown.js"></script><meta property="og:title" content="Obtain Unweighted Natural Strata that Balance Many Covariates">
-<meta property="og:description" content="Natural strata fix a constant ratio of controls to treated units within 
-    each stratum. This ratio need not be an integer. The control units are 
-    chosen using randomized rounding of a linear program that balances many 
-    covariates.
+<meta property="og:description" content="Natural strata can be used in observational studies to balance
+    the distributions of many covariates across any number of treatment
+    groups and any number of comparisons. These strata have proportional 
+    amounts of units within each stratum across the treatments, allowing 
+    for simple interpretation and aggregation across strata. Within each 
+    stratum, the units are chosen using randomized rounding of a linear 
+    program that balances many covariates.
     To solve the linear program, the Gurobi commercial optimization software 
     is recommended, but not required. The gurobi R package can be installed following the instructions 
     at &lt;https://www.gurobi.com/documentation/9.1/refman/ins_the_r_package.html&gt;.">
@@ -37,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">natstrat</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
       </span>
     </div>
 
@@ -83,12 +86,15 @@
 <a href="#natstrat" class="anchor"></a>natstrat</h1></div>
 <!-- badges: start -->
 
-<p>The goal of natstrat is to obtain unweighted natural strata that balance many covariates. Natural strata fix a constant ratio of controls to treated units within each stratum. This ratio need not be an integer. The control units are chosen using randomized rounding of a linear program that balances many covariates.</p>
+<p>Natural strata can be used in observational studies to balance the distributions of many covariates across any number of treatment groups and any number of comparisons. These strata have proportional amounts of units within each stratum across the treatments, allowing for simple interpretation and aggregation across strata. Within each stratum, the units are chosen using randomized rounding of a linear program that balances many covariates.</p>
 <div id="installation" class="section level2">
 <h2 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h2>
-<p>You can install the development version from <a href="https://github.com/">GitHub</a> with:</p>
+<p>You can install the released version from CRAN with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"natstrat"</span><span class="op">)</span></code></pre></div>
+<p>You can install the development version from <a href="https://github.com/">GitHub</a> with:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># install.packages("devtools")</span>
 <span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"kkbrum/natstrat"</span>, build_vignettes <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
 </div>
@@ -96,7 +102,7 @@
 <h2 class="hasAnchor">
 <a href="#usage" class="anchor"></a>Usage</h2>
 <p>To learn about how to use this package, please see the associated vignette with:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/browseVignettes.html">browseVignettes</a></span><span class="op">(</span>package <span class="op">=</span> <span class="st">"natstrat"</span><span class="op">)</span></code></pre></div>
 </div>
 </div>
@@ -106,6 +112,8 @@
     <div class="links">
 <h2>Links</h2>
 <ul class="list-unstyled">
+<li>Download from CRAN at <br><a href="https://cloud.r-project.org/package=natstrat">https://​cloud.r-project.org/​package=natstrat</a>
+</li>
 <li>Browse source code at <br><a href="https://github.com/kkbrum/natstrat/">https://​github.com/​kkbrum/​natstrat/​</a>
 </li>
 <li>Report a bug at <br><a href="https://github.com/kkbrum/natstrat/issues">https://​github.com/​kkbrum/​natstrat/​issues</a>
@@ -129,7 +137,7 @@
 <h2>Dev status</h2>
 <ul class="list-unstyled">
 <li><a href="https://github.com/kkbrum/natstrat/actions"><img src="https://github.com/kkbrum/natstrat/workflows/R-CMD-check/badge.svg" alt="R-CMD-check"></a></li>
-<li><a href="https://codecov.io/gh/kkbrum/natstrat?branch=master"><img src="https://codecov.io/gh/kkbrum/natstrat/branch/master/graph/badge.svg" alt="Codecov test coverage"></a></li>
+<li><a href="https://app.codecov.io/gh/kkbrum/natstrat?branch=master"><img src="https://codecov.io/gh/kkbrum/natstrat/branch/master/graph/badge.svg" alt="Codecov test coverage"></a></li>
 </ul>
 </div>
 </div>

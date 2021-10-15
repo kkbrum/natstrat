@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">natstrat</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
       </span>
     </div>
 
@@ -70,8 +70,8 @@
 
       
 
-      </header><script src="natstrat_files/accessible-code-block-0.0.1/empty-anchor.js"></script><script src="natstrat_files/htmlwidgets-1.5.3/htmlwidgets.js"></script><script src="natstrat_files/jquery-3.5.1/jquery.min.js"></script><link href="natstrat_files/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet">
-<script src="natstrat_files/datatables-binding-0.18/datatables.js"></script><link href="natstrat_files/dt-core-1.10.20/css/jquery.dataTables.min.css" rel="stylesheet">
+      </header><script src="natstrat_files/accessible-code-block-0.0.1/empty-anchor.js"></script><script src="natstrat_files/htmlwidgets-1.5.4/htmlwidgets.js"></script><link href="natstrat_files/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet">
+<script src="natstrat_files/datatables-binding-0.19/datatables.js"></script><script src="natstrat_files/jquery-3.6.0/jquery-3.6.0.min.js"></script><link href="natstrat_files/dt-core-1.10.20/css/jquery.dataTables.min.css" rel="stylesheet">
 <link href="natstrat_files/dt-core-1.10.20/css/jquery.dataTables.extra.css" rel="stylesheet">
 <script src="natstrat_files/dt-core-1.10.20/js/jquery.dataTables.min.js"></script><link href="natstrat_files/crosstalk-1.1.1/css/crosstalk.css" rel="stylesheet">
 <script src="natstrat_files/crosstalk-1.1.1/js/crosstalk.min.js"></script><div class="row">
@@ -99,6 +99,7 @@
 <p><a href="#sec5">5.</a> Check whether the balance achieved was satisfactory using <code><a href="../reference/check_balance.html">check_balance()</a></code>. If not, change some aspects from steps 2-3 and repeat steps 4-5</p>
 <p><a href="#sec6">6.</a> Conduct outcome analysis and visualizations</p>
 <p>We will demonstrate each of these steps using an extended example, and then go into <a href="#further-details">Further details</a> about some of the functions and arguments.</p>
+<p>Note that natural strata can also be used with any number of treatment or control groups and any number of simultaneous comparisons between subsets of treatment and control groups, as shown in <a href="#multiple-comparisons">Multiple comparisons</a>. In addition, natural strata can deal with deviations from proportionality, as demonstrated in <a href="#deviating-from-proportionality">Deviating from proportionality</a>.</p>
 <hr>
 <div id="example-smoking-and-homocysteine-levels" class="section level2">
 <h2 class="hasAnchor">
@@ -107,8 +108,8 @@
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/kkbrum/natstrat">natstrat</a></span><span class="op">)</span>
 <span class="co">#&gt; Loading required package: caret</span>
-<span class="co">#&gt; Loading required package: lattice</span>
 <span class="co">#&gt; Loading required package: ggplot2</span>
+<span class="co">#&gt; Loading required package: lattice</span>
 <span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">'nh0506'</span><span class="op">)</span></code></pre></div>
 <p><a id="sec1"></a></p>
 <div id="creating-strata" class="section level3">
@@ -121,13 +122,14 @@
                labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">'&lt; 40 years'</span>, <span class="st">'40 - 50 years'</span>, <span class="st">'&gt; 50 years'</span><span class="op">)</span><span class="op">)</span>
 <span class="va">strata</span> <span class="op">&lt;-</span> <span class="va">age_cat</span> <span class="op">:</span> <span class="va">nh0506</span><span class="op">$</span><span class="va">sex</span></code></pre></div>
 <p>We can now see how many treated and control units are in each of our strata. Our treated units are composed of daily smokers, whereas control units have never smoked. We look at the ratio of controls to treated units available in each stratum:</p>
-<div id="htmlwidget-8644d7331a7afa6b224b" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-8644d7331a7afa6b224b">{"x":{"filter":"none","data":[["1","2","3","4","5","6"],["&lt; 40 years:Male","&lt; 40 years:Female","40 - 50 years:Male","40 - 50 years:Female","&gt; 50 years:Male","&gt; 50 years:Female"],["&lt; 40 years","&lt; 40 years","40 - 50 years","40 - 50 years","&gt; 50 years","&gt; 50 years"],["Male","Female","Male","Female","Male","Female"],[391,646,185,243,329,553],[128,88,81,73,123,88],[3.1,7.3,2.3,3.3,2.7,6.3]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Stratum<\/th>\n      <th>Age<\/th>\n      <th>Sex<\/th>\n      <th>Control<\/th>\n      <th>Treated<\/th>\n      <th>Ratio<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"paging":false,"searching":false,"columnDefs":[{"className":"dt-right","targets":[4,5,6]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><p><a id="sec2"></a></p>
+<div id="htmlwidget-b02c6a21d1e62397aea7" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-b02c6a21d1e62397aea7">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6"],["&lt; 40 years:Male","&lt; 40 years:Female","40 - 50 years:Male","40 - 50 years:Female","&gt; 50 years:Male","&gt; 50 years:Female"],["&lt; 40 years","&lt; 40 years","40 - 50 years","40 - 50 years","&gt; 50 years","&gt; 50 years"],["Male","Female","Male","Female","Male","Female"],[391,646,185,243,329,553],[128,88,81,73,123,88],[3.1,7.3,2.3,3.3,2.7,6.3]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Stratum<\/th>\n      <th>Age<\/th>\n      <th>Sex<\/th>\n      <th>Control<\/th>\n      <th>Treated<\/th>\n      <th>Ratio<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"paging":false,"searching":false,"columnDefs":[{"className":"dt-right","targets":[4,5,6]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><p><a id="sec2"></a></p>
 </div>
 <div id="selecting-a-ratio-of-controls-to-treated" class="section level3">
 <h3 class="hasAnchor">
 <a href="#selecting-a-ratio-of-controls-to-treated" class="anchor"></a>Selecting a ratio of controls to treated</h3>
 <p>Natural strata are defined by having a fixed ratio of controls to treated units within each stratum, so we now select the fixed ratio of controls we will strive for. As the minimum ratio of controls to treated units available is 2.3, we set a fixed ratio of 1 for our natural strata. Note that we can select a noninteger ratio, such as 1.5 controls for every treated unit. However, if we select too large a ratio compared to the minimum available ratio, it will become difficult to balance covariates in this small dataset.</p>
+<p>If we had multiple control or treated groups, as in <code>nh0506_3groups</code>, we could also use natural strata, specifying a ratio for each group relative to the primary treated group.</p>
 <p><a id="sec3"></a></p>
 </div>
 <div id="generating-covariate-balance-constraints" class="section level3">
@@ -187,11 +189,14 @@
                              ratio <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>
 
 <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span>
-<span class="co">#&gt; [1] "objective"                "objective_wo_importances"</span>
-<span class="co">#&gt; [3] "eps"                      "importances"             </span>
-<span class="co">#&gt; [5] "selected"                 "controls"                </span>
-<span class="co">#&gt; [7] "rrdetails"                "lpdetails"</span></code></pre></div>
-<p>We see the return of <code><a href="../reference/optimize_controls.html">optimize_controls()</a></code> is a list with 8 elements. The most useful element is <code>selected</code>, which is a boolean vector stating whether each unit should be included in the analysis or not. This includes both treated and control units. The rest of the elements in the list are useful in analyzing the performance of the linear program and randomized rounding solutions, and are described in the help page for the function.</p>
+<span class="co">#&gt;  [1] "objective"                "objective_wo_importances"</span>
+<span class="co">#&gt;  [3] "eps"                      "eps_star"                </span>
+<span class="co">#&gt;  [5] "importances"              "weight_star"             </span>
+<span class="co">#&gt;  [7] "selected"                 "selected_star"           </span>
+<span class="co">#&gt;  [9] "pr"                       "pr_star"                 </span>
+<span class="co">#&gt; [11] "rrdetails"                "lpdetails"</span></code></pre></div>
+<p>We see the return of <code><a href="../reference/optimize_controls.html">optimize_controls()</a></code> is a list. The most useful element is <code>selected</code>, which is a boolean vector stating whether each unit should be included in the analysis or not. This includes both treated and control units. The rest of the elements in the list are useful in analyzing the performance of the linear program and randomized rounding solutions, and are described in the help page for the function.</p>
+<p>This package also supports optimizing for multiple comparisons simultaneously; see the <a href="#additional-optimize_controls-arguments">Additional <code>optimize_controls()</code> arguments</a> section to learn more.</p>
 <p><a id="sec5"></a></p>
 </div>
 <div id="checking-balance-achieved" class="section level3">
@@ -208,16 +213,16 @@
                              plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
 <span class="co">#&gt; Excellent balance achieved across strata (&lt;.1 standardized difference in all covariates). </span>
 <span class="co">#&gt;  The mean standardized difference across strata for the covariates is 0.017,</span>
-<span class="co">#&gt;    the median is 0.007,</span>
-<span class="co">#&gt;    and the maximum is 0.079. </span>
+<span class="co">#&gt;    the median is 0.004,</span>
+<span class="co">#&gt;    and the maximum is 0.072. </span>
 <span class="co">#&gt; Taking a weighted average of standardized differences within strata, </span>
-<span class="co">#&gt;  we have the mean covariate imbalance is 0.027,</span>
-<span class="co">#&gt;    the median is 0.015,</span>
-<span class="co">#&gt;    and the maximum is 0.092. </span>
+<span class="co">#&gt;  we have the mean covariate imbalance is 0.024,</span>
+<span class="co">#&gt;    the median is 0.012,</span>
+<span class="co">#&gt;    and the maximum is 0.085. </span>
 <span class="co">#&gt;  Within strata, we see imbalances (&gt;=.2 standardized difference in some covariates in some strata). </span>
-<span class="co">#&gt;  The mean standardized difference within strata for the covariates is 0.027,</span>
+<span class="co">#&gt;  The mean standardized difference within strata for the covariates is 0.024,</span>
 <span class="co">#&gt;    the median is 0,</span>
-<span class="co">#&gt;    and the maximum is 0.298.</span></code></pre></div>
+<span class="co">#&gt;    and the maximum is 0.268.</span></code></pre></div>
 <p>We see below that there is excellent balance across strata as all standardized differences in means after refining the control group fall below the first dashed line at 0.1. We also see that when we take the weighted average of the standardized differences in means within strata, where the average is weighted by stratum size, these values also fall below 0.1.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">stand_diffs</span><span class="op">$</span><span class="va">plot_pair</span></code></pre></div>
@@ -264,7 +269,7 @@
 <span class="fu">ggplot</span><span class="op">(</span><span class="va">nh0506</span><span class="op">[</span><span class="va">results</span><span class="op">$</span><span class="va">selected</span>, <span class="op">]</span>, <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">group</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">homocysteine</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> 
   <span class="fu">geom_boxplot</span><span class="op">(</span><span class="op">)</span></code></pre></div>
 <p><img src="natstrat_files/figure-html/unnamed-chunk-4-2.png" width="672"></p>
-<p>We can also calculate the average treatment effect (ATT) on the treated in terms of log of homocysteine, both within the strata and across:</p>
+<p>We can also calculate the average treatment effect on the treated (ATT) in terms of log of homocysteine, both within the strata and across:</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R">
 <span class="va">att</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">nh0506</span><span class="op">$</span><span class="va">homocysteine</span><span class="op">[</span><span class="va">results</span><span class="op">$</span><span class="va">selected</span> <span class="op">&amp;</span> <span class="va">nh0506</span><span class="op">$</span><span class="va">z</span> <span class="op">==</span> <span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="op">-</span> 
@@ -272,8 +277,8 @@
 <span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"\nThe ATT across the strata is "</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">att</span>, <span class="fl">3</span><span class="op">)</span>, <span class="st">" on the log scale,
     which converted back to a regular scale is "</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">att</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span>, <span class="st">" umol/L."</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; The ATT across the strata is 0.129 on the log scale,</span>
-<span class="co">#&gt;     which converted back to a regular scale is 1.138 umol/L.</span>
+<span class="co">#&gt; The ATT across the strata is 0.131 on the log scale,</span>
+<span class="co">#&gt;     which converted back to a regular scale is 1.14 umol/L.</span>
 
 <span class="kw">for</span> <span class="op">(</span><span class="va">st</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/levels.html">levels</a></span><span class="op">(</span><span class="va">nh0506</span><span class="op">$</span><span class="va">strata</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span>
   <span class="va">att</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">nh0506</span><span class="op">$</span><span class="va">homocysteine</span><span class="op">[</span><span class="va">results</span><span class="op">$</span><span class="va">selected</span> <span class="op">&amp;</span> <span class="va">nh0506</span><span class="op">$</span><span class="va">z</span> <span class="op">==</span> <span class="fl">1</span> <span class="op">&amp;</span> <span class="va">nh0506</span><span class="op">$</span><span class="va">strata</span> <span class="op">==</span> <span class="va">st</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="op">-</span>
@@ -282,18 +287,18 @@
       which converted back to a regular scale is "</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">att</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span>, <span class="st">" umol/L."</span><span class="op">)</span><span class="op">)</span>
 <span class="op">}</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; The ATT for stratum &lt; 40 years:Male is 0.081 on the log scale,</span>
-<span class="co">#&gt;       which converted back to a regular scale is 1.084 umol/L.</span>
-<span class="co">#&gt; The ATT for stratum &lt; 40 years:Female is 0.237 on the log scale,</span>
-<span class="co">#&gt;       which converted back to a regular scale is 1.268 umol/L.</span>
-<span class="co">#&gt; The ATT for stratum 40 - 50 years:Male is 0.045 on the log scale,</span>
-<span class="co">#&gt;       which converted back to a regular scale is 1.046 umol/L.</span>
+<span class="co">#&gt; The ATT for stratum &lt; 40 years:Male is 0.078 on the log scale,</span>
+<span class="co">#&gt;       which converted back to a regular scale is 1.081 umol/L.</span>
+<span class="co">#&gt; The ATT for stratum &lt; 40 years:Female is 0.235 on the log scale,</span>
+<span class="co">#&gt;       which converted back to a regular scale is 1.265 umol/L.</span>
+<span class="co">#&gt; The ATT for stratum 40 - 50 years:Male is 0.04 on the log scale,</span>
+<span class="co">#&gt;       which converted back to a regular scale is 1.041 umol/L.</span>
 <span class="co">#&gt; The ATT for stratum 40 - 50 years:Female is 0.213 on the log scale,</span>
 <span class="co">#&gt;       which converted back to a regular scale is 1.237 umol/L.</span>
 <span class="co">#&gt; The ATT for stratum &gt; 50 years:Male is 0.08 on the log scale,</span>
 <span class="co">#&gt;       which converted back to a regular scale is 1.083 umol/L.</span>
-<span class="co">#&gt; The ATT for stratum &gt; 50 years:Female is 0.168 on the log scale,</span>
-<span class="co">#&gt;       which converted back to a regular scale is 1.183 umol/L.</span></code></pre></div>
+<span class="co">#&gt; The ATT for stratum &gt; 50 years:Female is 0.192 on the log scale,</span>
+<span class="co">#&gt;       which converted back to a regular scale is 1.212 umol/L.</span></code></pre></div>
 <p>We see a similar effect of smoking increasing homocysteine levels across all the strata, but the effect is greater for females of all ages than for males.</p>
 </div>
 </div>
@@ -364,13 +369,70 @@
                   max_ratio <span class="op">=</span> <span class="fl">2.6</span>, 
                   max_extra_s <span class="op">=</span> <span class="fl">0</span>, 
                   strata_dist <span class="op">=</span> <span class="va">strata_dist</span><span class="op">)</span>
-<span class="va">qs</span>
+<span class="va">qs</span><span class="op">[</span><span class="fl">1</span>, <span class="op">]</span>
 <span class="co">#&gt;      &lt; 40 years:Male    &lt; 40 years:Female   40 - 50 years:Male </span>
 <span class="co">#&gt;                  320                  220                  185 </span>
 <span class="co">#&gt; 40 - 50 years:Female      &gt; 50 years:Male    &gt; 50 years:Female </span>
 <span class="co">#&gt;                  190                  317                  220</span></code></pre></div>
-<p>We see that 8 extra controls will be drawn from the <code>40 - 50 years:Female</code> stratum, yielding a ratio of 2.60, and 9 extra controls will be drawn from the <code>&gt; 50 years:Male</code> stratum, yielding a ratio of 2.58. These are two of the three strata that are 1 distance unit away from our deficient stratum.</p>
+<p>We see that for the control group (row 1 of <code>qs</code>), 8 extra units will be drawn from the <code>40 - 50 years:Female</code> stratum, yielding a ratio of 2.60, and 9 extra units will be drawn from the <code>&gt; 50 years:Male</code> stratum, yielding a ratio of 2.58. These are two of the three strata that are 1 distance unit away from our deficient stratum.</p>
 <p>Once we have these <code>qs</code> generated, we can plug these into <code><a href="../reference/optimize_controls.html">optimize_controls()</a></code> and set the <code>ratio</code> argument to <code>NULL</code>. Everything else holds the same.</p>
+</div>
+<div id="multiple-comparisons" class="section level3">
+<h3 class="hasAnchor">
+<a href="#multiple-comparisons" class="anchor"></a>Multiple comparisons</h3>
+<p>This package supports optimizing covariate balance for multiple separate comparisons simultaneously. This is useful when there are multiple treatment or control groups of vastly varying sizes, such that you might want to have a main analysis with all groups, and supplement this with another analysis of a subset of groups with larger sample sizes.</p>
+<p>In the NHANES data, splitting into three exposures yields the following:</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">'nh0506_3groups'</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">nh0506_3groups</span><span class="op">$</span><span class="va">z</span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; never smoker some smoking daily smoker </span>
+<span class="co">#&gt;         2347         1529          581</span></code></pre></div>
+<p>In this case, we might want a primary analysis of 581 people from each exposure, and then a larger analysis of 1529 people from both the never smokers and occasional smokers. This larger analysis would yield greater power to detect differences between these two groups, where the treatment effect would be calculated for the occasional smoker population, as opposed to the daily smoker population as in the primary analysis.</p>
+<p>To set this up, we first repeat the stratifying and constraint generating process from before. In this case, we only stratify on age and instead balance for sex later:</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">strata2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cut.html">cut</a></span><span class="op">(</span><span class="va">nh0506_3groups</span><span class="op">$</span><span class="va">age</span>, 
+               breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">19</span>, <span class="fl">39</span>, <span class="fl">50</span>, <span class="fl">85</span><span class="op">)</span>, 
+               labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">'&lt; 40 years'</span>, <span class="st">'40 - 50 years'</span>, <span class="st">'&gt; 50 years'</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div id="htmlwidget-57dab844979267740b13" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-57dab844979267740b13">{"x":{"filter":"none","vertical":false,"data":[["1","2","3"],["&lt; 40 years","40 - 50 years","&gt; 50 years"],[216,154,211],[444,270,815],[1037,428,882]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Stratum<\/th>\n      <th>Daily smokers<\/th>\n      <th>Some smoking<\/th>\n      <th>Never smokers<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"paging":false,"searching":false,"columnDefs":[{"className":"dt-right","targets":[2,3,4]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">constraints2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_constraints.html">generate_constraints</a></span><span class="op">(</span>
+  balance_formulas <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">age</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">education</span> <span class="op">+</span> <span class="va">povertyr</span> <span class="op">+</span> <span class="va">bmi</span> <span class="op">+</span> <span class="va">sex</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> <span class="va">strata2</span><span class="op">)</span>, 
+  z <span class="op">=</span> <span class="va">nh0506_3groups</span><span class="op">$</span><span class="va">z</span>, 
+  data <span class="op">=</span> <span class="va">nh0506_3groups</span>,
+  treated <span class="op">=</span> <span class="st">'daily smoker'</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">constraints2</span><span class="op">)</span>
+<span class="co">#&gt; [1] "X"           "importances"</span>
+<span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">constraints2</span><span class="op">$</span><span class="va">X</span><span class="op">)</span>
+<span class="co">#&gt; [1] 4457   68</span>
+<span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">constraints2</span><span class="op">$</span><span class="va">importances</span><span class="op">)</span>
+<span class="co">#&gt; [1] 68</span></code></pre></div>
+<p>Note that although we have 68 constraints, these will be enforced for each pair of groups within each comparison, such that we will have 4 times this many constraints– 3 for the main comparison and 1 for the supplemental comparison.</p>
+<p>The optimization step is where we need to specify information about each comparison. We will provide the supplemental comparison information in the <code>_star</code> arguments.</p>
+<p>For the second comparison, although we want to use all occasional smokers and an equivalent amount of never smokers, we will already have selected some of each for the main comparison, which we will reuse in the second comparison. Note that we do not have to reuse these people, but we would need to be careful about specifying the treatment effect of interest if we did not use all the occasional smokers.</p>
+<p>We thus want to select the difference between the number of people we want from each group for the second analysis and for the main analysis, which we will split into strata and specify in the <code>q_star_s</code> argument. We also add arguments for <code>treated</code> and <code>treated_star</code>, which will specify the primary treated group in each comparison. Finally, we add <code>correct_sizes = FALSE</code>, meaning that sample sizes will only be correct in expectation, which is needed for multiple comparisons.</p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">q_star_s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">nh0506_3groups</span><span class="op">$</span><span class="va">z</span>, <span class="va">strata2</span><span class="op">)</span><span class="op">[</span><span class="st">'some smoking'</span>, <span class="op">]</span> <span class="op">-</span> 
+                           <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">nh0506_3groups</span><span class="op">$</span><span class="va">z</span>, <span class="va">strata2</span><span class="op">)</span><span class="op">[</span><span class="st">'daily smoker'</span>, <span class="op">]</span>, <span class="fl">2</span><span class="op">)</span>, 
+                     <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span>, byrow <span class="op">=</span> <span class="cn">TRUE</span>, nrow <span class="op">=</span> <span class="fl">3</span>, 
+                   dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/levels.html">levels</a></span><span class="op">(</span><span class="va">nh0506_3groups</span><span class="op">$</span><span class="va">z</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/levels.html">levels</a></span><span class="op">(</span><span class="va">strata2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">q_star_s</span>
+<span class="co">#&gt;              &lt; 40 years 40 - 50 years &gt; 50 years</span>
+<span class="co">#&gt; never smoker        228           116        604</span>
+<span class="co">#&gt; some smoking        228           116        604</span>
+<span class="co">#&gt; daily smoker          0             0          0</span>
+
+<span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optimize_controls.html">optimize_controls</a></span><span class="op">(</span>z <span class="op">=</span> <span class="va">nh0506_3groups</span><span class="op">$</span><span class="va">z</span>, 
+                             X <span class="op">=</span> <span class="va">constraints2</span><span class="op">$</span><span class="va">X</span>, 
+                             importances <span class="op">=</span> <span class="va">constraints2</span><span class="op">$</span><span class="va">importances</span>,
+                             st <span class="op">=</span> <span class="va">strata2</span>, 
+                             ratio <span class="op">=</span> <span class="fl">1</span>, 
+                             treated <span class="op">=</span> <span class="st">'daily smoker'</span>, 
+                             treated_star <span class="op">=</span> <span class="st">'some smoking'</span>,
+                             q_star_s <span class="op">=</span> <span class="va">q_star_s</span>,
+                             correct_sizes <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
+<p>We can then analyze our balance results and estimate our treatment effects in the same way as before.</p>
 </div>
 <div id="balance-formula-syntax" class="section level3">
 <h3 class="hasAnchor">
@@ -420,6 +482,8 @@
 <li>
 <code>q_s</code>: This is a named vector specifying how many controls to take from each stratum. This should only be used if the ratio of controls to treated units in each stratum is not constant. This could occur if a certain ratio is not feasible in a stratum and thus you’d like to select fewer controls from that stratum or compensate by selecting controls from other specified strata. The function <code><a href="../reference/generate_qs.html">generate_qs()</a></code>, described in the <a href="#deviating-from-proportionality">Deviating from proportionality</a> section above, is useful for specifying this argument</li>
 <li>
+<code>weight_star</code>: This is a scalar or vector specifying how much to prioritize balancing each supplemental comparison relative to the main comparison.</li>
+<li>
 <code>integer</code>: Whether to solve the integer solution as opposed to using randomized rounding. Note that using the integer solver is not recommended for large datasets as the optimization may take an excessively long time or never finish. It is instead suggested to leave <code>integer = FALSE</code> (default), which will conduct randomized rounding of the linear program as described in the manuscript <code>Brumberg et al. (2021+)</code>
 </li>
 <li>
@@ -431,6 +495,12 @@
 <code>runs</code>: The number of times we’d like to conduct randomized rounding if <code>integer = FALSE</code> before taking the best solution</li>
 <li>
 <code>time_limit</code>: Time limit for the optimization</li>
+<li>
+<code>threads</code>: A scalar indicating how many threads the solver should use</li>
+<li>
+<code>correct_sizes</code>: If set to <code>TRUE</code>, the sampling algorithm will not strictly enforce the sample size constraints. This must be set to <code>TRUE</code> when using multiple comparisons</li>
+<li>
+<code>low_memory</code>: If set to <code>TRUE</code>, the result will not contain the epsilon matrices, which show the imbalance that each covariate contributes to the objective function</li>
 </ul>
 </div>
 </div>

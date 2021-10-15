@@ -74,7 +74,7 @@ across the population." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">natstrat</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
       </span>
     </div>
 
@@ -127,15 +127,18 @@ are in the correct forms and that the desired ratio is feasible
 across the population.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>verify_inputs_EMD</span><span class='op'>(</span><span class='va'>ratio</span>, <span class='va'>st</span>, <span class='va'>z</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>verify_inputs_EMD</span><span class='op'>(</span><span class='va'>ratio</span>, <span class='va'>st</span>, <span class='va'>z</span>, treated <span class='op'>=</span> <span class='fl'>1</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>ratio</th>
-      <td><p>a numeric specifying the desired ratio of controls to treated in
-each stratum.</p></td>
+      <td><p>a numeric or vector specifying the desired ratio of controls to `treated` in
+each stratum. If there is one control group and all treated units should be included,
+this can be a numeric. Otherwise, this should be
+a vector with one entry per treatment group, in the same order as the levels of
+<code>z</code>, including the treated level. If <code>NULL</code>, <code>q_s</code> should be specified.</p></td>
     </tr>
     <tr>
       <th>st</th>
@@ -145,8 +148,12 @@ as <code>z</code>.</p></td>
     </tr>
     <tr>
       <th>z</th>
-      <td><p>a treatment indicator vector with <code>i</code>th entry equal to 0 if
-unit <code>i</code> is a control and equal to 1 if unit <code>i</code> is treated.</p></td>
+      <td><p>a factor with the <code>i</code>th entry equal to the treatment of unit <code>i</code>.</p></td>
+    </tr>
+    <tr>
+      <th>treated</th>
+      <td><p>which treatment value should be considered the treated units. This
+must be one of the values of <code>z</code>.</p></td>
     </tr>
     </table>
 

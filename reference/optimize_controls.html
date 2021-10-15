@@ -74,7 +74,7 @@ integer linear program." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">natstrat</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
       </span>
     </div>
 
@@ -132,13 +132,20 @@ integer linear program.</p>
   <span class='va'>X</span>,
   <span class='va'>st</span>,
   importances <span class='op'>=</span> <span class='cn'>NULL</span>,
+  treated <span class='op'>=</span> <span class='fl'>1</span>,
   ratio <span class='op'>=</span> <span class='cn'>NULL</span>,
   q_s <span class='op'>=</span> <span class='cn'>NULL</span>,
+  treated_star <span class='op'>=</span> <span class='cn'>NULL</span>,
+  q_star_s <span class='op'>=</span> <span class='cn'>NULL</span>,
+  weight_star <span class='op'>=</span> <span class='fl'>1</span>,
   integer <span class='op'>=</span> <span class='cn'>FALSE</span>,
   solver <span class='op'>=</span> <span class='st'>"Rglpk"</span>,
   seed <span class='op'>=</span> <span class='cn'>NULL</span>,
   runs <span class='op'>=</span> <span class='fl'>1</span>,
-  time_limit <span class='op'>=</span> <span class='cn'>Inf</span>
+  time_limit <span class='op'>=</span> <span class='cn'>Inf</span>,
+  threads <span class='op'>=</span> <span class='fl'>1</span>,
+  correct_sizes <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  low_memory <span class='op'>=</span> <span class='cn'>FALSE</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -146,8 +153,7 @@ integer linear program.</p>
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>z</th>
-      <td><p>a treatment indicator vector with <code>i</code>th entry equal to 0 if
-unit <code>i</code> is a control and equal to 1 if unit <code>i</code> is treated.</p></td>
+      <td><p>a factor with the <code>i</code>th entry equal to the treatment of unit <code>i</code>.</p></td>
     </tr>
     <tr>
       <th>X</th>
@@ -171,16 +177,51 @@ denotes how much to prioritize each constraint, with the default being 1
 for all constraints.</p></td>
     </tr>
     <tr>
+      <th>treated</th>
+      <td><p>which treatment value should be considered the treated units. This
+must be one of the values of <code>z</code>.</p></td>
+    </tr>
+    <tr>
       <th>ratio</th>
-      <td><p>a numeric specifying the desired ratio of controls to treated in
-each stratum. If <code>NULL</code>, <code>q_s</code> should be specified.</p></td>
+      <td><p>a numeric or vector specifying the desired ratio of controls to `treated` in
+each stratum. If there is one control group and all treated units should be included,
+this can be a numeric. Otherwise, this should be
+a vector with one entry per treatment group, in the same order as the levels of
+<code>z</code>, including the treated level. If <code>NULL</code>, <code>q_s</code> should be specified.</p></td>
     </tr>
     <tr>
       <th>q_s</th>
-      <td><p>a named vector indicating how many control units are to be selected from each stratum.
+      <td><p>a named vector or matrix indicating how many units are to be selected from each stratum.
+If there is one control group and all treated units are desired, this can be a vector; otherwise,
+this should have one row per treatment group, where the order of the rows matches the order of
+the levels of <code>z</code>, including the treated level.
 If <code>NULL</code>, <code>ratio</code> should be specified. If both are specified, <code>q_s</code> will take priority.
 Typically, if the desired ratio is not feasible for every stratum, <code>q_s</code> should be generated
 using <code><a href='generate_qs.html'>generate_qs</a>()</code>.</p></td>
+    </tr>
+    <tr>
+      <th>treated_star</th>
+      <td><p>which treatment value should be considered the treated units
+for the supplemental comparison. This
+must be one of the values of <code>z</code>.
+ If multiple supplemental comparisons are desired, this should be a vector with one entry per supplemental
+  comparison.</p></td>
+    </tr>
+    <tr>
+      <th>q_star_s</th>
+      <td><p>a named vector or matrix,
+indicating how many supplemental units are to be selected from each stratum.
+The matrix should have one row per treatment group, where the order of the rows matches the order of
+the levels of <code>z</code>, including the treated level.
+If multiple supplemental comparisons are desired, this should be a list with one entry per supplemental
+comparison.</p></td>
+    </tr>
+    <tr>
+      <th>weight_star</th>
+      <td><p>a numeric stating how much to prioritize balance between the supplemental units as
+compared to balance between the main units.
+  If multiple supplemental comparisons are desired, this should be a vector with one entry per supplemental
+  comparison.</p></td>
     </tr>
     <tr>
       <th>integer</th>
@@ -210,6 +251,25 @@ will only be reported for the run with the lowest objective value. The default i
       <td><p>numeric stating maximum amount of seconds for which the
 program is allowed to run before aborting. Default is <code>Inf</code> for no time limit.</p></td>
     </tr>
+    <tr>
+      <th>threads</th>
+      <td><p>The maximum number of threads that should be used. This is only
+applicable if <code>solver = 'gurobi'</code>.</p></td>
+    </tr>
+    <tr>
+      <th>correct_sizes</th>
+      <td><p>boolean stating whether the desired sample sizes should
+be exactly correct (if <code>correct_sizes = TRUE</code>) or only need to be correct
+in expectation. For multiple comparisons, sample sizes may only be
+correct in expectation.</p></td>
+    </tr>
+    <tr>
+      <th>low_memory</th>
+      <td><p>boolean stating whether some outputs should not be included
+due to the scale of the problem being too large compared to memory space.
+If <code>TRUE</code>, <code>eps</code> and <code>eps_star</code> will not be reported. Imbalances
+can be computed post hoc using the <code><a href='check_balance.html'>check_balance</a>()</code> instead.</p></td>
+    </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
@@ -219,28 +279,27 @@ program is allowed to run before aborting. Default is <code>Inf</code> for no ti
     linear program solution.</p></dd>
   <dt><code>objective_wo_importances</code></dt><dd><p>objective value of the randomized rounding or mixed integer
     linear program solution not weighted by the variable importances.</p></dd>
-  <dt><code>eps</code></dt><dd><p>the amount of imbalance obtained in each constraint from the linear program.</p></dd>
+  <dt><code>eps</code></dt><dd><p>the amount of imbalance obtained in each constraint from the linear program.
+  The row names specify the covariate, the population of interest, and, if there are
+  more than two comparison groups, which groups are being compared.</p></dd>
+  <dt><code>eps_star</code></dt><dd><p>same as <code>eps</code> but for the supplemental units instead of the units
+  in the main comparison. If there are multiple supplemental comparisons, this is a list.
+  If there are none, this is <code>NULL</code>.</p></dd>
   <dt><code>importances</code></dt><dd><p>the importance of each on the balance constraints.</p></dd>
-  <dt><code>selected</code></dt><dd><p>the selected treated and control units.</p></dd>
-  <dt><code>controls</code></dt><dd><p>the linear program weight assigned to each control and
-    whether it was selected by randomized rounding.</p></dd>
+  <dt><code>weight_star</code></dt><dd><p>the importance of balancing in the supplemental comparison
+  relative to the main comparison. If there are multiple supplemental comparisons,
+  this is a vector. If there are none, this is <code>NULL</code>.</p></dd>
+  <dt><code>selected</code></dt><dd><p>whether each unit was selected for the main comparison.</p></dd>
+  <dt><code>selected_star</code></dt><dd><p>whether each unit was selected for the supplement.
+  If there are multiple supplemental comparisons, this is a list.
+  If there are none, this is <code>NULL</code>.</p></dd>
+  <dt><code>pr</code></dt><dd><p>the linear program weight assigned to each unit for the main comparison.</p></dd>
+  <dt><code>pr_star</code></dt><dd><p>the linear program weight assigned to each unit for the supplement.
+  If there are multiple supplemental comparisons, this is a list.
+  If there are none, this is <code>NULL</code>.</p></dd>
   <dt><code>rrdetails</code></dt><dd><p>A list containing:
   <dl>
   <dt><code>seed</code></dt><dd><p>the seed used before commencing the random sampling.</p></dd>
-  <dt><code>raw_objective</code></dt><dd><p>objective value of the randomized rounding or mixed integer
-    linear program solution before the denominator has been corrected for the number of
-    units chosen with missing covariate values.</p></dd>
-  <dt><code>raw_objective_wo_importances</code></dt><dd><p>objective value of the randomized rounding or mixed integer
-    linear program solution not weighted by the variable importances
-    before the denominator has been corrected for the number of
-    units chosen with missing covariate values.</p></dd>
-  <dt><code>raw_eps</code></dt><dd><p>the amount of imbalance obtained in each constraint from the linear program,
-    before the denominators have been corrected for the number of
-    units chosen with missing covariate values.</p></dd>
-  <dt><code>run_raw_objectives</code></dt><dd><p>the objective values for each run of randomized rounding,
-  before denominators have been corrected for missingness.</p></dd>
-  <dt><code>run_raw_objectives_wo_importances</code></dt><dd><p>the objective values for each run of randomized rounding,
-  before denominators have been corrected for missingness, not scaled by constraint importances.</p></dd>
   <dt><code>run_objectives</code></dt><dd><p>the objective values for each run of randomized rounding.</p></dd>
   <dt><code>run_objectives_wo_importances</code></dt><dd><p>the objective values for each run of randomized rounding,
   not scaled by constraint importances.</p></dd></dl></p></dd>
@@ -280,6 +339,7 @@ program is allowed to run before aborting. Default is <code>Inf</code> for no ti
 <span class='co'># typically generated by creating a distance matrix between strata and using</span>
 <span class='co'># generate_qs():</span>
 
+<span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='op'>{</span>
 <span class='va'>age_dist</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span><span class='op'>(</span>data <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0</span>, <span class='fl'>1</span>, <span class='fl'>2</span>, <span class='fl'>1</span>, <span class='fl'>0</span>, <span class='fl'>1</span>, <span class='fl'>2</span>, <span class='fl'>1</span>, <span class='fl'>0</span><span class='op'>)</span>,
                    nrow <span class='op'>=</span> <span class='fl'>3</span>,
                    byrow <span class='op'>=</span> <span class='cn'>TRUE</span>,
@@ -303,6 +363,37 @@ program is allowed to run before aborting. Default is <code>Inf</code> for no ti
                              st <span class='op'>=</span> <span class='va'>strata</span>,
                              importances <span class='op'>=</span> <span class='va'>constraints</span><span class='op'>$</span><span class='va'>importances</span>,
                              q_s <span class='op'>=</span> <span class='va'>qs</span><span class='op'>)</span>
+
+<span class='op'>}</span>
+
+<span class='co'># We can also have multiple treatment and control groups,</span>
+<span class='co'># as well as multiple simultaneous comparisons:</span>
+
+<span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='op'>{</span>
+<span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span><span class='op'>(</span><span class='st'>'nh0506_3groups'</span><span class='op'>)</span>
+<span class='va'>strata2</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/cut.html'>cut</a></span><span class='op'>(</span><span class='va'>nh0506_3groups</span><span class='op'>$</span><span class='va'>age</span>, breaks <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>19</span>, <span class='fl'>39</span>, <span class='fl'>50</span>, <span class='fl'>85</span><span class='op'>)</span>,
+              labels <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>'&lt; 40 years'</span>, <span class='st'>'40 - 50 years'</span>, <span class='st'>'&gt; 50 years'</span><span class='op'>)</span><span class='op'>)</span>
+<span class='va'>constraints2</span> <span class='op'>&lt;-</span> <span class='fu'><a href='generate_constraints.html'>generate_constraints</a></span><span class='op'>(</span>
+  balance_formulas <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span><span class='va'>age</span> <span class='op'>+</span> <span class='va'>race</span> <span class='op'>+</span> <span class='va'>education</span> <span class='op'>+</span> <span class='va'>povertyr</span> <span class='op'>+</span> <span class='va'>bmi</span> <span class='op'>+</span> <span class='va'>sex</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='va'>strata2</span><span class='op'>)</span>,
+  z <span class='op'>=</span> <span class='va'>nh0506_3groups</span><span class='op'>$</span><span class='va'>z</span>,
+  data <span class='op'>=</span> <span class='va'>nh0506_3groups</span>,
+  treated <span class='op'>=</span> <span class='st'>'daily smoker'</span><span class='op'>)</span>
+<span class='va'>q_star_s</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/table.html'>table</a></span><span class='op'>(</span><span class='va'>nh0506_3groups</span><span class='op'>$</span><span class='va'>z</span>, <span class='va'>strata2</span><span class='op'>)</span><span class='op'>[</span><span class='st'>'some smoking'</span>, <span class='op'>]</span> <span class='op'>-</span>
+                           <span class='fu'><a href='https://rdrr.io/r/base/table.html'>table</a></span><span class='op'>(</span><span class='va'>nh0506_3groups</span><span class='op'>$</span><span class='va'>z</span>, <span class='va'>strata2</span><span class='op'>)</span><span class='op'>[</span><span class='st'>'daily smoker'</span>, <span class='op'>]</span>, <span class='fl'>2</span><span class='op'>)</span>,
+                     <span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep</a></span><span class='op'>(</span><span class='fl'>0</span>, <span class='fl'>3</span><span class='op'>)</span><span class='op'>)</span>, byrow <span class='op'>=</span> <span class='cn'>TRUE</span>, nrow <span class='op'>=</span> <span class='fl'>3</span>,
+                   dimnames <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/levels.html'>levels</a></span><span class='op'>(</span><span class='va'>nh0506_3groups</span><span class='op'>$</span><span class='va'>z</span><span class='op'>)</span>, <span class='fu'><a href='https://rdrr.io/r/base/levels.html'>levels</a></span><span class='op'>(</span><span class='va'>strata2</span><span class='op'>)</span><span class='op'>)</span><span class='op'>)</span>
+
+<span class='va'>results</span> <span class='op'>&lt;-</span> <span class='fu'>optimize_controls</span><span class='op'>(</span>z <span class='op'>=</span> <span class='va'>nh0506_3groups</span><span class='op'>$</span><span class='va'>z</span>,
+                             X <span class='op'>=</span> <span class='va'>constraints2</span><span class='op'>$</span><span class='va'>X</span>,
+                             importances <span class='op'>=</span> <span class='va'>constraints2</span><span class='op'>$</span><span class='va'>importances</span>,
+                             st <span class='op'>=</span> <span class='va'>strata2</span>,
+                             ratio <span class='op'>=</span> <span class='fl'>1</span>,
+                             treated <span class='op'>=</span> <span class='st'>'daily smoker'</span>,
+                             treated_star <span class='op'>=</span> <span class='st'>'some smoking'</span>,
+                             q_star_s <span class='op'>=</span> <span class='va'>q_star_s</span>,
+                             correct_sizes <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span>
+
+<span class='op'>}</span>
 </pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

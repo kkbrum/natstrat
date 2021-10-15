@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Parse the nonstandard balance formulas — parse_formula • natstrat</title>
+<title>Verify the inputs for supplemental comparisons to optimize_controls() — verify_multi_comp_inputs • natstrat</title>
 
 
 <!-- jquery -->
@@ -39,9 +39,9 @@
 
 
 
-<meta property="og:title" content="Parse the nonstandard balance formulas — parse_formula" />
-<meta property="og:description" content="This function takes nonstandard formulas as inputs and returns regular formulas
-as well as lists of weights to be used in generate_constraints()." />
+<meta property="og:title" content="Verify the inputs for supplemental comparisons to optimize_controls() — verify_multi_comp_inputs" />
+<meta property="og:description" content="Makes sure that the inputs for supplemental comparisons to optimize_controls() are in the correct
+format and feasible." />
 
 
 
@@ -115,45 +115,82 @@ as well as lists of weights to be used in generate_constraints()." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Parse the nonstandard balance formulas</h1>
-    <small class="dont-index">Source: <a href='https://github.com/kkbrum/natstrat/blob/master/R/parse_formula.R'><code>R/parse_formula.R</code></a></small>
-    <div class="hidden name"><code>parse_formula.Rd</code></div>
+    <h1>Verify the inputs for supplemental comparisons to <code><a href='optimize_controls.html'>optimize_controls</a>()</code></h1>
+    <small class="dont-index">Source: <a href='https://github.com/kkbrum/natstrat/blob/master/R/verify_optimize_controls_inputs.R'><code>R/verify_optimize_controls_inputs.R</code></a></small>
+    <div class="hidden name"><code>verify_multi_comp_inputs.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>This function takes nonstandard formulas as inputs and returns regular formulas
-as well as lists of weights to be used in <code><a href='generate_constraints.html'>generate_constraints</a>()</code>.</p>
+    <p>Makes sure that the inputs for supplemental comparisons to <code><a href='optimize_controls.html'>optimize_controls</a>()</code> are in the correct
+format and feasible.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>parse_formula</span><span class='op'>(</span><span class='va'>balance_formula</span>, default_rhs <span class='op'>=</span> <span class='cn'>NULL</span>, data <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>verify_multi_comp_inputs</span><span class='op'>(</span>
+  <span class='va'>q_s</span>,
+  <span class='va'>q_star_s</span>,
+  <span class='va'>n_s</span>,
+  <span class='va'>treated</span>,
+  <span class='va'>treated_star</span>,
+  <span class='va'>weight_star</span>,
+  <span class='va'>group</span>,
+  <span class='va'>correct_sizes</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>balance_formula</th>
-      <td><p>a formula that may have multiple terms on the left hand side,
-"." on the left hand side, and coefficients, making it not a standard formula.</p></td>
+      <th>q_s</th>
+      <td><p>a named vector or matrix indicating how many units are to be selected from each stratum.
+If there is one control group and all treated units are desired, this can be a vector; otherwise,
+this should have one row per treatment group, where the order of the rows matches the order of
+the levels of <code>z</code>, including the treated level.
+If <code>NULL</code>, <code>ratio</code> should be specified. If both are specified, <code>q_s</code> will take priority.
+Typically, if the desired ratio is not feasible for every stratum, <code>q_s</code> should be generated
+using <code><a href='generate_qs.html'>generate_qs</a>()</code>.</p></td>
     </tr>
     <tr>
-      <th>default_rhs</th>
-      <td><p>the list of <code>balance_formulas</code> can also contain entries
-that are just the character corresponding to a covariate to balance. If so,
-the covariate will be balanced according to <code>default_rhs</code>.</p></td>
+      <th>q_star_s</th>
+      <td><p>a named vector or matrix,
+indicating how many supplemental units are to be selected from each stratum.
+The matrix should have one row per treatment group, where the order of the rows matches the order of
+the levels of <code>z</code>, including the treated level.
+If multiple supplemental comparisons are desired, this should be a list with one entry per supplemental
+comparison.</p></td>
     </tr>
     <tr>
-      <th>data</th>
-      <td><p>a data frame containing the relevant covariates in the columns. The number
-of rows should equal the length of <code>treated</code>.</p></td>
+      <th>treated</th>
+      <td><p>which treatment value should be considered the treated units. This
+must be one of the values of <code>z</code>.</p></td>
+    </tr>
+    <tr>
+      <th>treated_star</th>
+      <td><p>which treatment value should be considered the treated units
+for the supplemental comparison. This
+must be one of the values of <code>z</code>.
+ If multiple supplemental comparisons are desired, this should be a vector with one entry per supplemental
+  comparison.</p></td>
+    </tr>
+    <tr>
+      <th>weight_star</th>
+      <td><p>a numeric stating how much to prioritize balance between the supplemental units as
+compared to balance between the main units.
+  If multiple supplemental comparisons are desired, this should be a vector with one entry per supplemental
+  comparison.</p></td>
+    </tr>
+    <tr>
+      <th>correct_sizes</th>
+      <td><p>boolean stating whether the desired sample sizes should
+be exactly correct (if <code>correct_sizes = TRUE</code>) or only need to be correct
+in expectation. For multiple comparisons, sample sizes may only be
+correct in expectation.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A named list containing <code>new_formula</code>: the standard formula to be used
-in <code><a href='generate_constraints.html'>generate_constraints</a></code>, <code>rhs_weights</code>: a named list with the
-coefficients of the terms on the right hand side, and <code>lhs_weights</code>:
-a named list with coefficients of the terms on the left hand side.</p>
+    <p>No return value. If there is a problem with the inputs to <code><a href='optimize_controls.html'>optimize_controls</a>()</code>,
+an error is raised.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Sample integer solution from linear programming solution — randomized_rounding • natstrat</title>
+<title>Sample integer solution from linear programming solution with correct sample sizes — randomized_rounding • natstrat</title>
 
 
 <!-- jquery -->
@@ -39,13 +39,14 @@
 
 
 
-<meta property="og:title" content="Sample integer solution from linear programming solution — randomized_rounding" />
+<meta property="og:title" content="Sample integer solution from linear programming solution with correct sample sizes — randomized_rounding" />
 <meta property="og:description" content="The linear programming solution of balance_LP() that is used
-within optimize_controls() sometimes selects fractional control units.
+within optimize_controls() sometimes selects fractional units.
 Here, we select any unit the linear programming solution chose with coefficient 1.
 Then, we select the remaining required number of units from those that have
 fractional solutions by sampling with probabilities equal to the linear
-programming solution. Used within optimize_controls()." />
+programming solution and fixed sample size. Used within optimize_controls()
+if correct_sizes = TRUE." />
 
 
 
@@ -77,7 +78,7 @@ programming solution. Used within optimize_controls()." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">natstrat</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
       </span>
     </div>
 
@@ -119,21 +120,22 @@ programming solution. Used within optimize_controls()." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Sample integer solution from linear programming solution</h1>
+    <h1>Sample integer solution from linear programming solution with correct sample sizes</h1>
     <small class="dont-index">Source: <a href='https://github.com/kkbrum/natstrat/blob/master/R/randomized_rounding.R'><code>R/randomized_rounding.R</code></a></small>
     <div class="hidden name"><code>randomized_rounding.Rd</code></div>
     </div>
 
     <div class="ref-description">
     <p>The linear programming solution of <code><a href='balance_LP.html'>balance_LP</a>()</code> that is used
-within <code><a href='optimize_controls.html'>optimize_controls</a>()</code> sometimes selects fractional control units.
+within <code><a href='optimize_controls.html'>optimize_controls</a>()</code> sometimes selects fractional units.
 Here, we select any unit the linear programming solution chose with coefficient 1.
 Then, we select the remaining required number of units from those that have
 fractional solutions by sampling with probabilities equal to the linear
-programming solution. Used within <code><a href='optimize_controls.html'>optimize_controls</a>()</code>.</p>
+programming solution and fixed sample size. Used within <code><a href='optimize_controls.html'>optimize_controls</a>()</code>
+if <code>correct_sizes = TRUE</code>.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>randomized_rounding</span><span class='op'>(</span><span class='va'>o</span>, <span class='va'>N</span>, <span class='va'>z</span>, <span class='va'>st</span>, <span class='va'>st_vals</span>, <span class='va'>S</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>randomized_rounding</span><span class='op'>(</span><span class='va'>o</span>, <span class='va'>N</span>, <span class='va'>st</span>, <span class='va'>st_vals</span>, <span class='va'>S</span>, <span class='va'>z</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -146,11 +148,6 @@ returned list from <code><a href='balance_LP.html'>balance_LP</a>()</code>.</p><
     <tr>
       <th>N</th>
       <td><p>the total number of available controls in the data.</p></td>
-    </tr>
-    <tr>
-      <th>z</th>
-      <td><p>a treatment indicator vector with <code>i</code>th entry equal to 0 if
-unit <code>i</code> is a control and equal to 1 if unit <code>i</code> is treated.</p></td>
     </tr>
     <tr>
       <th>st</th>
@@ -166,20 +163,18 @@ as <code>z</code>.</p></td>
       <th>S</th>
       <td><p>the number of unique stratum levels contained in <code>st</code>.</p></td>
     </tr>
+    <tr>
+      <th>z</th>
+      <td><p>a factor with the <code>i</code>th entry equal to the treatment of unit <code>i</code>.</p></td>
+    </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>List containing:</p><dl>
-<dt><code>controls</code></dt><dd><p>dataframe with two columns: <code>pr</code>, which contains
-the coefficient determined for that control unit from the linear programming
+    <p>Dataframe with two columns: <code>pr</code>, which contains
+the coefficient determined for that unit from the linear programming
 solution, and <code>select</code>, a boolean vector stating whether that
-control unit was selected for inclusion by randomized rounding.</p></dd>
-<dt><code>selected</code></dt><dd><p>boolean vector stating whether each unit (both treated
-and control) was selected.</p></dd>
-
-</dl>
-
+unit was selected for inclusion by randomized rounding.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

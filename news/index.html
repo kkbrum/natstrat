@@ -71,7 +71,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">natstrat</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0</span>
       </span>
     </div>
 
@@ -117,9 +117,45 @@
       <small>Source: <a href='https://github.com/kkbrum/natstrat/blob/master/NEWS.md'><code>NEWS.md</code></a></small>
     </div>
 
+    <div id="natstrat-200-2021-10-12" class="section level1">
+<h1 class="page-header" data-toc-text="2.0.0">
+<a href="#natstrat-200-2021-10-12" class="anchor"></a>natstrat 2.0.0 (2021-10-12)<small> 2021-10-15 </small>
+</h1>
+<p>This version adds several new functionalities:</p>
+<ul>
+<li>Multiple treatment or control groups</li>
+<li>Multiple separate comparisons, using various subsets of the treatment and control groups, for which units are chosen in order to balance covariate distributions for all comparisons simultaneously</li>
+</ul>
+<p>Several changes to the interface have been made:</p>
+<ul>
+<li>
+<code>z</code> should generally be a factor instead of a vector as before</li>
+<li>
+<code>treated</code> and <code>control</code> specifications, if needed, should each be a level of <code>z</code>
+</li>
+<li>many arguments can be specified for each of the treatment levels
+<ul>
+<li>
+<code>q_s</code>, <code>max_entry_s</code> can have a row per treatment level</li>
+<li>
+<code>ratio</code>, <code>max_ratio</code> can have an entry per treatment level</li>
+</ul>
+</li>
+<li>inputs for the supplemental comparison have been added across the functions: <code>q_star_s</code>, <code>ratio_star</code>, <code>treated_star</code>, <code>weight_star</code>
+</li>
+</ul>
+<p>There are several changes to the outputs:</p>
+<ul>
+<li>
+<code>optimize_controls</code> now has only one version of <code>eps</code>, <code>objective</code>, <code>objective_wo_importances</code> instead of a raw and regular version. The version now reported is the raw version, not corrected for missingness. If you would like corrected versions, refer to the standardized differences outputted by <code>check_balance</code> instead</li>
+<li>
+<code>generate_constraints</code> now returns only standardized outputs, not centered. The centering now takes place within <code>optimize_controls</code> instead</li>
+</ul>
+</div>
     <div id="natstrat-100-2021-05-17" class="section level1">
 <h1 class="page-header" data-toc-text="1.0.0">
-<a href="#natstrat-100-2021-05-17" class="anchor"></a>natstrat 1.0.0 (2021-05-17)</h1>
+<a href="#natstrat-100-2021-05-17" class="anchor"></a>natstrat 1.0.0 (2021-05-17)<small> 2021-05-26 </small>
+</h1>
 <p>The first released version.</p>
 </div>
   </div>

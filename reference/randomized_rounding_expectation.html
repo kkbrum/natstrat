@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Parse the nonstandard balance formulas — parse_formula • natstrat</title>
+<title>Sample integer solution from linear programming solution with sample sizes correct in expectation — randomized_rounding_expectation • natstrat</title>
 
 
 <!-- jquery -->
@@ -39,9 +39,14 @@
 
 
 
-<meta property="og:title" content="Parse the nonstandard balance formulas — parse_formula" />
-<meta property="og:description" content="This function takes nonstandard formulas as inputs and returns regular formulas
-as well as lists of weights to be used in generate_constraints()." />
+<meta property="og:title" content="Sample integer solution from linear programming solution with sample sizes correct in expectation — randomized_rounding_expectation" />
+<meta property="og:description" content="The linear programming solution of balance_LP() that is used
+within optimize_controls() sometimes selects fractional control units.
+Here, we select any unit the linear programming solution chose with coefficient 1.
+Then, we select sample each unit with a fractional solution with
+probability equal to the linear programming solution. The total sample
+size is then correct in expectation. Used within optimize_controls()
+if correct_sizes = FALSE." />
 
 
 
@@ -115,45 +120,43 @@ as well as lists of weights to be used in generate_constraints()." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Parse the nonstandard balance formulas</h1>
-    <small class="dont-index">Source: <a href='https://github.com/kkbrum/natstrat/blob/master/R/parse_formula.R'><code>R/parse_formula.R</code></a></small>
-    <div class="hidden name"><code>parse_formula.Rd</code></div>
+    <h1>Sample integer solution from linear programming solution with sample sizes correct in expectation</h1>
+    <small class="dont-index">Source: <a href='https://github.com/kkbrum/natstrat/blob/master/R/randomized_rounding_expectation.R'><code>R/randomized_rounding_expectation.R</code></a></small>
+    <div class="hidden name"><code>randomized_rounding_expectation.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>This function takes nonstandard formulas as inputs and returns regular formulas
-as well as lists of weights to be used in <code><a href='generate_constraints.html'>generate_constraints</a>()</code>.</p>
+    <p>The linear programming solution of <code><a href='balance_LP.html'>balance_LP</a>()</code> that is used
+within <code><a href='optimize_controls.html'>optimize_controls</a>()</code> sometimes selects fractional control units.
+Here, we select any unit the linear programming solution chose with coefficient 1.
+Then, we select sample each unit with a fractional solution with
+probability equal to the linear programming solution. The total sample
+size is then correct in expectation. Used within <code><a href='optimize_controls.html'>optimize_controls</a>()</code>
+if <code>correct_sizes = FALSE</code>.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>parse_formula</span><span class='op'>(</span><span class='va'>balance_formula</span>, default_rhs <span class='op'>=</span> <span class='cn'>NULL</span>, data <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>randomized_rounding_expectation</span><span class='op'>(</span><span class='va'>o</span>, <span class='va'>N</span>, <span class='va'>n_comp</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>balance_formula</th>
-      <td><p>a formula that may have multiple terms on the left hand side,
-"." on the left hand side, and coefficients, making it not a standard formula.</p></td>
+      <th>o</th>
+      <td><p>linear programming results, as found in the `o` element of the
+returned list from <code><a href='balance_LP.html'>balance_LP</a>()</code>.</p></td>
     </tr>
     <tr>
-      <th>default_rhs</th>
-      <td><p>the list of <code>balance_formulas</code> can also contain entries
-that are just the character corresponding to a covariate to balance. If so,
-the covariate will be balanced according to <code>default_rhs</code>.</p></td>
-    </tr>
-    <tr>
-      <th>data</th>
-      <td><p>a data frame containing the relevant covariates in the columns. The number
-of rows should equal the length of <code>treated</code>.</p></td>
+      <th>N</th>
+      <td><p>the total number of available controls in the data.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A named list containing <code>new_formula</code>: the standard formula to be used
-in <code><a href='generate_constraints.html'>generate_constraints</a></code>, <code>rhs_weights</code>: a named list with the
-coefficients of the terms on the right hand side, and <code>lhs_weights</code>:
-a named list with coefficients of the terms on the left hand side.</p>
+    <p>Dataframe with two columns: <code>pr</code>, which contains
+the coefficient determined for that unit from the linear programming
+solution, and <code>select</code>, a boolean vector stating whether that
+unit was selected for inclusion by randomized rounding.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
