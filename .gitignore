@@ -7,3 +7,5 @@ Meta
 .httr-oauth
 .DS_Store
 docs
+/doc/
+/Meta/

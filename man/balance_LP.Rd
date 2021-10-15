@@ -15,12 +15,13 @@ balance_LP(
   N,
   solver,
   integer,
-  time_limit
+  time_limit,
+  threads = 1,
+  weight_comp = 1
 )
 }
 \arguments{
-\item{z}{a treatment indicator vector with \code{i}th entry equal to 0 if
-unit \code{i} is a control and equal to 1 if unit \code{i} is treated.}
+\item{z}{a factor with the \code{i}th entry equal to the treatment of unit \code{i}.}
 
 \item{X}{a matrix or data frame containing constraints in the columns. The number
 of rows should equal the length of \code{z}. Balance is achieved when a constraint
@@ -41,7 +42,10 @@ as \code{z}.}
 
 \item{S}{the number of unique stratum levels contained in \code{st}.}
 
-\item{q_s}{a named vector indicating how many control units are to be selected from each stratum.}
+\item{q_s}{a named vector or matrix indicating how many control units are to be selected from each stratum.
+If there is one control group and all treated units are desired, this can be a vector; otherwise,
+this should have one row per treatment group, where the order of the rows matches the order of
+the levels of \code{z}, including the treated level.}
 
 \item{N}{the total number of available controls in the data.}
 
@@ -54,6 +58,9 @@ instead of randomized rounding. Default is \code{FALSE}.}
 
 \item{time_limit}{numeric stating maximum amount of seconds for which the
 program is allowed to run before aborting. Default is \code{Inf} for no time limit.}
+
+\item{threads}{The maximum number of threads that should be used. This is only
+applicable if \code{solver = 'gurobi'}.}
 }
 \value{
 A list containing two elements:

@@ -9,5 +9,5 @@ strata_dist <- matrix(c(0, 2, 1, 2, 0, 1, 1, 1, 0), byrow = TRUE, ncol = 3, dimn
 q_s <- generate_qs(z, st = data$category, ratio = 2.5, max_ratio = NULL, max_extra_s = NULL, strata_dist = strata_dist)
 
 test_that("EMD qs are correct", {
-  expect_equal(as.numeric(q_s), c(3, 5, 4))
+  expect_equal(as.numeric(q_s[1, ]), c(3, 5, 4))
 })

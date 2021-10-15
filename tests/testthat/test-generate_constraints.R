@@ -5,38 +5,38 @@ data <- data.frame(color = c(rep("Red", 5), rep("White", 2), rep("Blue", 3), rep
 data$number[c(1, 5, 11)] <- NA
 
 test_that("constraint for numeric covariate in population looks good", {
-  X <- suppressWarnings(generate_constraints(list(color + number ~ category), z, data = data)$X)
+  X <- suppressWarnings(generate_constraints(list(color + number ~ category), z, data = data, treated = 1)$X)
   expect_equal(X[, "number_1"],
-               c(NA, -8.9078617, -8.1332650, -7.3586684,  NA,
-                 -5.8094750, -5.0348784, -4.2602817, -3.4856850, -2.7110883,
-                 NA, -1.1618950, -0.3872983,  0.3872983,  1.1618950),
+               c(NA, 1.549193,  2.323790,  3.098387, NA,  4.647580,
+                 5.422177,  6.196773,  6.971370,  7.745967,
+                 NA,  9.295160, 10.069757, 10.844353, 11.618950),
                tolerance = .000001)
 })
 
 test_that("constraint for numeric covariate in stratum looks good", {
   X <- suppressWarnings(generate_constraints(list(color + number ~ category), z, data = data)$X)
   expect_equal(X[, "number_category1"],
-               c(NA,  0, -9.295160,  0,  NA,
-                 0, -6.196773,  0, -4.647580,  0,
-                 NA, 0,  0,  0,  0),
+               c(NA,  0, 2.323790  ,  0,  NA,
+                 0, 5.422177  ,  0, 6.971370  ,  0,
+                 NA, 0,  0,  0,  11.618950),
                tolerance = .000001)
 })
 
 test_that("constraint for missingness looks good", {
   X <- suppressWarnings(generate_constraints(list(color + number ~ category), z, data = data)$X)
   expect_equal(X[, "number_missing_1"],
-               c(1.7888544, -0.4472136, -0.4472136, -0.4472136,  1.7888544,
-                 -0.4472136, -0.4472136, -0.4472136, -0.4472136, -0.4472136,
-                 1.7888544, -0.4472136, -0.4472136, -0.4472136, -0.4472136),
+               c(2.236068 , 0, 0, 0,  2.236068 ,
+                 0, 0, 0, 0, 0,
+                 2.236068 , 0, 0, 0, 0),
                tolerance = .000001)
 })
 
 test_that("constraint for categorical variable looks good", {
   X <- suppressWarnings(generate_constraints(list(color + number ~ category), z, data = data)$X)
   expect_equal(X[, "colorRed_1"],
-               c(rep(0.7302967, 5),
-                 rep(-1.0954451, 7),
-                 rep(0.7302967, 3)),
+               c(rep(1.825742 , 5),
+                 rep(0, 7),
+                 rep(1.825742 , 3)),
                tolerance = .000001)
 })
 
@@ -54,9 +54,8 @@ test_that("changing to pooled variance functions", {
   X <- generate_constraints(list(color + number ~ category), z, data = data,
                                              denom_variance = 'pooled')$X
   expect_equal(X[, "number_1"],
-               c(NA, -5.1231727 , -4.6776795, -4.2321862,  NA,
-                 -3.3411996, -2.8957063, -2.4502131, -2.0047198, -1.5592265,
-                 NA, -0.6682399, -0.2227466,  0.2227466, 0.6682399),
+               c(NA, 0.8909866, 1.3364798, 1.7819731 , NA, 2.6729597, 3.1184530,
+                 3.5639463, 4.0094395, 4.4549328, NA, 5.3459194, 5.7914127, 6.2369060, 6.6823992),
                tolerance = .000001)
 })
 
@@ -99,3 +98,4 @@ test_that("importances multiply", {
                                           3, 7.5, 5, 3, 7.5, 5, 3, 7.5, 5),
                tolerance = .0000001)
 })
+

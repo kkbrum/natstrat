@@ -7,31 +7,39 @@
 generate_qs(
   z,
   st,
-  ratio = NULL,
+  ratio,
+  treated = 1,
   max_ratio = NULL,
   max_extra_s = 5,
   strata_dist = NULL
 )
 }
 \arguments{
-\item{z}{a treatment indicator vector with \code{i}th entry equal to 0 if
-unit \code{i} is a control and equal to 1 if unit \code{i} is treated.}
+\item{z}{a factor with the \code{i}th entry equal to the treatment of unit \code{i}.}
 
 \item{st}{a stratum vector with the \code{i}th entry equal to the
 stratum of unit \code{i}. This should have the same order of units and length
 as \code{z}.}
 
-\item{ratio}{a numeric specifying the desired ratio of controls to treated in
-each stratum.}
+\item{ratio}{a numeric or vector specifying the desired ratio of controls to `treated` in
+each stratum. If there is one control group and all treated units should be included,
+this can be a numeric. Otherwise, this should be
+a vector with one entry per treatment group, in the same order as the levels of
+\code{z}, including the treated level. If \code{NULL}, \code{q_s} should be specified.}
 
-\item{max_ratio}{a numeric specifying the maximum ratio to allow in a stratum to achieve
+\item{treated}{which treatment value should be considered the treated units. This
+must be one of the values of \code{z}.}
+
+\item{max_ratio}{a numeric or vector specifying the maximum ratio to allow in a stratum to achieve
 the overall \code{ratio} specified. If \code{NULL}, it is set by default to 1.1 times the desired \code{ratio}.
 To have no maximum ratio, set this to \code{Inf}.}
 
-\item{max_extra_s}{single numeric or named vector with values corresponding to the maximum desired number
+\item{max_extra_s}{single numeric or named vector or matrix with values corresponding to the maximum desired number
 of extra controls to be chosen from each stratum to achieve the overall
 \code{ratio} specified. If this is a vector, the names should correspond to the stratum
-values from \code{st}. The default is 5 for each stratum.
+values from \code{st}. If there are more than two treatment levels,
+this should be a matrix with one row per treatment level, in the same
+order as the levels of \code{z}. The default is 5 for each stratum in each treatment group.
 To have no maximum, set this to \code{Inf}.
 If both \code{max_ratio} and \code{max_s} are specified, the
 maximum of the two will be used for each stratum.}

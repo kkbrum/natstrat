@@ -1,12 +1,12 @@
-## Code to prepare `nh0506Homocysteine` dataset
+## Code to prepare `nh0506` dataset
 
 # These data files are not included and come from
 # `https://wwwn.cdc.gov/nchs/nhanes/ContinuousNhanes/Default.aspx?BeginYear=2005`
-DEMO <- foreign::read.xport("../data_example3/DEMO_D.XPT")
-HCY <- foreign::read.xport("../data_example3/HCY_D.XPT")
-SMQ <- foreign::read.xport("../data_example3/SMQ_D.XPT")
-BMX <- foreign::read.xport("../data_example3/BMX_D.XPT")
-COT <- foreign::read.xport("../data_example3/COT_D.XPT")
+DEMO <- foreign::read.xport("DEMO_D.XPT")
+HCY <- foreign::read.xport("HCY_D.XPT")
+SMQ <- foreign::read.xport("SMQ_D.XPT")
+BMX <- foreign::read.xport("BMX_D.XPT")
+COT <- foreign::read.xport("COT_D.XPT")
 
 d <- merge(DEMO, HCY, by="SEQN", all.x=TRUE)
 d <- merge(d, SMQ, by="SEQN", all.x=TRUE)

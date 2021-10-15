@@ -2,18 +2,15 @@
 % Please edit documentation in R/randomized_rounding.R
 \name{randomized_rounding}
 \alias{randomized_rounding}
-\title{Sample integer solution from linear programming solution}
+\title{Sample integer solution from linear programming solution with correct sample sizes}
 \usage{
-randomized_rounding(o, N, z, st, st_vals, S)
+randomized_rounding(o, N, st, st_vals, S, z)
 }
 \arguments{
 \item{o}{linear programming results, as found in the `o` element of the
 returned list from \code{\link{balance_LP}()}.}
 
 \item{N}{the total number of available controls in the data.}
-
-\item{z}{a treatment indicator vector with \code{i}th entry equal to 0 if
-unit \code{i} is a control and equal to 1 if unit \code{i} is treated.}
 
 \item{st}{a stratum vector with the \code{i}th entry equal to the
 stratum of unit \code{i}. This should have the same order of units and length
@@ -22,24 +19,22 @@ as \code{z}.}
 \item{st_vals}{the unique stratum levels contained in \code{st}.}
 
 \item{S}{the number of unique stratum levels contained in \code{st}.}
+
+\item{z}{a factor with the \code{i}th entry equal to the treatment of unit \code{i}.}
 }
 \value{
-List containing:
-\describe{
-\item{\code{controls}}{dataframe with two columns: \code{pr}, which contains
-the coefficient determined for that control unit from the linear programming
+Dataframe with two columns: \code{pr}, which contains
+the coefficient determined for that unit from the linear programming
 solution, and \code{select}, a boolean vector stating whether that
-control unit was selected for inclusion by randomized rounding.}
-\item{\code{selected}}{boolean vector stating whether each unit (both treated
-and control) was selected.}
-}
+unit was selected for inclusion by randomized rounding.
 }
 \description{
 The linear programming solution of \code{\link{balance_LP}()} that is used
-within \code{\link{optimize_controls}()} sometimes selects fractional control units.
+within \code{\link{optimize_controls}()} sometimes selects fractional units.
 Here, we select any unit the linear programming solution chose with coefficient 1.
 Then, we select the remaining required number of units from those that have
 fractional solutions by sampling with probabilities equal to the linear
-programming solution. Used within \code{\link{optimize_controls}()}.
+programming solution and fixed sample size. Used within \code{\link{optimize_controls}()}
+if \code{correct_sizes = TRUE}.
 }
 \keyword{internal}

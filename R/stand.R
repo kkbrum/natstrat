@@ -1,28 +1,21 @@
 #' Standardize covariate vector for balance constraint
 #'
 #' This function is used by \code{\link{generate_constraints}()} to standardize
-#' covariate vectors to become balance constraints. This standardization
-#' is done such that the balance constraint will be minimized when the treated
-#' and control groups (within or across strata) have equal means.
-#' The function subtracts the treated mean (within or across strata) and
-#' divides by the treated or pooled standard deviation (across strata).
+#' covariate vectors to become balance constraints.
+#' The function divides the covariate values by the treated or average group
+#' standard deviation (across strata).
 #'
-#' @param z a treatment indicator vector with \code{i}th entry equal to 0 if
-#'   unit \code{i} is a control and equal to 1 if unit \code{i} is treated.
+#' @param z a factor with the \code{i}th entry equal to the treatment of unit \code{i}.
 #' @param x a covariate vector with \code{i}th entry equal to the
 #'   covariate value of unit \code{i}. This should have the same order of units and
 #'   length as \code{z}.
-#' @param st a stratum vector with the \code{i}th entry equal to the
-#'   stratum of unit \code{i}. This should have the same order of units and length
-#'   as \code{z}.
-#' @param ist an optional specification of the
-#'   target stratum within which the balance constraint is desired. Must be one of the
-#'   values within \code{st}. By default, this is \code{NULL}, meaning the generated
-#'   constraint balances across strata.
 #' @param denom_variance character stating what variance to use in the standardization:
 #'   either the default "treated", meaning the standardization will use the
-#'   treated variance (across all strata), or "pooled", meaning
-#'   the standardization will use the average of the treated and control variances.
+#'   treated variance (across all strata), where the treated group is declared in
+#'   the \code{treated} argument, or "pooled", meaning
+#'   the standardization will use the average of the variances of each treatment group.
+#' @param treated which treatment value should be considered the treated units. This
+#' must be one of the values of \code{z}.
 #' @param autogen_missing whether to automatically generate missingness constraint
 #'   and how heavily to prioritize it. Should be a numeric
 #'   or \code{NULL} value. \code{NULL} indicates that
@@ -35,87 +28,72 @@
 #' @return A list with two components:
 #' \describe{
 #' \item{covariate}{a balance constraint for the standardized covariate values
-#'   of either all treated and control units,
-#'   or just those in stratum \code{ist}.}
+#'   of all unites.}
 #' \item{missingness}{a corresponding balance constraint for the rate of missingness if
 #' \code{autogen_missing} not \code{NULL}, otherwise \code{NULL}.}
 #' }
 #' @importFrom stats sd
 #' @export
 
-stand <- function(z, x, st, ist = NULL, denom_variance = "treated", autogen_missing = 50) {
+stand <- function(z, x, denom_variance = "treated", treated = 1, autogen_missing = 50) {
 
   # Verify inputs ----
   if (!denom_variance %in% c("treated", "pooled")) {
     stop("* `denom_variance` must be one of `treated` or `pooled`.",
          call. = FALSE)
   }
-  if (!(is.vector(z) && is.vector(x) && is.vector(st))) {
-    stop("`z`, `x`, and `st` must all be vectors.",
+  if (!is.vector(x)) {
+    stop("`x` must be a vector.",
          call. = FALSE)
   }
-  if (!all((z == 0) | (z == 1))) {
-    stop("`z` must contain all 0s and 1s.",
+  if (!is.vector(z) & !is.factor(z)) {
+    stop("`z` must be a factor",
          call. = FALSE)
   }
-  if (length(z) != length(x) || length(z) != length(st)) {
-    stop("`z`, `x`, and `st` must all have same length.",
+  if (length(z) != length(x)) {
+    stop("`z` and `x` must have the same length.",
          call. = FALSE)
   }
-  if (!is.null(ist) && (!ist %in% unique(st))) {
-    stop("`ist` must be one of the values in `st`.",
-         call. = FALSE)
-  }
-
-  # Define the units for which to generate the constraint ----
-  if (is.null(ist)) {
-    ind <- rep(TRUE, length(z))
-  } else {
-    ind <- (st == ist)
-  }
-
-  # Define the target mean ----
-  loc <- mean(x[ind & z == 1], na.rm = TRUE)
-  if (is.na(loc)) {
-    stop("At least one stratum of a covariate has no treated units with nonmissing values.",
+  z <- factor(z)
+  if (!treated %in% levels(z)) {
+    stop("`treated` must be one of the levels of `z`.",
          call. = FALSE)
   }
 
   # Define the value by which to scale ----
+  variances <- sapply(levels(z), function(group) var(x[z == group], na.rm = TRUE))
+  variances[is.na(variances)] <- 0
   if (denom_variance == "treated") {
-    scl <- sd(x[z == 1], na.rm = TRUE)
+    scl <- sqrt(variances[levels(z) == treated])
     # If there is no variance in treated group, use pooled value
     # (which is half of the control variance since treated variance = 0)
     if (is.na(scl) || scl == 0) {
-      warning("There is a covariate with no variance in the treated group. Standardization will thus use the average of the treated and control variance for this covariate.")
-      scl <- sd(x[z == 0], na.rm = TRUE) / sqrt(2)
+      warning("There is a covariate with no variance in the treated group. Standardization will thus use the average of the group variances for this covariate.")
+      denom_variance  <- "pooled"
     }
-  } else if (denom_variance == "pooled") {
-    scl <- sqrt((sd(x[z == 0], na.rm = TRUE)^2 + sd(x[z == 1], na.rm = TRUE)^2) / 2)
+  }
+  if (denom_variance == "pooled") {
+    scl <- sqrt(mean(variances))
   }
 
   # Perform standardization ----
-  x_stand <- (x[ind] - loc) / scl
-  x_stand[x[ind] == loc] <- 0  # Catches the 0/0 case if no variance in treated and control group
+  x_stand <- x / scl
 
   # Deal with missing data (coded as NA) ----
   # Add missingness constraint
   miss_stand <- NULL
   if (!is.null(autogen_missing) && sum(is.na(x)) > 0) {
     miss <- is.na(x)
-    loc_miss <- mean(miss[ind & z == 1])
     if (denom_variance == "treated") {
-      scl_miss <- sd(miss[z == 1])
+      scl_miss <- sd(miss[z == treated])
       if (is.na(scl_miss) || scl_miss == 0) {
-        scl_miss <- sd(miss[z == 0]) / sqrt(2)
+        scl_miss <- sqrt(mean(sapply(levels(z), function(group) (sd(miss[z == group], na.rm = TRUE))^2)))
       }
     } else if (denom_variance == "pooled") {
-      scl_miss <- (sd(miss[z == 0]) + sd(miss[z == 1])) / 2
+      scl_miss <- sqrt(mean(sapply(levels(z), function(group) (sd(miss[z == group], na.rm = TRUE))^2)))
     }
-    miss_stand <- (miss[ind] - loc_miss) / scl_miss
-    miss_stand[is.na(miss_stand)] <- 0  # Catches the 0/0 case if no variance in treated and control group
+    miss_stand <- miss / scl_miss
   }
 
   return(list("covariate" = x_stand, "missingness" = miss_stand))
 }
-

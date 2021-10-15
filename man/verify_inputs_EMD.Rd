@@ -4,18 +4,23 @@
 \alias{verify_inputs_EMD}
 \title{Verify the inputs to the earthmover's distance problem}
 \usage{
-verify_inputs_EMD(ratio, st, z)
+verify_inputs_EMD(ratio, st, z, treated = 1)
 }
 \arguments{
-\item{ratio}{a numeric specifying the desired ratio of controls to treated in
-each stratum.}
+\item{ratio}{a numeric or vector specifying the desired ratio of controls to `treated` in
+each stratum. If there is one control group and all treated units should be included,
+this can be a numeric. Otherwise, this should be
+a vector with one entry per treatment group, in the same order as the levels of
+\code{z}, including the treated level. If \code{NULL}, \code{q_s} should be specified.}
 
 \item{st}{a stratum vector with the \code{i}th entry equal to the
 stratum of unit \code{i}. This should have the same order of units and length
 as \code{z}.}
 
-\item{z}{a treatment indicator vector with \code{i}th entry equal to 0 if
-unit \code{i} is a control and equal to 1 if unit \code{i} is treated.}
+\item{z}{a factor with the \code{i}th entry equal to the treatment of unit \code{i}.}
+
+\item{treated}{which treatment value should be considered the treated units. This
+must be one of the values of \code{z}.}
 }
 \value{
 No return value. If there is a problem with the inputs to \code{\link{generate_qs}()},

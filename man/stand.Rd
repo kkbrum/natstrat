@@ -4,29 +4,23 @@
 \alias{stand}
 \title{Standardize covariate vector for balance constraint}
 \usage{
-stand(z, x, st, ist = NULL, denom_variance = "treated", autogen_missing = 50)
+stand(z, x, denom_variance = "treated", treated = 1, autogen_missing = 50)
 }
 \arguments{
-\item{z}{a treatment indicator vector with \code{i}th entry equal to 0 if
-unit \code{i} is a control and equal to 1 if unit \code{i} is treated.}
+\item{z}{a factor with the \code{i}th entry equal to the treatment of unit \code{i}.}
 
 \item{x}{a covariate vector with \code{i}th entry equal to the
 covariate value of unit \code{i}. This should have the same order of units and
 length as \code{z}.}
 
-\item{st}{a stratum vector with the \code{i}th entry equal to the
-stratum of unit \code{i}. This should have the same order of units and length
-as \code{z}.}
-
-\item{ist}{an optional specification of the
-target stratum within which the balance constraint is desired. Must be one of the
-values within \code{st}. By default, this is \code{NULL}, meaning the generated
-constraint balances across strata.}
-
 \item{denom_variance}{character stating what variance to use in the standardization:
 either the default "treated", meaning the standardization will use the
-treated variance (across all strata), or "pooled", meaning
-the standardization will use the average of the treated and control variances.}
+treated variance (across all strata), where the treated group is declared in
+the \code{treated} argument, or "pooled", meaning
+the standardization will use the average of the variances of each treatment group.}
+
+\item{treated}{which treatment value should be considered the treated units. This
+must be one of the values of \code{z}.}
 
 \item{autogen_missing}{whether to automatically generate missingness constraint
 and how heavily to prioritize it. Should be a numeric
@@ -42,17 +36,14 @@ The default is 50.}
 A list with two components:
 \describe{
 \item{covariate}{a balance constraint for the standardized covariate values
-  of either all treated and control units,
-  or just those in stratum \code{ist}.}
+  of all unites.}
 \item{missingness}{a corresponding balance constraint for the rate of missingness if
 \code{autogen_missing} not \code{NULL}, otherwise \code{NULL}.}
 }
 }
 \description{
 This function is used by \code{\link{generate_constraints}()} to standardize
-covariate vectors to become balance constraints. This standardization
-is done such that the balance constraint will be minimized when the treated
-and control groups (within or across strata) have equal means.
-The function subtracts the treated mean (within or across strata) and
-divides by the treated or pooled standard deviation (across strata).
+covariate vectors to become balance constraints.
+The function divides the covariate values by the treated or average group
+standard deviation (across strata).
 }
