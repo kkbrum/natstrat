@@ -29,28 +29,43 @@ create_balance_matrices <- function(X, z, N, nvars, kc2, q_s, return = "all") {
     zero_eps_blk <- simple_triplet_zero_matrix(nrow = nvars, ncol = 2 * n_comp * nvars * kc2)
   A <- NULL
   full_x_blk <- NULL
-  pairs <- combn(levels(z), 2)
+  if (!is.null(z)) {
+    pairs <- combn(levels(z), 2)
+  }
 
   for (comp in 1:n_comp) {
-    for (pair_num in 1:kc2) {
-      group1 <- pairs[1, pair_num]
-      group2 <- pairs[2, pair_num]
-      Q1 <- sum(q_s[[comp]][levels(z) == group1, ])
-      Q2 <- sum(q_s[[comp]][levels(z) == group2, ])
+    if (!is.null(z)) {
+      for (pair_num in 1:kc2) {
+        group1 <- pairs[1, pair_num]
+        group2 <- pairs[2, pair_num]
+        Q1 <- sum(q_s[[comp]][levels(z) == group1, ])
+        Q2 <- sum(q_s[[comp]][levels(z) == group2, ])
+        x_blk <- zero_blk
+        eps_blk <- zero_eps_blk
+        if (Q1 > 0 & Q2 > 0) {
+          x_blk[1:nrow(x_blk), (N * (comp - 1) + which(z == group1))] <- t(X[z == group1, 1:ncol(X)] / Q1)
+          x_blk[1:nrow(x_blk), (N * (comp - 1) + which(z == group2))] <- -t(X[z == group2, 1:ncol(X)] / Q2)
+        }
+        eps_blk[, ((2 * comp - 2) * nvars * kc2 + (pair_num - 1) * nvars + 1):((2 * comp - 2) * nvars * kc2 + pair_num * nvars)] <-
+          simple_triplet_diag_matrix(rep(1, nvars))
+        eps_blk[, ((2 * comp - 1) * nvars * kc2 + (pair_num - 1) * nvars + 1):((2 * comp - 1) * nvars * kc2 + pair_num * nvars)] <-
+          simple_triplet_diag_matrix(rep(-1, nvars))
+      }
+    } else {
+      Q1 <- sum(q_s[[comp]])
       x_blk <- zero_blk
       eps_blk <- zero_eps_blk
-      if (Q1 > 0 & Q2 > 0) {
-        x_blk[1:nrow(x_blk), (N * (comp - 1) + which(z == group1))] <- t(X[z == group1, 1:ncol(X)] / Q1)
-        x_blk[1:nrow(x_blk), (N * (comp - 1) + which(z == group2))] <- -t(X[z == group2, 1:ncol(X)] / Q2)
+      if (Q1 > 0) {
+        x_blk[1:nrow(x_blk), (N * (comp - 1) + 1:N)] <- t(X / Q1)
       }
-      eps_blk[, ((2 * comp - 2) * nvars * kc2 + (pair_num - 1) * nvars + 1):((2 * comp - 2) * nvars * kc2 + pair_num * nvars)] <-
+      eps_blk[, ((2 * comp - 2) * nvars * kc2 + 1):((2 * comp - 2) * nvars * kc2 + nvars)] <-
         simple_triplet_diag_matrix(rep(1, nvars))
-      eps_blk[, ((2 * comp - 1) * nvars * kc2 + (pair_num - 1) * nvars + 1):((2 * comp - 1) * nvars * kc2 + pair_num * nvars)] <-
+      eps_blk[, ((2 * comp - 1) * nvars * kc2 + 1):((2 * comp - 1) * nvars * kc2 + nvars)] <-
         simple_triplet_diag_matrix(rep(-1, nvars))
-      new_A <- cbind(x_blk, eps_blk)
-      A <- rbind(A, new_A)
-      full_x_blk <- rbind(full_x_blk, x_blk)
     }
+    new_A <- cbind(x_blk, eps_blk)
+    A <- rbind(A, new_A)
+    full_x_blk <- rbind(full_x_blk, x_blk)
   }
 
   if (return == "A") {

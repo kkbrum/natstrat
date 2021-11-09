@@ -34,9 +34,13 @@ balance_LP <- function(z, X, importances, st, st_vals, S, q_s, N,
          install it or switch the \"solver\" parameter to \"Rglpk\".",
          call. = FALSE)
   }
-  groups <- levels(z)
-  k <- length(groups)
-  kc2 <- choose(k, 2)
+  if (!is.null(z)) {
+    groups <- levels(z)
+    k <- length(groups)
+    kc2 <- choose(k, 2)
+  } else {
+    kc2 <- 1
+  }
   n_comp <- length(q_s)
 
   # Set up and solve the linear program

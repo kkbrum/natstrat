@@ -46,35 +46,42 @@ stand <- function(z, x, denom_variance = "treated", treated = 1, autogen_missing
     stop("`x` must be a vector.",
          call. = FALSE)
   }
-  if (!is.vector(z) & !is.factor(z)) {
-    stop("`z` must be a factor",
+  if (!is.null(z) & !is.vector(z) & !is.factor(z)) {
+    stop("`z` must be a factor if supplied",
          call. = FALSE)
   }
-  if (length(z) != length(x)) {
-    stop("`z` and `x` must have the same length.",
+  if (!is.null(z) & length(z) != length(x)) {
+    stop("`z` and `x` must have the same length if supplied.",
          call. = FALSE)
   }
-  z <- factor(z)
-  if (!treated %in% levels(z)) {
-    stop("`treated` must be one of the levels of `z`.",
+  if (!is.null(z) & !is.factor(z)) {
+    z <- factor(z)
+  }
+  if (!is.null(treated) && !treated %in% levels(z)) {
+    stop("`treated` must be one of the levels of `z` if supplied.",
          call. = FALSE)
   }
 
   # Define the value by which to scale ----
-  variances <- sapply(levels(z), function(group) var(x[z == group], na.rm = TRUE))
-  variances[is.na(variances)] <- 0
-  if (denom_variance == "treated") {
-    scl <- sqrt(variances[levels(z) == treated])
-    # If there is no variance in treated group, use pooled value
-    # (which is half of the control variance since treated variance = 0)
-    if (is.na(scl) || scl == 0) {
-      warning("There is a covariate with no variance in the treated group. Standardization will thus use the average of the group variances for this covariate.")
-      denom_variance  <- "pooled"
+  if (!is.null(z)) {
+    variances <- sapply(levels(z), function(group) var(x[z == group], na.rm = TRUE))
+    variances[is.na(variances)] <- 0
+    if (denom_variance == "treated") {
+      scl <- sqrt(variances[levels(z) == treated])
+      # If there is no variance in treated group, use pooled value
+      # (which is half of the control variance since treated variance = 0)
+      if (is.na(scl) || scl == 0) {
+        warning("There is a covariate with no variance in the treated group. Standardization will thus use the average of the group variances for this covariate.")
+        denom_variance  <- "pooled"
+      }
     }
+    if (denom_variance == "pooled") {
+      scl <- sqrt(mean(variances))
+    }
+  } else {
+    scl <- sd(x, na.rm = TRUE)
   }
-  if (denom_variance == "pooled") {
-    scl <- sqrt(mean(variances))
-  }
+
 
   # Perform standardization ----
   x_stand <- x / scl
@@ -84,13 +91,17 @@ stand <- function(z, x, denom_variance = "treated", treated = 1, autogen_missing
   miss_stand <- NULL
   if (!is.null(autogen_missing) && sum(is.na(x)) > 0) {
     miss <- is.na(x)
-    if (denom_variance == "treated") {
-      scl_miss <- sd(miss[z == treated])
-      if (is.na(scl_miss) || scl_miss == 0) {
+    if (!is.null(z)) {
+      if (denom_variance == "treated") {
+        scl_miss <- sd(miss[z == treated])
+        if (is.na(scl_miss) || scl_miss == 0) {
+          scl_miss <- sqrt(mean(sapply(levels(z), function(group) (sd(miss[z == group], na.rm = TRUE))^2)))
+        }
+      } else if (denom_variance == "pooled") {
         scl_miss <- sqrt(mean(sapply(levels(z), function(group) (sd(miss[z == group], na.rm = TRUE))^2)))
       }
-    } else if (denom_variance == "pooled") {
-      scl_miss <- sqrt(mean(sapply(levels(z), function(group) (sd(miss[z == group], na.rm = TRUE))^2)))
+    } else {
+      scl_miss <- sd(miss, na.rm = TRUE)
     }
     miss_stand <- miss / scl_miss
   }

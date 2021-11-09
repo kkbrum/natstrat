@@ -27,6 +27,9 @@ randomized_rounding <- function(o, N, st, st_vals, S, z) {
   select <- rep(FALSE, N)
   select[pr == 1] <- TRUE
   ind <- 1:N
+  if (is.null(z)) {
+    z <- factor(rep(1, N))
+  }
   for (group in levels(z)) {
     for (j in 1:S) {
       w <- (pr < 1) & (pr > 0) & (st == st_vals[j]) & (z == group)

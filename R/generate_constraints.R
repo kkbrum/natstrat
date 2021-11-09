@@ -205,7 +205,11 @@ generate_constraints <- function(balance_formulas, z, data, default_rhs = NULL,
         term_cols_w_missing <- paste0(c("", "missing_"), rep(term_cols, each = 2))
         term_cols_w_missing <- term_cols_w_missing[term_cols_w_missing %in% colnames(constraint_mat)]
 
-        col_ns <- colSums(mat[z == treated, term_cols, drop = FALSE])
+        if (!is.null(treated)) {
+          col_ns <- colSums(mat[z == treated, term_cols, drop = FALSE])
+        } else {
+          col_ns <- colSums(mat[, term_cols, drop == FALSE])
+        }
 
         # Weight constraints based on coefficients and weight_by_size
         if (0 %in% col_ns) {
