@@ -37,12 +37,12 @@ verify_inputs <- function(X, importances, ratio, q_s, st, z, treated, integer, s
     stop("\"treated\" must be one of the values in \"z\".")
   }
   n_s <- table(z, st)
-  if (min(n_s[group == treated, ]) == 0) {
+  if (min(n_s[group == treated, , drop = FALSE]) == 0) {
     warning("Note that at least one stratum has no treated individuals.")
   }
   if (!is.null(q_s)) {
     if (is.vector(q_s)) {
-      q_s <- matrix(c(q_s, n_s[group == treated, ]), byrow = TRUE, nrow = 2, dimnames = list(NULL, names(q_s)))
+      q_s <- matrix(c(q_s, n_s[group == treated, , drop = FALSE]), byrow = TRUE, nrow = 2, dimnames = list(NULL, names(q_s)))
       if (group[1] == treated) {
         q_s <- q_s[c(2, 1), ]
       }
@@ -92,43 +92,43 @@ verify_multi_comp_inputs <- function(q_s, q_star_s, n_s, treated, treated_star, 
   if (correct_sizes) {
     warning("Sample sizes are only correct in expectation for multiple comparisons. \"correct_sizes\" has thus been switched to `FALSE`.")
   }
-  
+
   if (!all(treated_star %in% group)) {
     stop("Each entry of \"treated_star\" must be one of the values in \"z\".")
   }
-  
+
   for (t in treated_star) {
-    if (min(n_s[group == t, ]) == 0) {
+    if (min(n_s[group == t, , drop = FALSE]) == 0) {
       warning("Note that at least one stratum has no treated individuals for at least one supplemental comparison.")
     }
   }
-  
+
   if (!is.null(q_star_s)) {
     if (!is.list(q_star_s)) {
       q_star_s <- list(q_star_s)
     }
     # Set up q_s for first comparison
     if (is.vector(q_s)) {
-      q_s <- matrix(c(q_s, n_s[group == treated, ]), byrow = TRUE, nrow = 2, dimnames = list(NULL, names(q_s)))
+      q_s <- matrix(c(q_s, n_s[group == treated, , drop = FALSE]), byrow = TRUE, nrow = 2, dimnames = list(NULL, names(q_s)))
       if (group[1] == treated) {
         q_s <- q_s[c(2, 1), ]
       }
     }
     Q_s <- q_s
-    
+
     # Check whether a sample size within a comparison is too large
     for (comp in 1:length(q_star_s)) {
       q <- q_star_s[[comp]]
       t <- treated_star[comp]
       if (is.vector(q)) {
-        q <- matrix(c(q, n_s[group == t, ]), byrow = TRUE, nrow = 2, dimnames = list(NULL, names(q)))
+        q <- matrix(c(q, n_s[group == t, , drop = FALSE]), byrow = TRUE, nrow = 2, dimnames = list(NULL, names(q)))
         if (group[1] == t) {
           q <- q[c(2, 1), ]
         }
       }
-      
+
       Q_s <- Q_s + q
-      
+
       if (any(q[, colnames(n_s)] > n_s)) {
         stop("At least one of the entries for `q_star_s` is greater than the number of units available in the stratum.
            Please lower `q_star_s` such that all entries are at most the number of available units.",
@@ -160,7 +160,7 @@ verify_multi_comp_inputs <- function(q_s, q_star_s, n_s, treated, treated_star, 
 process_qs <- function(ratio, q_s, n_s, treated, k, group, st_vals, stratios) {
   if (!is.null(q_s) & is.vector(q_s)) {
     q_s <- matrix(rep(q_s, k), byrow = TRUE, nrow = k, dimnames = list(NULL, names(q_s)))
-    q_s[group == treated, ] <- n_s[group == treated, ]
+    q_s[group == treated, , drop = FALSE] <- n_s[group == treated, , drop = FALSE]
   }
   if (!is.null(ratio) & length(ratio) == 1) {
     ratio <- rep(ratio, k)
@@ -171,7 +171,7 @@ process_qs <- function(ratio, q_s, n_s, treated, k, group, st_vals, stratios) {
     if (is.null(ratio)) {
       ratio <- sapply(1:nrow(stratios), function(i) min(1, min(stratios[i, ])))
     }
-    q_s <- round(ratio %*% t(n_s[group == treated, ]))
+    q_s <- round(ratio %*% t(n_s[group == treated, , drop = FALSE]))
     if (any(q_s > n_s)) {
       stop("The ratio you specified is not feasible.
             Please supply `q_s` instead of `ratio` or lower the `ratio` input.",
@@ -179,9 +179,9 @@ process_qs <- function(ratio, q_s, n_s, treated, k, group, st_vals, stratios) {
     }
     colnames(q_s) <- st_vals
   } else {
-    q_s <- q_s[, st_vals]
+    q_s <- q_s[, st_vals, drop = FALSE]
   }
-  
+
   return(q_s)
 }
 
