@@ -73,8 +73,8 @@
       </header><script src="natstrat_files/accessible-code-block-0.0.1/empty-anchor.js"></script><script src="natstrat_files/htmlwidgets-1.5.4/htmlwidgets.js"></script><link href="natstrat_files/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet">
 <script src="natstrat_files/datatables-binding-0.19/datatables.js"></script><script src="natstrat_files/jquery-3.6.0/jquery-3.6.0.min.js"></script><link href="natstrat_files/dt-core-1.10.20/css/jquery.dataTables.min.css" rel="stylesheet">
 <link href="natstrat_files/dt-core-1.10.20/css/jquery.dataTables.extra.css" rel="stylesheet">
-<script src="natstrat_files/dt-core-1.10.20/js/jquery.dataTables.min.js"></script><link href="natstrat_files/crosstalk-1.1.1/css/crosstalk.css" rel="stylesheet">
-<script src="natstrat_files/crosstalk-1.1.1/js/crosstalk.min.js"></script><div class="row">
+<script src="natstrat_files/dt-core-1.10.20/js/jquery.dataTables.min.js"></script><link href="natstrat_files/crosstalk-1.2.0/css/crosstalk.min.css" rel="stylesheet">
+<script src="natstrat_files/crosstalk-1.2.0/js/crosstalk.min.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Introduction to natstrat</h1>
@@ -122,8 +122,8 @@
                labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">'&lt; 40 years'</span>, <span class="st">'40 - 50 years'</span>, <span class="st">'&gt; 50 years'</span><span class="op">)</span><span class="op">)</span>
 <span class="va">strata</span> <span class="op">&lt;-</span> <span class="va">age_cat</span> <span class="op">:</span> <span class="va">nh0506</span><span class="op">$</span><span class="va">sex</span></code></pre></div>
 <p>We can now see how many treated and control units are in each of our strata. Our treated units are composed of daily smokers, whereas control units have never smoked. We look at the ratio of controls to treated units available in each stratum:</p>
-<div id="htmlwidget-b02c6a21d1e62397aea7" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-b02c6a21d1e62397aea7">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6"],["&lt; 40 years:Male","&lt; 40 years:Female","40 - 50 years:Male","40 - 50 years:Female","&gt; 50 years:Male","&gt; 50 years:Female"],["&lt; 40 years","&lt; 40 years","40 - 50 years","40 - 50 years","&gt; 50 years","&gt; 50 years"],["Male","Female","Male","Female","Male","Female"],[391,646,185,243,329,553],[128,88,81,73,123,88],[3.1,7.3,2.3,3.3,2.7,6.3]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Stratum<\/th>\n      <th>Age<\/th>\n      <th>Sex<\/th>\n      <th>Control<\/th>\n      <th>Treated<\/th>\n      <th>Ratio<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"paging":false,"searching":false,"columnDefs":[{"className":"dt-right","targets":[4,5,6]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><p><a id="sec2"></a></p>
+<div id="htmlwidget-6bbb04cf75588cc9487e" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-6bbb04cf75588cc9487e">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6"],["&lt; 40 years:Male","&lt; 40 years:Female","40 - 50 years:Male","40 - 50 years:Female","&gt; 50 years:Male","&gt; 50 years:Female"],["&lt; 40 years","&lt; 40 years","40 - 50 years","40 - 50 years","&gt; 50 years","&gt; 50 years"],["Male","Female","Male","Female","Male","Female"],[391,646,185,243,329,553],[128,88,81,73,123,88],[3.1,7.3,2.3,3.3,2.7,6.3]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Stratum<\/th>\n      <th>Age<\/th>\n      <th>Sex<\/th>\n      <th>Control<\/th>\n      <th>Treated<\/th>\n      <th>Ratio<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"paging":false,"searching":false,"columnDefs":[{"className":"dt-right","targets":[4,5,6]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><p><a id="sec2"></a></p>
 </div>
 <div id="selecting-a-ratio-of-controls-to-treated" class="section level3">
 <h3 class="hasAnchor">
@@ -213,11 +213,11 @@
                              plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
 <span class="co">#&gt; Excellent balance achieved across strata (&lt;.1 standardized difference in all covariates). </span>
 <span class="co">#&gt;  The mean standardized difference across strata for the covariates is 0.017,</span>
-<span class="co">#&gt;    the median is 0.004,</span>
-<span class="co">#&gt;    and the maximum is 0.072. </span>
+<span class="co">#&gt;    the median is 0.001,</span>
+<span class="co">#&gt;    and the maximum is 0.085. </span>
 <span class="co">#&gt; Taking a weighted average of standardized differences within strata, </span>
 <span class="co">#&gt;  we have the mean covariate imbalance is 0.024,</span>
-<span class="co">#&gt;    the median is 0.012,</span>
+<span class="co">#&gt;    the median is 0.013,</span>
 <span class="co">#&gt;    and the maximum is 0.085. </span>
 <span class="co">#&gt;  Within strata, we see imbalances (&gt;=.2 standardized difference in some covariates in some strata). </span>
 <span class="co">#&gt;  The mean standardized difference within strata for the covariates is 0.024,</span>
@@ -289,16 +289,16 @@
 <span class="co">#&gt; </span>
 <span class="co">#&gt; The ATT for stratum &lt; 40 years:Male is 0.078 on the log scale,</span>
 <span class="co">#&gt;       which converted back to a regular scale is 1.081 umol/L.</span>
-<span class="co">#&gt; The ATT for stratum &lt; 40 years:Female is 0.235 on the log scale,</span>
-<span class="co">#&gt;       which converted back to a regular scale is 1.265 umol/L.</span>
-<span class="co">#&gt; The ATT for stratum 40 - 50 years:Male is 0.04 on the log scale,</span>
-<span class="co">#&gt;       which converted back to a regular scale is 1.041 umol/L.</span>
+<span class="co">#&gt; The ATT for stratum &lt; 40 years:Female is 0.239 on the log scale,</span>
+<span class="co">#&gt;       which converted back to a regular scale is 1.27 umol/L.</span>
+<span class="co">#&gt; The ATT for stratum 40 - 50 years:Male is 0.045 on the log scale,</span>
+<span class="co">#&gt;       which converted back to a regular scale is 1.046 umol/L.</span>
 <span class="co">#&gt; The ATT for stratum 40 - 50 years:Female is 0.213 on the log scale,</span>
 <span class="co">#&gt;       which converted back to a regular scale is 1.237 umol/L.</span>
-<span class="co">#&gt; The ATT for stratum &gt; 50 years:Male is 0.08 on the log scale,</span>
-<span class="co">#&gt;       which converted back to a regular scale is 1.083 umol/L.</span>
-<span class="co">#&gt; The ATT for stratum &gt; 50 years:Female is 0.192 on the log scale,</span>
-<span class="co">#&gt;       which converted back to a regular scale is 1.212 umol/L.</span></code></pre></div>
+<span class="co">#&gt; The ATT for stratum &gt; 50 years:Male is 0.077 on the log scale,</span>
+<span class="co">#&gt;       which converted back to a regular scale is 1.08 umol/L.</span>
+<span class="co">#&gt; The ATT for stratum &gt; 50 years:Female is 0.19 on the log scale,</span>
+<span class="co">#&gt;       which converted back to a regular scale is 1.209 umol/L.</span></code></pre></div>
 <p>We see a similar effect of smoking increasing homocysteine levels across all the strata, but the effect is greater for females of all ages than for males.</p>
 </div>
 </div>
@@ -394,8 +394,8 @@
 <code class="sourceCode R"><span class="va">strata2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cut.html">cut</a></span><span class="op">(</span><span class="va">nh0506_3groups</span><span class="op">$</span><span class="va">age</span>, 
                breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">19</span>, <span class="fl">39</span>, <span class="fl">50</span>, <span class="fl">85</span><span class="op">)</span>, 
                labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">'&lt; 40 years'</span>, <span class="st">'40 - 50 years'</span>, <span class="st">'&gt; 50 years'</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<div id="htmlwidget-57dab844979267740b13" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-57dab844979267740b13">{"x":{"filter":"none","vertical":false,"data":[["1","2","3"],["&lt; 40 years","40 - 50 years","&gt; 50 years"],[216,154,211],[444,270,815],[1037,428,882]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Stratum<\/th>\n      <th>Daily smokers<\/th>\n      <th>Some smoking<\/th>\n      <th>Never smokers<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"paging":false,"searching":false,"columnDefs":[{"className":"dt-right","targets":[2,3,4]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div id="htmlwidget-8615fe748de599b755f6" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-8615fe748de599b755f6">{"x":{"filter":"none","vertical":false,"data":[["1","2","3"],["&lt; 40 years","40 - 50 years","&gt; 50 years"],[216,154,211],[444,270,815],[1037,428,882]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Stratum<\/th>\n      <th>Daily smokers<\/th>\n      <th>Some smoking<\/th>\n      <th>Never smokers<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"paging":false,"searching":false,"columnDefs":[{"className":"dt-right","targets":[2,3,4]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">constraints2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_constraints.html">generate_constraints</a></span><span class="op">(</span>
   balance_formulas <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">age</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">education</span> <span class="op">+</span> <span class="va">povertyr</span> <span class="op">+</span> <span class="va">bmi</span> <span class="op">+</span> <span class="va">sex</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> <span class="va">strata2</span><span class="op">)</span>, 
   z <span class="op">=</span> <span class="va">nh0506_3groups</span><span class="op">$</span><span class="va">z</span>, 
@@ -460,7 +460,7 @@
 <code>age + race ~ 0 + age_cat + sex</code>: Balance within the levels of <code>age_cat</code> and <code>sex</code> individually instead of within their interaction that forms <code>strata</code>
 </li>
 </ul>
-<p>If we want to balance all, or almost all, covariates in a data frame with the same penalty coefficient, we can use the <code>.</code> and <code><a href="https://rdrr.io/r/base/Arithmetic.html">-</a></code> options as usual. <code>. - sex ~ strata</code> would mean to balance all the variables in our specified data frame except for <code>sex</code> across the population and within the strata.</p>
+<p>If we want to balance all, or almost all, covariates in a data frame with the same penalty coefficient, we can use the <code>.</code> and <code>-</code> options as usual. <code>. - sex ~ strata</code> would mean to balance all the variables in our specified data frame except for <code>sex</code> across the population and within the strata.</p>
 <p>We combine any amount of such balance formulas in a list. For example, another way to specify <code>age + race ~ 1 + strata</code> would be to specify two entries in the list: <code>age ~ 1 + strata, race ~ 1 + strata</code>. Yet another way would be to enter <code>age, race</code> in the <code>balance_formulas</code> list and also set <code>default_rhs = '1 + strata'</code>. This would apply the right hand side <code>1 + strata</code> to any element of the <code>balance_formulas</code> list that does not have a right hand side specified.</p>
 </div>
 <div id="additional-generate_constraints-arguments" class="section level3">
