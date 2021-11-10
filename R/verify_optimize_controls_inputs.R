@@ -171,7 +171,7 @@ process_qs <- function(ratio, q_s, n_s, treated, k, group, st_vals, stratios) {
     if (is.null(ratio)) {
       ratio <- sapply(1:nrow(stratios), function(i) min(1, min(stratios[i, ])))
     }
-    q_s <- round(ratio %*% t(n_s[group == treated, , drop = FALSE]))
+    q_s <- round(ratio %*% t(n_s[group == treated, ]))
     if (any(q_s > n_s)) {
       stop("The ratio you specified is not feasible.
             Please supply `q_s` instead of `ratio` or lower the `ratio` input.",
