@@ -208,7 +208,7 @@ generate_constraints <- function(balance_formulas, z, data, default_rhs = NULL,
         if (!is.null(treated)) {
           col_ns <- colSums(mat[z == treated, term_cols, drop = FALSE])
         } else {
-          col_ns <- colSums(mat[, term_cols, drop == FALSE])
+          col_ns <- colSums(mat[, term_cols, drop = FALSE])
         }
 
         # Weight constraints based on coefficients and weight_by_size

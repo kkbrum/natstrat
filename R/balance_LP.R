@@ -39,6 +39,7 @@ balance_LP <- function(z, X, importances, st, st_vals, S, q_s, N,
     k <- length(groups)
     kc2 <- choose(k, 2)
   } else {
+    k <- 1
     kc2 <- 1
   }
   n_comp <- length(q_s)
@@ -58,8 +59,13 @@ balance_LP <- function(z, X, importances, st, st_vals, S, q_s, N,
     # Now, append stratum size constraints for each comparison
   st_mats <- simple_triplet_zero_matrix(nrow = k * S, ncol = N)
   for (group_num in 1:k) {
-    group <- groups[group_num]
-    st_mats[((group_num - 1) * S + 1):(group_num * S), which(z == group)] <- 1 * outer(st_vals, st[z == group], "==")
+    if (!is.null(z)) {
+      group <- groups[group_num]
+      ind <- which(z == group)
+    } else {
+      ind <- 1:N
+    }
+    st_mats[((group_num - 1) * S + 1):(group_num * S), ind] <- 1 * outer(st_vals, st[ind], "==")
   }
   for (comp in 1:n_comp) {
     model$A <- rbind(model$A,
@@ -107,6 +113,7 @@ balance_LP <- function(z, X, importances, st, st_vals, S, q_s, N,
     } else {
       params$TimeLimit <- 0
     }
+
     o <- Rglpk::Rglpk_solve_LP(obj = model$obj, mat = model$A, dir = model$sense,
                                rhs = model$rhs, bounds = bounds,
                                types = model$vtype, control = list(

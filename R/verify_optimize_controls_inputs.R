@@ -32,12 +32,12 @@ verify_inputs <- function(X, importances, ratio, q_s, st, z, treated, integer, s
          install it or switch the \"solver\" parameter to \"Rglpk\".",
          call. = FALSE)
   }
-  if (!is.factor(z)) {
-    z <- factor(z)
-  }
-  group <- levels(z)
 
   if (!is.null(z)) {
+    if (!is.factor(z)) {
+      z <- factor(z)
+    }
+    group <- levels(z)
     if (!treated %in% group) {
       stop("\"treated\" must be one of the values in \"z\".")
     }
@@ -46,10 +46,10 @@ verify_inputs <- function(X, importances, ratio, q_s, st, z, treated, integer, s
       warning("Note that at least one stratum has no treated individuals.")
     }
   } else {
-    n_s <- table(st)
+    n_s <- matrix(table(st), nrow = 1, dimnames = list(NULL, names(table(st))))
   }
   if (!is.null(q_s)) {
-    if (is.vector(q_s)) {
+    if (!is.matrix(q_s)) {
       q_s <- matrix(q_s, nrow = 1, dimnames = list(NULL, names(q_s)))
       if (!is.null(treated)) {
         q_s <- cbind(q_s, n_s[group == treated, ])
@@ -58,7 +58,8 @@ verify_inputs <- function(X, importances, ratio, q_s, st, z, treated, integer, s
         }
       }
     }
-    if (any(q_s[, colnames(n_s)] > n_s)) {
+
+    if (any(q_s[, colnames(n_s), drop = FALSE] > n_s)) {
       stop("At least one of the entries for `q_s` is greater than the number of units available in the stratum.
            Please lower `q_s` such that all entries are at most the number of available units.",
            call. = FALSE)
@@ -175,11 +176,11 @@ verify_multi_comp_inputs <- function(q_s, q_star_s, n_s, treated, treated_star, 
 #' @keywords internal
 
 process_qs <- function(ratio, q_s, n_s, treated, k, group, st_vals, stratios) {
-  if (!is.null(q_s) & is.vector(q_s)) {
+  if (!is.null(q_s) & !is.matrix(q_s)) {
     q_s <- matrix(q_s, nrow = 1, dimnames = list(NULL, names(q_s)))
     if (!is.null(treated)) {
       q_s <- matrix(rep(q_s, k), byrow = TRUE, nrow = k, dimnames = list(NULL, names(q_s)))
-      q_s[group == treated, ] <- n_s[group == treated, ]
+      q_s[group == treated, , drop = FALSE] <- n_s[group == treated, , drop = FALSE]
     }
   }
   if (!is.null(ratio) & length(ratio) == 1) {
@@ -199,7 +200,7 @@ process_qs <- function(ratio, q_s, n_s, treated, k, group, st_vals, stratios) {
     }
     colnames(q_s) <- st_vals
   } else {
-    q_s <- q_s[, st_vals]
+    q_s <- q_s[, st_vals, drop = FALSE]
   }
 
   return(q_s)

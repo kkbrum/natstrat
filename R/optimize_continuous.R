@@ -140,7 +140,7 @@ optimize_continuous <- function(X, st, importances = NULL,
   }
 
   # Combine the first and the supplemental comparisons into a single list of comparisons
-  if (!is.null(q_s) || !is.null(ratio)) {
+  if (!is.null(q_s)) {
     weight_comp <- 1
   }
   if (!is.null(q_s)) {
@@ -215,8 +215,8 @@ optimize_continuous <- function(X, st, importances = NULL,
     set.seed(seed, kind = "Mersenne-Twister")
 
 
-    balance_matrices <- create_balance_matrices(X = X, z = z, N = N, nvars = nvars_per_group,
-                                                kc2 = kc2, q_s = q_s, return = "X")
+    balance_matrices <- create_balance_matrices(X = X, z = NULL, N = N, nvars = nvars,
+                                                kc2 = 1, q_s = q_s, return = "X")
 
     eps <- NULL
     for (run in 1:runs) {
