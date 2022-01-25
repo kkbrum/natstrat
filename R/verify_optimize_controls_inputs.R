@@ -19,7 +19,7 @@ verify_inputs <- function(X, importances, ratio, q_s, st, z, treated, integer, s
   stopifnot(is.null(ratio) | (is.vector(ratio) & all(ratio > 0)))
   stopifnot(is.vector(st) | is.factor(st))
   stopifnot(is.null(z) | is.vector(z) | is.factor(z))
-  stopifnot(is.matrix(X))
+  stopifnot(is.matrix(X) | is.simple_triplet_matrix(X))
   stopifnot(length(st) == (dim(X)[1]))
   stopifnot(is.null(z) || (length(z) == length(st)))
   stopifnot(is.logical(integer))
