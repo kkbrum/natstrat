@@ -126,8 +126,10 @@ balance_LP <- function(z, X, importances, st, st_vals, S, q_s, N,
   }
   if (solver == "gurobi") {
     # Note that for gurobi, all inequalities are interpreted to be "or equal to"
-    model$sense <- c(rep("=", n_comp * kc2 * nvars), rep("=", n_comp * k * S),
-                     rep("<", N))
+    model$sense <- c(rep("=", n_comp * kc2 * nvars), rep("=", n_comp * k * S))
+    if (n_comp > 1) {
+        model$sense <- c(model$sense(, rep("<", N)))
+    }
     o <- gurobi::gurobi(model, params)
     if (o$status != "OPTIMAL") {
       warning("No solution found for the linear program.")
