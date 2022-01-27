@@ -123,7 +123,8 @@ balance_LP <- function(z, X, importances, st, st_vals, S, q_s, N,
       return(NULL)
     }
     lpdetails <- o
-    names(o)[c(6,7)] <- c("optimum", "solution")
+    names(o)[names(o) == "objval"] <- "optimum"
+    names(o)[names(o) == "x"] <- "solution"
   }
 
   return(list(lpdetails = lpdetails, o = o))
