@@ -4,7 +4,7 @@ pkg_version <- tryCatch(as.character(packageVersion("natstrat")), error = functi
 
 bibentry(bibtype = "Manual",
          title = "natstrat: Obtain Unweighted Natural Strata that Balance Many Covariates",
-         author = person("Katherine", "Brumberg"),
+         author = person(given = "Katherine", family = "Brumberg"),
          year = 2024,
          note = if (nzchar(pkg_version)) paste("R package version", pkg_version) else "R package",
          url = "https://github.com/kkbrum/natstrat",
@@ -18,9 +18,9 @@ bibentry(bibtype = "Manual",
 bibentry(bibtype = "Article",
          title = "Using Randomized Rounding of Linear Programs to Obtain Unweighted Natural Strata that Balance Many Covariates",
          author = c(
-           person("Katherine", "Brumberg"),
-           person("Dylan", "S", "Small"),
-           person("Paul", "R", "Rosenbaum")
+           person(given = "Katherine", family = "Brumberg"),
+           person(given = c("Dylan", "S"), family = "Small"),
+           person(given = c("Paul", "R"), family = "Rosenbaum")
          ),
          journal = "Journal of the Royal Statistical Society Series A: Statistics in Society",
          year = 2022,
@@ -35,11 +35,11 @@ bibentry(bibtype = "Article",
 bibentry(bibtype = "Article",
          title = "Using natural strata when examining unmeasured biases in an observational study of neurological side effects of antibiotics",
          author = c(
-           person("Katherine", "Brumberg"),
-           person("Darcy", "E", "Ellis"),
-           person("Dylan", "S", "Small"),
-           person("Sean", "Hennessy"),
-           person("Paul", "R", "Rosenbaum")
+           person(given = "Katherine", family = "Brumberg"),
+           person(given = c("Darcy", "E"), family = "Ellis"),
+           person(given = c("Dylan", "S"), family = "Small"),
+           person(given = "Sean", family = "Hennessy"),
+           person(given = c("Paul", "R"), family = "Rosenbaum")
          ),
          journal = "Journal of the Royal Statistical Society Series C: Applied Statistics",
          year = 2023,

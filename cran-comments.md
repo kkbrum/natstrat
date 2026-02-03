@@ -1,4 +1,4 @@
-## Updated package
+## Updated package (formerly archived)
 This is a patch to update my email address. All other changes are just to get checks/tests running smoothly.
 
 ## Test environments
