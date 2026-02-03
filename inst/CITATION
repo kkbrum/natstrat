@@ -1,12 +1,18 @@
 citHeader("To cite natstrat in publications use:")
 
+pkg_version <- tryCatch(as.character(packageVersion("natstrat")), error = function(e) "")
+
 bibentry(bibtype = "Manual",
          title = "natstrat: Obtain Unweighted Natural Strata that Balance Many Covariates",
          author = person("Katherine", "Brumberg"),
          year = 2024,
-         note = paste("R package version", packageVersion("natstrat")),
+         note = if (nzchar(pkg_version)) paste("R package version", pkg_version) else "R package",
          url = "https://github.com/kkbrum/natstrat",
-         textVersion = paste("Brumberg, K. (2024). natstrat: Obtain Unweighted Natural Strata that Balance Many Covariates. R package version", packageVersion("natstrat"), ". https://github.com/kkbrum/natstrat")
+         textVersion = if (nzchar(pkg_version)) {
+           paste("Brumberg, K. (2024). natstrat: Obtain Unweighted Natural Strata that Balance Many Covariates. R package version", pkg_version, ". https://github.com/kkbrum/natstrat")
+         } else {
+           "Brumberg, K. (2024). natstrat: Obtain Unweighted Natural Strata that Balance Many Covariates. R package. https://github.com/kkbrum/natstrat"
+         }
 )
 
 bibentry(bibtype = "Article",

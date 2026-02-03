@@ -6,13 +6,17 @@
 \alias{natstrat-package}
 \title{natstrat: Obtain Unweighted Natural Strata that Balance Many Covariates}
 \description{
-Natural strata fix a constant ratio of controls to treated units within
-each stratum. This ratio need not be an integer. The control units are
-chosen using randomized rounding of a linear program that balances many
-covariates.
+Natural strata can be used in observational studies to balance
+the distributions of many covariates across any number of treatment
+groups and any number of comparisons. These strata have proportional
+amounts of units within each stratum across the treatments, allowing
+for simple interpretation and aggregation across strata. Within each
+stratum, the units are chosen using randomized rounding of a linear
+program that balances many covariates. For more details, see Brumberg et al. (2022) <doi:10.1111/rssa.12848> and Brumberg et al.(2023) <doi:10.1093/jrsssc/qlad010>.
 To solve the linear program, the 'Gurobi' commercial optimization software
-is recommended, but not required. The 'gurobi' R package can be installed following
-the instructions \href{https://www.gurobi.com/documentation/9.1/refman/ins_the_r_package.html}{here}.
+is recommended, but not required. The 'gurobi' R package can be installed by following the instructions
+\href{https://docs.gurobi.com/projects/optimizer/en/current/reference/r/setup.html}{here} after claiming your free academic license 
+\href{https://www.gurobi.com/academia/academic-program-and-licenses/}{here}.
 }
 \details{
 To achieve the desired ratio of control to treated units,

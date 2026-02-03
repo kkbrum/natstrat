@@ -11,7 +11,7 @@ Description: Natural strata can be used in observational studies to balance
     amounts of units within each stratum across the treatments, allowing 
     for simple interpretation and aggregation across strata. Within each 
     stratum, the units are chosen using randomized rounding of a linear 
-    program that balances many covariates. For more details, see Brumberg et al. (2022) <https://doi.org/10.1111/rssa.12848> and Brumberg et al.(2023) <https://doi.org/10.1093/jrsssc/qlad010>.
+    program that balances many covariates. For more details, see Brumberg et al. (2022) <doi:10.1111/rssa.12848> and Brumberg et al.(2023) <doi:10.1093/jrsssc/qlad010>.
     To solve the linear program, the 'Gurobi' commercial optimization software 
     is recommended, but not required. The 'gurobi' R package can be installed by following the instructions at <https://docs.gurobi.com/projects/optimizer/en/current/reference/r/setup.html> after claiming your free academic license at <https://www.gurobi.com/academia/academic-program-and-licenses/>.
 URL: https://github.com/kkbrum/natstrat, https://kkbrum.github.io/natstrat/, https://docs.gurobi.com/projects/optimizer/en/current/reference/r/setup.html
