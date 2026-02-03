@@ -28,13 +28,13 @@ Useful links:
 \itemize{
   \item \url{https://github.com/kkbrum/natstrat}
   \item \url{https://kkbrum.github.io/natstrat/}
-  \item \url{https://www.gurobi.com/documentation/9.1/refman/ins_the_r_package.html}
+  \item \url{https://docs.gurobi.com/projects/optimizer/en/current/reference/r/setup.html}
   \item Report bugs at \url{https://github.com/kkbrum/natstrat/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: Katherine Brumberg \email{kbrum@wharton.upenn.edu}
+\strong{Maintainer}: Katherine Brumberg \email{kbrum@umich.edu}
 
 }
 \keyword{internal}

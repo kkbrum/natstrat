@@ -1,3 +1,7 @@
+# natstrat 2.0.0 (2026-02-03)
+
+This patch updates the maintainer's email address and adds paper citations.
+
 # natstrat 2.0.0 (2021-10-12)
 
 This version adds several new functionalities:
@@ -24,8 +28,6 @@ for missingness. If you would like corrected versions, refer to the standardized
 outputted by `check_balance` instead
 * `generate_constraints` now returns only standardized outputs, not centered. The centering
 now takes place within `optimize_controls` instead
-
-
 
 # natstrat 1.0.0 (2021-05-17)
 

@@ -1,0 +1,46 @@
+citHeader("To cite natstrat in publications use:")
+
+bibentry(bibtype = "Manual",
+         title = "natstrat: Obtain Unweighted Natural Strata that Balance Many Covariates",
+         author = person("Katherine", "Brumberg"),
+         year = 2024,
+         note = paste("R package version", packageVersion("natstrat")),
+         url = "https://github.com/kkbrum/natstrat",
+         textVersion = paste("Brumberg, K. (2024). natstrat: Obtain Unweighted Natural Strata that Balance Many Covariates. R package version", packageVersion("natstrat"), ". https://github.com/kkbrum/natstrat")
+)
+
+bibentry(bibtype = "Article",
+         title = "Using Randomized Rounding of Linear Programs to Obtain Unweighted Natural Strata that Balance Many Covariates",
+         author = c(
+           person("Katherine", "Brumberg"),
+           person("Dylan", "S", "Small"),
+           person("Paul", "R", "Rosenbaum")
+         ),
+         journal = "Journal of the Royal Statistical Society Series A: Statistics in Society",
+         year = 2022,
+         volume = 185,
+         number = 4,
+         pages = "1931-1951",
+         doi = "10.1111/rssa.12848",
+         url = "https://doi.org/10.1111/rssa.12848",
+         textVersion = "Brumberg, K., Small, D. S., & Rosenbaum, P. R. (2022). Using Randomized Rounding of Linear Programs to Obtain Unweighted Natural Strata that Balance Many Covariates. Journal of the Royal Statistical Society Series A: Statistics in Society, 185(4), 1931-1951. https://doi.org/10.1111/rssa.12848"
+)
+
+bibentry(bibtype = "Article",
+         title = "Using natural strata when examining unmeasured biases in an observational study of neurological side effects of antibiotics",
+         author = c(
+           person("Katherine", "Brumberg"),
+           person("Darcy", "E", "Ellis"),
+           person("Dylan", "S", "Small"),
+           person("Sean", "Hennessy"),
+           person("Paul", "R", "Rosenbaum")
+         ),
+         journal = "Journal of the Royal Statistical Society Series C: Applied Statistics",
+         year = 2023,
+         volume = 72,
+         number = 2,
+         pages = "314-329",
+         doi = "10.1093/jrsssc/qlad010",
+         url = "https://doi.org/10.1093/jrsssc/qlad010",
+         textVersion = "Brumberg, K., Ellis, D. E., Small, D. S., Hennessy, S., & Rosenbaum, P. R. (2023). Using natural strata when examining unmeasured biases in an observational study of neurological side effects of antibiotics. Journal of the Royal Statistical Society Series C: Applied Statistics, 72(2), 314-329. https://doi.org/10.1093/jrsssc/qlad010"
+)
